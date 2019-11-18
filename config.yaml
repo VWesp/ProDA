@@ -1,0 +1,10 @@
+subjects:
+  csp: subjects/csp.fasta
+  gonium: subjects/gonium.fasta
+queries:
+  actin: queries/actin.faa
+  beta_tubulin2: queries/beta_tubulin2.faa
+
+blast_evalue: 1e-4
+left_addendum: 10000
+right_addendum: 10000

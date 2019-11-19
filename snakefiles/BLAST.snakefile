@@ -10,7 +10,6 @@ rule makeblastdb:
         "-out blast_dbs/{wildcards.subject}/{wildcards.subject}) 2> {log} && "
         "touch {output}"
 
-
 rule blast:
     input:
         temp_database = "blast_dbs/{subject}/temp.db",

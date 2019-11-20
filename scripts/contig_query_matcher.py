@@ -1,30 +1,16 @@
 import os
+from Bio import SeqIO
 
 try:
-    subjects = [s for s in snakemake.input if s.endswith(".fasta")]
+    subjects = [s for s in snakemake.input if s.endswith(".fna")]
     hits = [h for h in snakemake.input if h.endswith(".hit")]
-    subjects_content = {}
+    subjects_contigs = {}
     for subject in subjects:
-        subject_name = subject.split("/")[-1].split(".fasta")[0]
-        subjects_content[subject_name] = {}
-        sequence = []
-        with open(subject, "r") as subject_reader:
-            content = subject_reader.readlines()
-            current_header = None
-            for line in content:
-                if(line.startswith(">")):
-                    if(current_header == None):
-                        subjects_content[subject_name][line[1:].strip()] = None
-                    else:
-                        subjects_content[subject_name][current_header] = "".join(sequence)
-                        del sequence[:]
-
-                    current_header = line[1:].strip()
-                else:
-                    sequence.append(line.strip())
-
-            subjects_content[subject_name][current_header] = "".join(sequence)
-            del sequence[:]
+        subject_name = subject.split("/")[-1].split(".fna")[0]
+        subjects_contigs[subject_name] = {}
+        fasta_sequences = SeqIO.parse(open(subject), "fasta")
+        for fasta in fasta_sequences:
+            subjects_contigs[subject_name][fasta.id] = str(fasta.seq)
 
     query_subject_matcher = {}
     for hit in hits:
@@ -56,15 +42,15 @@ try:
                 else:
                     hit_start -= snakemake.params[0]
 
-                if(hit_end + snakemake.params[1] >= len(subjects_content[subject_name][contig_id])):
-                    hit_end = len(subjects_content[subject_name][contig_id])-1
+                if(hit_end + snakemake.params[1] >= len(subjects_contigs[subject_name][contig_id])):
+                    hit_end = len(subjects_contigs[subject_name][contig_id])-1
                 else:
                     hit_end += snakemake.params[1]
 
-                sequence = subjects_content[subject_name][contig_id][hit_start:hit_end]
+                sequence = subjects_contigs[subject_name][contig_id][hit_start:hit_end]
                 query_subject_matcher[subject_name][hit_name][contig_id].append([sequence, hit_start, hit_end])
 
-    subjects_content.clear()
+    subjects_contigs.clear()
     fasta = []
     for subject in query_subject_matcher:
         for query in query_subject_matcher[subject]:
@@ -78,11 +64,11 @@ try:
                     header = contig + "_start:" + str(sequence[1]) + "_end:" + str(sequence[2])
                     fasta.append(">" + header + "\n" + sequence[0])
 
-            with open(path + "/" + query + ".fasta", "w") as match_writer:
+            with open(path + "/" + query + ".fna", "w") as match_writer:
                 match_writer.write("\n".join(fasta))
 
     del fasta[:]
     query_subject_matcher.clear()
-except Exceptions as ex:
+except Exception as ex:
     with open(snakemake.log[0], "w") as log_writer:
         log_writer.write(ex)

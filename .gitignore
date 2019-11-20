@@ -3,5 +3,7 @@ blast_dbs/
 blast_results/
 log/
 matches/
-exonerate_results/
+exonerate/
+spaln/
+cd_hit/
 temp/

@@ -1,6 +1,6 @@
 subjects:
-  csp: data/subjects/csp.fasta
-  gonium: data/subjects/gonium.fasta
+  csp: data/subjects/csp.fna
+  gonium: data/subjects/gonium.fna
 queries:
   actin: data/queries/actin.faa
   beta_tubulin2: data/queries/beta_tubulin2.faa
@@ -9,3 +9,4 @@ blast_evalue: 1e-4
 left_addendum: 10000
 right_addendum: 10000
 exonerate_percentage: 70
+cd_hit_threshold: 95

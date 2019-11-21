@@ -4,9 +4,10 @@ subjects:
 queries:
   actin: data/queries/actin.faa
   beta_tubulin2: data/queries/beta_tubulin2.faa
+  cng_channels: data/queries/cng_channels.faa
 
 blast_evalue: 1e-4
 left_addendum: 10000
 right_addendum: 10000
-exonerate_percentage: 70
+exonerate_percentage: 20
 cd_hit_threshold: 95

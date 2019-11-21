@@ -6,4 +6,5 @@ matches/
 exonerate/
 spaln/
 cd_hit/
-temp/
+scores/
+best_hit/

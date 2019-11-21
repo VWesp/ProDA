@@ -1,35 +1,27 @@
-rule cd_hit_exonerate:
-    input:
-        expand("exonerate/{subject}/{query}.faa", subject=config["subjects"], query=config["queries"])
-    output:
-        "cd_hit/exonerate/{subject}/{query}.faa"
-    log:
-        "log/cd_hit/exonerate/{subject}/{query}.log"
-    params:
-        id=config["cd_hit_threshold"]
-    run:
-        for fasta_file in input:
-            subject_name = fasta_file.split("/")[-2]
-            query_name = fasta_file.split("/")[-1].split(".faa")[0]
-            cd_hit_output = "cd_hit/exonerate/" + subject_name + "/" + query_name + ".faa"
-            cd_hit_log = "log/cd_hit/exonerate/" + subject_name + "/" + query_name + ".log"
-            os.system("(cd-hit -i " + fasta_file + " -o " + cd_hit_output + " -c " +
-                      str(float(params[0])/100) + ") 2> " + log[0])
+import os
 
-rule cd_hit_spaln:
+rule cd_hit:
     input:
-        expand("spaln/{subject}/{query}.faa", subject=config["subjects"], query=config["queries"])
+        "exonerate/{subject}/{query}.faa",
+        "spaln/{subject}/{query}.faa"
     output:
-        "cd_hit/spaln/{subject}/{query}.faa"
+        "cd_hit/{subject}/{query}_joined.faa",
+        "cd_hit/{subject}/{query}_merged.faa"
     log:
-        "log/cd_hit/spaln/{subject}/{query}.log"
+        "log/cd_hit/{subject}/{query}.log"
     params:
         id=config["cd_hit_threshold"]
     run:
-        for fasta_file in input:
-            subject_name = fasta_file.split("/")[-2]
-            query_name = fasta_file.split("/")[-1].split(".faa")[0]
-            cd_hit_output = "cd_hit/spaln/" + subject_name + "/" + query_name + ".faa"
-            cd_hit_log = "log/cd_hit/spaln/" + subject_name + "/" + query_name + ".log"
-            os.system("(cd-hit -i " + fasta_file + " -o " + cd_hit_output + " -c " +
-                      str(float(params[0])/100) + ") 2> " + log[0])
+        merge = []
+        with open(input[0], "r") as input_reader:
+            merge.append(input_reader.read())
+
+        with open(input[1], "r") as input_reader:
+            merge.append(input_reader.read())
+
+        with open(output[0], "w") as input_writer:
+            input_writer.write("\n".join(merge))
+
+        del merge[:]
+        os.system("(cd-hit -i " + output[0] + " -o " + output[1] +
+                  " -c " + str(float(params[0])/100) + ") 2> " + log[0])

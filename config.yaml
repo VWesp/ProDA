@@ -1,13 +1,14 @@
 subjects:
-  csp: data/subjects/csp.fna
-  gonium: data/subjects/gonium.fna
+  genome_1: data/subjects/genome_1.fna
+  genome_2: data/subjects/genome_2.fna
 queries:
-  actin: data/queries/actin.faa
-  beta_tubulin2: data/queries/beta_tubulin2.faa
-  cng_channels: data/queries/cng_channels.faa
+  protein_1: data/queries/protein_1.faa
+  protein_2: data/queries/protein_2.faa
 
 blast_evalue: 1e-4
 left_addendum: 10000
 right_addendum: 10000
 exonerate_percentage: 20
 cd_hit_threshold: 95
+sim_threshold: 50
+properties: $HOME/.jalview_properties

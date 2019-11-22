@@ -1,49 +1,40 @@
-from Bio import SeqIO, pairwise2
-
 rule get_best_hit:
     input:
-        "scores/{subject}/{query}.sc",
-        "cd_hit/{subject}/{query}_merged.faa"
+        "scores/{subject}/{query}.sim"
     output:
-        "best_hit/{subject}/{query}.faa"
+        "best_hit/{subject}/{query}.tsv"
     log:
         "log/best_hit/{subject}/{query}.log"
     run:
-        with open(input[0], "r") as score_reader:
-            content = score_reader.readlines()
-            scores = {}
-            current_query = None
-            index = None
-            for line in content:
-                if(line.strip()):
-                    if(line.startswith("#")):
-                        current_query = line[1:].strip()
-                        scores[current_query] = ["", -1, -1]
-                        index = 0
-                    else:
-                        contig = line.split("\t")[0].strip()
-                        score = float(line.split("\t")[-1].strip())
-                        if(scores[current_query][0] == contig):
-                            index += 1
+        try:
+            similarities = {}
+            with open(input[0], "r") as score_reader:
+                content = score_reader.readlines()
+                current_query = None
+                for line in content:
+                    if(line.strip()):
+                        if(line.startswith("#")):
+                            current_query = line[1:].strip()
+                            similarities[current_query] = ["", -1, ""]
+                        else:
+                            contig = line.split("\t")[0].strip()
+                            similarity = float(line.split("\t")[1].strip())
+                            hit_sequence = line.split("\t")[2].strip()
+                            query_sequence = line.split("\t")[3].strip()
+                            if(similarity > similarities[current_query][1]):
+                                similarities[current_query] = [contig, similarity, hit_sequence, query_sequence]
 
-                        if(score > scores[current_query][1]):
-                            scores[current_query] = [contig, score, index]
 
-        best_hits = []
-        fasta_sequences = SeqIO.parse(open(input[1]), "fasta")
-        for fasta in fasta_sequences:
-            query = fasta.id.split("::query=")[-1]
-            index = 0
-            if(scores[query][0] == fasta.id):
-                if(scores[query][2] == index):
-                    id = str(float(scores[query][1]) / len(str(fasta.seq)))
-                    header = ">" + fasta.id + "::identity=" + id
-                    best_hits.append(header + "\n" + str(fasta.seq))
-                else:
-                    index += 1
+            best_hits = []
+            for query, hit in similarities.items():
+                contig = hit[0].split("::query=")[0]
+                best_hits.append(query + "\t" + contig + "\t" + str(hit[1]) + "\t" + hit[2] + "\t" + hit[3])
 
-        with open(output[0], "w") as best_hit_writer:
-            best_hit_writer.write("\n".join(best_hits))
+            with open(output[0], "w") as statistic_writer:
+                statistic_writer.write("\n".join(best_hits))
 
-        scores.clear()
-        del best_hits[:]
+            similarities.clear()
+            del best_hits[:]
+        except Exception as ex:
+            with open(log[0], "w") as log_writer:
+                log_writer.write(str(ex))

@@ -1,13 +1,15 @@
 import os
-from Bio import SeqIO, pairwise2
-from Bio.pairwise2 import format_alignment
+from Bio import SeqIO
 
 rule alignment:
     input:
         "data/queries/{query}.faa",
         "cd_hit/{subject}/{query}_merged.faa"
     output:
-        "scores/{subject}/{query}.sc"
+        "scores/{subject}/{query}.sim",
+        temp("scores/{subject}/{query}_temp.st"),
+        temp("scores/{subject}/{query}_temp_query.faa"),
+        temp("scores/{subject}/{query}_temp_hit.faa")
     log:
         "log/scores/{subject}/{query}.log"
     run:
@@ -20,8 +22,21 @@ rule alignment:
                 for fasta in fasta_sequences:
                     fasta_name = fasta.id.split("::query=")[-1]
                     if(query.id == fasta_name):
-                        score = pairwise2.align.globalxx(str(query.seq), str(fasta.seq), score_only=True)
-                        scores.append(fasta.id + "\t" + str(score))
+                        with open(output[2], "w") as query_writer:
+                            query_writer.write(">" + query.id + "\n" + str(query.seq))
+
+                        with open(output[3], "w") as hit_writer:
+                            hit_writer.write(">" + fasta.id + "\n" + str(fasta.seq))
+
+                        os.system("(stretcher -asequence " + output[2] + " -sprotein1 -bsequence " +
+                                  output[3] + " -auto -stdout > " + output[1] + ") 2> " + log[0])
+                        with open(output[1], "r") as sim_reader:
+                            content = sim_reader.readlines()
+                            for line in content:
+                                if(line.startswith("# Similarity")):
+                                    similarity = line.split("(")[1][:-3]
+                                    scores.append(fasta.id + "\t" + similarity + "\t" + str(fasta.seq) + "\t" + str(query.seq))
+                                    break
 
                 scores.append("\n"*2)
 

@@ -1,26 +1,12 @@
-import os
-
 configfile: "config.yaml"
 
 rule all:
     input:
-        "temp/end.txt"
+        "finished.txt"
 
 include: "snakefiles/BLAST.snakefile"
 
-rule matcher:
-    input:
-        "data/subjects/{subject}.fna",
-        "blast_results/{subject}/{query}.hit"
-    output:
-        "matches/{subject}/{query}.fna"
-    log:
-        "log/matches/{subject}/{query}.log"
-    params:
-        left=config["left_addendum"],
-        right=config["right_addendum"]
-    script:
-        "scripts/contig_query_matcher.py"
+include: "snakefiles/QUERY_CONTIG_MATCHER.snakefile"
 
 include: "snakefiles/EXONERATE.snakefile"
 
@@ -28,14 +14,21 @@ include: "snakefiles/SPALN.snakefile"
 
 include: "snakefiles/CD_HIT.snakefile"
 
-include : "snakefiles/ALIGNMENT.snakefile"
+include: "snakefiles/ALIGNMENT.snakefile"
 
-include : "snakefiles/GET_BEST_HIT.snakefile"
+include: "snakefiles/GET_BEST_HIT.snakefile"
 
-rule test:
+include: "snakefiles/JOIN_RESULTS.snakefile"
+
+include: "snakefiles/VISUALIZE_RESULTS.snakefile"
+
+rule finisher:
     input:
-        expand("best_hit/{subject}/{query}.faa", subject=config["subjects"], query=config["queries"])
+        #expand("results/retained/alignments/{subject}/{query}.png", subject=config["subjects"], query=config["queries"]),
+        #expand("results/discarded/alignments/{subject}/{query}.png", subject=config["subjects"], query=config["queries"])
+        "results/retained/proda.tsv",
+        "results/discarded/proda.tsv"
     output:
-        temp("temp/end.txt")
+        temp("finished.txt")
     shell:
         "touch {output}"

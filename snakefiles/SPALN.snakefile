@@ -1,5 +1,5 @@
 import os
-from Bio import SeqIO
+from Bio.Seq import Seq
 
 rule spaln:
     input:
@@ -7,29 +7,30 @@ rule spaln:
         "matches/{subject}/{query}.fna"
     output:
         "spaln/{subject}/{query}.sp",
-        "spaln/{subject}/{query}.fna",
-        temp("spaln/{subject}/{query}_temp.fna"),
-        "spaln/{subject}/{query}.faa"
+        "spaln/{subject}/{query}.faa",
+        temp("spaln/{subject}/{query}_temp.sp"),
+        temp("spaln/{subject}/{query}.fna")
     log:
         "log/spaln/{subject}/{query}.log"
     run:
         try:
-            fasta_sequences = SeqIO.parse(open(input[1]), "fasta")
             result_list = []
-            for fasta in fasta_sequences:
-                with open(output[3], "w") as fasta_writer:
-                    fasta_writer.write(">" + fasta.id + "\n" + str(fasta.seq))
+            if(os.stat(input[1]).st_size != 0):
+                fasta_sequences = SeqIO.parse(open(input[1]), "fasta")
+                for fasta in fasta_sequences:
+                    with open(output[3], "w") as fasta_writer:
+                        fasta_writer.write(">" + fasta.id + "\n" + str(fasta.seq))
 
-                os.system("(spaln -M -Q3 -O6 -S3 -o" + output[0] + " " + output[3] + " " + input[0] + ") 2>" + log[0])
-                with open(output[0], "r") as spaln_reader:
-                    result_list.append(spaln_reader.read())
+                    os.system("(spaln -M -Q3 -O6 -S3 -o" + output[2] + " " + output[3] + " " + input[0] + ") 2>" + log[0])
+                    with open(output[2], "r") as spaln_reader:
+                        result_list.append(spaln_reader.read())
 
-            with open(output[1], "w") as spaln_writer:
+            with open(output[0], "w") as spaln_writer:
                 spaln_writer.write("\n".join(result_list))
 
             del result_list[:]
-            spaln_results = []
-            with open(output[1], "r") as spaln_reader:
+            translated_fastas = []
+            with open(output[0], "r") as spaln_reader:
                 content = spaln_reader.readlines()
                 sequence = []
                 current_header = None
@@ -37,26 +38,17 @@ rule spaln:
                 for line in content:
                     if(line.startswith(">")):
                         if(current_header != None):
-                            spaln_results.append(">" + current_header + "\n" + "".join(sequence))
+                            translated_fastas.append(">" + current_header + "\n" + str(Seq("".join(sequence)).translate()))
 
                         current_header = line.split(" ")[1] + "::query=" + line.split(" ")[10]
                         del sequence[:]
                     elif(line.strip().isalpha()):
                         sequence.append(line.strip())
 
-                spaln_results.append(">" + current_header + "\n" + "".join(sequence))
+                translated_fastas.append(">" + current_header + "\n" + str(Seq("".join(sequence)).translate()))
                 del sequence[:]
 
-            with open(output[2], "w") as fasta_writer:
-                fasta_writer.write("\n".join(spaln_results))
-
-            del spaln_results[:]
-            translated_fastas = []
-            fastas = SeqIO.parse(open(output[2]), "fasta")
-            for fasta in fastas:
-                translated_fastas.append(">" + fasta.id + "\n" + str(fasta.seq.translate()))
-
-            with open(output[3], "w") as translated_writer:
+            with open(output[1], "w") as translated_writer:
                 translated_writer.write("\n".join(translated_fastas))
 
             del translated_fastas[:]

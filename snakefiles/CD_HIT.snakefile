@@ -6,7 +6,8 @@ rule cd_hit:
         "spaln/{subject}/{query}.faa"
     output:
         "cd_hit/{subject}/{query}_joined.faa",
-        "cd_hit/{subject}/{query}_merged.faa"
+        "cd_hit/{subject}/{query}_merged.faa",
+        temp("cd_hit/{subject}/{query}_merged.clstr")
     log:
         "log/cd_hit/{subject}/{query}.log"
     params:

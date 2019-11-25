@@ -14,8 +14,8 @@ rule matcher:
         right=config["right_addendum"]
     run:
         try:
-            query_subject_matcher = {}
             if(os.stat(input[1]).st_size != 0):
+                query_subject_matcher = {}
                 subjects_contigs = {}
                 subject_name = input[0].split("/")[-1].split(".fna")[0]
                 subjects_contigs[subject_name] = {}
@@ -57,19 +57,21 @@ rule matcher:
                         query_subject_matcher[subject_name][hit_name][contig_id].append([sequence, hit_start, hit_end])
 
                 subjects_contigs.clear()
+                fasta = []
+                if(query_subject_matcher):
+                    for contig, sequences in query_subject_matcher[subject_name][hit_name].items():
+                        for sequence in sequences:
+                            header = contig + "_start:" + str(sequence[1]) + "_end:" + str(sequence[2])
+                            fasta.append(">" + header + "\n" + sequence[0])
 
-            fasta = []
-            if(query_subject_matcher):
-                for contig, sequences in query_subject_matcher[subject_name][hit_name].items():
-                    for sequence in sequences:
-                        header = contig + "_start:" + str(sequence[1]) + "_end:" + str(sequence[2])
-                        fasta.append(">" + header + "\n" + sequence[0])
+                with open(output[0], "w") as match_writer:
+                    match_writer.write("\n".join(fasta))
 
-            with open(output[0], "w") as match_writer:
-                match_writer.write("\n".join(fasta))
-
-            del fasta[:]
-            query_subject_matcher.clear()
+                del fasta[:]
+                query_subject_matcher.clear()
+            else:
+                with open(output[0], "w") as empty_writer:
+                    empty_writer.write("")
         except Exception as ex:
             with open(log[0], "w") as log_writer:
                 log_writer.write(str(ex))

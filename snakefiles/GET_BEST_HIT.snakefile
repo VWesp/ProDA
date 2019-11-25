@@ -9,8 +9,8 @@ rule get_best_hit:
         "log/best_hit/{subject}/{query}.log"
     run:
         try:
-            similarities = {}
             if(os.stat(input[0]).st_size != 0):
+                similarities = {}
                 with open(input[0], "r") as score_reader:
                     content = score_reader.readlines()
                     current_query = None
@@ -26,19 +26,20 @@ rule get_best_hit:
                                 query_sequence = line.split("\t")[3].strip()
                                 if(similarity > similarities[current_query][1]):
                                     similarities[current_query] = [contig, similarity, hit_sequence, query_sequence]
+                best_hits = []
+                if(similarities):
+                    for query, hit in similarities.items():
+                        contig = hit[0].split("::query=")[0]
+                        best_hits.append(query + "\t" + contig + "\t" + str(hit[1]) + "\t" + hit[2] + "\t" + hit[3])
 
+                with open(output[0], "w") as statistic_writer:
+                    statistic_writer.write("\n".join(best_hits))
 
-            best_hits = []
-            if(similarities):
-                for query, hit in similarities.items():
-                    contig = hit[0].split("::query=")[0]
-                    best_hits.append(query + "\t" + contig + "\t" + str(hit[1]) + "\t" + hit[2] + "\t" + hit[3])
-
-            with open(output[0], "w") as statistic_writer:
-                statistic_writer.write("\n".join(best_hits))
-
-            similarities.clear()
-            del best_hits[:]
+                similarities.clear()
+                del best_hits[:]
+            else:
+                with open(output[0], "w") as empty_writer:
+                    empty_writer.write("")
         except Exception as ex:
             with open(log[0], "w") as log_writer:
                 log_writer.write(str(ex))

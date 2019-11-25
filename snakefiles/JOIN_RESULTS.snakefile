@@ -14,8 +14,12 @@ rule join_results:
         try:
             retained_list = []
             discarded_list = []
+            all_empty = True
             for tsv in input:
                 if(os.stat(tsv).st_size != 0):
+                    if(all_empty):
+                        all_empty = False
+
                     subject = tsv.split("/")[-2]
                     with open(tsv, "r") as result_reader:
                         content = result_reader.readlines()
@@ -31,14 +35,21 @@ rule join_results:
                             else:
                                 discarded_list.append(result)
 
-            with open(output[0], "w") as retained_writer:
-                retained_writer.write("Subject\tQuery\tContig\tSimilarity\tHit sequence\tQuery sequence\n" + "\n".join(retained_list))
+            if(not all_empty):
+                with open(output[0], "w") as retained_writer:
+                    retained_writer.write("Subject\tQuery\tContig\tSimilarity\tHit sequence\tQuery sequence\n" + "\n".join(retained_list))
 
-            with open(output[1], "w") as discarded_writer:
-                discarded_writer.write("Subject\tQuery\tContig\tSimilarity\tSequence\tQuery sequence\n" + "\n".join(discarded_list))
+                with open(output[1], "w") as discarded_writer:
+                    discarded_writer.write("Subject\tQuery\tContig\tSimilarity\tSequence\tQuery sequence\n" + "\n".join(discarded_list))
 
-            del retained_list[:]
-            del discarded_list[:]
+                del retained_list[:]
+                del discarded_list[:]
+            else:
+                with open(output[0], "w") as empty_writer:
+                    empty_writer.write("")
+
+                with open(output[1], "w") as empty_writer:
+                    empty_writer.write("")
         except Exception as ex:
             with open(log[0], "w") as log_writer:
                 log_writer.write(str(ex))

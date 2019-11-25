@@ -14,8 +14,8 @@ rule alignment:
         "log/scores/{subject}/{query}.log"
     run:
         try:
-            scores = []
             if(os.stat(input[1]).st_size != 0):
+                scores = []
                 queries = SeqIO.parse(open(input[0]), "fasta")
                 for query in queries:
                     scores.append("#" + query.id)
@@ -40,7 +40,15 @@ rule alignment:
                                         break
 
                     scores.append("\n"*2)
+
+                with open(output[0], "w") as score_writer:
+                    score_writer.write("\n".join(scores))
+
+                del scores[:]
             else:
+                with open(output[0], "w") as empty_writer:
+                    empty_writer.write("")
+
                 with open(output[1], "w") as empty_writer:
                     empty_writer.write("")
 
@@ -49,11 +57,6 @@ rule alignment:
 
                 with open(output[3], "w") as empty_writer:
                     empty_writer.write("")
-
-            with open(output[0], "w") as score_writer:
-                score_writer.write("\n".join(scores))
-
-            del scores[:]
         except Exception as ex:
             with open(log[0], "w") as log_writer:
                 log_writer.write(str(ex))

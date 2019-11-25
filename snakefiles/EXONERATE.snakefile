@@ -16,7 +16,6 @@ rule exonerate:
         "log/exonerate/{subject}/{query}.log"
     run:
         try:
-            fastas = []
             if(os.stat(input[1]).st_size != 0):
                 #ryo: ::orientation=%g::score=%s::similarity=%ps
                 os.system("(exonerate --model protein2genome --targettype dna --querytype protein "
@@ -26,21 +25,23 @@ rule exonerate:
                           " > " + output[0] + ") 2> " + log[0])
                 os.system("(tail -n +4 " + output[0] + " | head -n -1) > " + output[2])
                 fastas = SeqIO.parse(open(output[2]), "fasta")
+                translated_fastas = []
+                for fasta in fastas:
+                    translated_fastas.append(">" + fasta.id + "\n" + str(fasta.seq.translate()))
+
+                with open(output[1], "w") as translated_writer:
+                    translated_writer.write("\n".join(translated_fastas))
+
+                del translated_fastas[:]
             else:
                 with open(output[0], "w") as empty_writer:
                     empty_writer.write("")
 
-                with open(output[2], "w") as empty_writer:
+                with open(output[1], "w") as empty_writer:
                     empty_writer.write("")
 
-            translated_fastas = []
-            for fasta in fastas:
-                translated_fastas.append(">" + fasta.id + "\n" + str(fasta.seq.translate()))
-
-            with open(output[1], "w") as translated_writer:
-                translated_writer.write("\n".join(translated_fastas))
-
-            del translated_fastas[:]
+                with open(output[2], "w") as empty_writer:
+                    empty_writer.write("")
         except Exception as ex:
             with open(log[0], "w") as log_writer:
                 log_writer.write(str(ex))

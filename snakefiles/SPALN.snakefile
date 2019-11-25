@@ -24,7 +24,7 @@ rule spaln:
                         fasta_writer.write(">" + fasta.id + "\n" + str(fasta.seq))
 
                     os.system("(spaln -M -Q3 -O6 -S3 -yp" + str(params[0]) + " -yq" + str(params[0]) +
-                              " -o" + output[2] + " " + output[3] + " " + input[0] + ") 2>" + log[0])
+                              " -o" + output[2] + " " + output[3] + " " + input[0] + ") 2> " + log[0])
                     with open(output[2], "r") as spaln_reader:
                         result_list.append(spaln_reader.read())
 
@@ -57,20 +57,16 @@ rule spaln:
                 del translated_fastas[:]
 
             if(not os.path.exists(output[0])):
-                with open(output[0], "w") as empty_writer:
-                    empty_writer.write("")
+                os.system("touch " + output[0])
 
             if(not os.path.exists(output[1])):
-                with open(output[1], "w") as empty_writer:
-                    empty_writer.write("")
+                os.system("touch " + output[1])
 
             if(not os.path.exists(output[2])):
-                with open(output[2], "w") as empty_writer:
-                    empty_writer.write("")
+                os.system("touch " + output[2])
 
             if(not os.path.exists(output[3])):
-                with open(output[3], "w") as empty_writer:
-                    empty_writer.write("")
+                os.system("touch " + output[3])
         except Exception as ex:
             with open(log[0], "w") as log_writer:
                 log_writer.write(str(ex))

@@ -18,7 +18,7 @@ rule get_best_hit:
                         if(line.strip()):
                             if(line.startswith("#")):
                                 current_query = line[1:].strip()
-                                similarities[current_query] = ["", -1, ""]
+                                similarities[current_query] = ["", -1, "", ""]
                             else:
                                 contig = line.split("\t")[0].strip()
                                 similarity = float(line.split("\t")[1].strip())
@@ -37,10 +37,9 @@ rule get_best_hit:
 
                 similarities.clear()
                 del best_hits[:]
-                
+
             if(not os.path.exists(output[0])):
-                with open(output[0], "w") as empty_writer:
-                    empty_writer.write("")
+                os.system("touch " + output[0])
         except Exception as ex:
             with open(log[0], "w") as log_writer:
                 log_writer.write(str(ex))

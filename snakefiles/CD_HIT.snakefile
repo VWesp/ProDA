@@ -32,7 +32,7 @@ rule cd_hit:
                 os.system("touch " + output[0])
 
             if(not os.path.exists(output[1])):
-                os.system("touch " + output[2])
+                os.system("touch " + output[1])
         except Exception as ex:
             with open(log[0], "w") as log_writer:
                 log_writer.write(str(ex))

@@ -1,9 +1,20 @@
 subjects:
-  genome_1: data/subjects/genome_1.fna
-  genome_2: data/subjects/genome_2.fna
+  csp: data/subjects/csp.fna
+  gpe: data/subjects/gpe.fna
+  #hpl: data/subjects/hpl.fna
+  #egr: data/subjects/egr.fna
+  #ppr: data/subjects/ppr.fna
 queries:
-  protein_1: data/queries/protein_1.faa
-  protein_2: data/queries/protein_2.faa
+  actin: data/queries/actin.faa
+  beta_tubulin2: data/queries/beta_tubulin2.faa
+  #cav_channels: data/queries/cav_channels.faa
+  #channel_rhodopsin: data/queries/channel_rhodopsin.faa
+  #cng_channels: data/queries/cng_channels.faa
+  #cys-loop_channels: data/queries/cys-loop_channels.faa
+  #glr_channels: data/queries/glr_channels.faa
+  #ip3r_channels: data/queries/ip3r_channels.faa
+  #mscs_channels: data/queries/mscs_channels.faa
+  #trp_channels: data/queries/trp_channels.faa
 
 blast_evalue: 1e-4
 left_addendum: 10000

@@ -7,7 +7,7 @@ rule exonerate:
         "matches/{subject}/{query}.fna"
     output:
         "exonerate/{subject}/{query}.ryo",
-        "exonerate/{subject}/{query}.faa"
+        "exonerate/{subject}/{query}.faa",
         temp("exonerate/{subject}/{query}.fna")
     params:
         per=config["exonerate_percentage"]

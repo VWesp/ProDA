@@ -10,6 +10,7 @@ rule exonerate:
         "exonerate/{subject}/{query}.faa",
         temp("exonerate/{subject}/{query}.fna")
     params:
+        bls=config["blosum"],
         per=config["exonerate_percentage"]
     log:
         "log/exonerate/{subject}/{query}.log"
@@ -20,11 +21,17 @@ rule exonerate:
                 #ryo: ::orientation=%g::score=%s::similarity=%ps
                 os.system("(exonerate --model protein2genome --targettype dna --querytype protein "
                           "--ryo '>%ti::query=%qi\n%tcs' --showalignment no --showvulgar no "
-                          "--refine region --percent " + str(params[0]) + " "
+                          "--refine region --proteinsubmat blosum/" + str(params[0]) + ".txt --percent " + str(params[1]) + " "
                           "--query " + input[0] + " --target " + input[1] +
                           " > " + output[0] + ") 2> " + log[0])
                 os.system("(tail -n +4 " + output[0] + " | head -n -1) > " + output[2])
                 fastas = SeqIO.parse(open(output[2]), "fasta")
+            else:
+                with open(output[0], "w") as empty_writer:
+                    empty_writer.write("")
+
+                with open(output[2], "w") as empty_writer:
+                    empty_writer.write("")
 
             translated_fastas = []
             for fasta in fastas:

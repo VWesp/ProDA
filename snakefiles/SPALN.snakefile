@@ -10,6 +10,8 @@ rule spaln:
         "spaln/{subject}/{query}.faa",
         temp("spaln/{subject}/{query}_temp.sp"),
         temp("spaln/{subject}/{query}.fna")
+    params:
+        pam=config["pam"]
     log:
         "log/spaln/{subject}/{query}.log"
     run:
@@ -21,9 +23,19 @@ rule spaln:
                     with open(output[3], "w") as fasta_writer:
                         fasta_writer.write(">" + fasta.id + "\n" + str(fasta.seq))
 
-                    os.system("(spaln -M -Q3 -O6 -S3 -o" + output[2] + " " + output[3] + " " + input[0] + ") 2>" + log[0])
+                    os.system("(spaln -M -Q3 -O6 -S3 -yp" + str(params[0]) + " -yq" + str(params[0]) +
+                              " -o" + output[2] + " " + output[3] + " " + input[0] + ") 2>" + log[0])
                     with open(output[2], "r") as spaln_reader:
                         result_list.append(spaln_reader.read())
+            else:
+                with open(output[1], "w") as empty_writer:
+                    empty_writer.write("")
+
+                with open(output[2], "w") as empty_writer:
+                    empty_writer.write("")
+
+                with open(output[3], "w") as empty_writer:
+                    empty_writer.write("")
 
             with open(output[0], "w") as spaln_writer:
                 spaln_writer.write("\n".join(result_list))

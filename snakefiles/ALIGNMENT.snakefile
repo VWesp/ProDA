@@ -40,6 +40,15 @@ rule alignment:
                                         break
 
                     scores.append("\n"*2)
+            else:
+                with open(output[1], "w") as empty_writer:
+                    empty_writer.write("")
+
+                with open(output[2], "w") as empty_writer:
+                    empty_writer.write("")
+
+                with open(output[3], "w") as empty_writer:
+                    empty_writer.write("")
 
             with open(output[0], "w") as score_writer:
                 score_writer.write("\n".join(scores))

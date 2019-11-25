@@ -26,10 +26,6 @@ rule cd_hit:
             del merge[:]
             os.system("(cd-hit -i " + output[0] + " -o " + output[1] +
                       " -c " + str(float(params[0])/100) + ") 2> " + log[0])
-
-            clstr_file = output[1].replace(".faa", ".clstr")
-            if(os.path.exists(clstr_file)):
-                os.remove(clstr_file)
         except Exception as ex:
             with open(log[0], "w") as log_writer:
                 log_writer.write(str(ex))

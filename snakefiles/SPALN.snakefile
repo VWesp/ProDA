@@ -55,16 +55,20 @@ rule spaln:
                     translated_writer.write("\n".join(translated_fastas))
 
                 del translated_fastas[:]
-            else:
+
+            if(not os.path.exists(output[0])):
                 with open(output[0], "w") as empty_writer:
                     empty_writer.write("")
 
+            if(not os.path.exists(output[1])):
                 with open(output[1], "w") as empty_writer:
                     empty_writer.write("")
 
+            if(not os.path.exists(output[2])):
                 with open(output[2], "w") as empty_writer:
                     empty_writer.write("")
 
+            if(not os.path.exists(output[3])):
                 with open(output[3], "w") as empty_writer:
                     empty_writer.write("")
         except Exception as ex:

@@ -37,7 +37,8 @@ rule get_best_hit:
 
                 similarities.clear()
                 del best_hits[:]
-            else:
+                
+            if(not os.path.exists(output[0])):
                 with open(output[0], "w") as empty_writer:
                     empty_writer.write("")
         except Exception as ex:

@@ -27,10 +27,12 @@ rule cd_hit:
                 del merge[:]
                 os.system("(cd-hit -i " + output[0] + " -o " + output[1] +
                           " -c " + str(float(params[0])/100) + ") 2> " + log[0])
-            else:
+
+            if(not os.path.exists(output[0])):
                 with open(output[0], "w") as empty_writer:
                     empty_writer.write("")
 
+            if(not os.path.exists(output[1])):
                 with open(output[1], "w") as empty_writer:
                     empty_writer.write("")
         except Exception as ex:

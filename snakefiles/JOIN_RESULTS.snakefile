@@ -44,10 +44,12 @@ rule join_results:
 
                 del retained_list[:]
                 del discarded_list[:]
-            else:
+
+            if(not os.path.exists(output[0])):
                 with open(output[0], "w") as empty_writer:
                     empty_writer.write("")
 
+            if(not os.path.exists(output[1])):
                 with open(output[1], "w") as empty_writer:
                     empty_writer.write("")
         except Exception as ex:

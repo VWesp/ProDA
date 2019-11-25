@@ -69,7 +69,8 @@ rule matcher:
 
                 del fasta[:]
                 query_subject_matcher.clear()
-            else:
+
+            if(not os.path.exists(output[0])):
                 with open(output[0], "w") as empty_writer:
                     empty_writer.write("")
         except Exception as ex:

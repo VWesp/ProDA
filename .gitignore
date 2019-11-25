@@ -1,4 +1,5 @@
-data/
+data/subjects/*.fna
+data/queries/*.faa
 blast_dbs/
 blast_results/
 log/

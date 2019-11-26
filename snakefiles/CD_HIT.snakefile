@@ -1,7 +1,7 @@
 import os
 import traceback
 
-rule cd_hit:
+rule Merge_Results:
     input:
         "exonerate/{subject}/{query}.faa",
         "spaln/{subject}/{query}.faa"

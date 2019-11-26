@@ -1,4 +1,4 @@
-rule makeblastdb:
+rule Build_DNA_Databases:
     input:
         "data/subjects/{subject}.fna"
     output:
@@ -10,7 +10,7 @@ rule makeblastdb:
         "-out blast_dbs/{wildcards.subject}/{wildcards.subject}) 2> {log} && "
         "touch {output}"
 
-rule blast:
+rule Find_Candidates:
     input:
         "blast_dbs/{subject}/temp.db",
         "data/queries/{query}.faa"

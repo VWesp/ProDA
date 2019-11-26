@@ -2,7 +2,7 @@ import os
 from Bio import SeqIO
 import traceback
 
-rule alignment:
+rule Retrieve_Sequence_Similarities:
     input:
         "data/queries/{query}.faa",
         "cd_hit/{subject}/{query}_merged.faa"

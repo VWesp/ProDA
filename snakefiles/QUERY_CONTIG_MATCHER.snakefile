@@ -2,7 +2,7 @@ import os
 from Bio import SeqIO
 import traceback
 
-rule matcher:
+rule Filter_Out_Useless_Regions:
     input:
         "data/subjects/{subject}.fna",
         "blast_results/{subject}/{query}.hit"

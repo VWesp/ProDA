@@ -1,7 +1,7 @@
 import os
 import traceback
 
-rule get_best_hit:
+rule Retrieve_Sequence_With_Highest_Similarity:
     input:
         "scores/{subject}/{query}.sim"
     output:

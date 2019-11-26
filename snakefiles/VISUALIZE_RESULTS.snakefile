@@ -1,7 +1,7 @@
 import os
 import traceback
 
-rule visualize_results:
+rule Visualize_Results:
     input:
         "results/retained/proda.tsv",
         "results/discarded/proda.tsv"

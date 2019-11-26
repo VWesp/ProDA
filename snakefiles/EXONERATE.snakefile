@@ -2,7 +2,7 @@ import os
 from Bio import SeqIO
 import traceback
 
-rule exonerate:
+rule Build_Exonerate_Alignment:
     input:
         "data/queries/{query}.faa",
         "matches/{subject}/{query}.fna"

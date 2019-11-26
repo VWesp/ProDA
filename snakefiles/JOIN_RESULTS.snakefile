@@ -1,7 +1,7 @@
 import os
 import traceback
 
-rule join_results:
+rule Join_ProDA_Results:
     input:
         expand("best_hit/{subject}/{query}.tsv", subject=config["subjects"], query=config["queries"])
     output:

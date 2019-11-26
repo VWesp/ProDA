@@ -18,8 +18,8 @@ queries:
   trp_channels: data/queries/trp_channels.faa
 
 blast_evalue: 1e-4
-left_addendum: 10000
-right_addendum: 10000
+left_addendum: 100000
+right_addendum: 100000
 exonerate_percentage: 20
 blosum: 45
 pam: 200

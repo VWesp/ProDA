@@ -1,5 +1,6 @@
 import os
 from Bio import SeqIO
+import traceback
 
 rule alignment:
     input:
@@ -14,15 +15,19 @@ rule alignment:
         "log/scores/{subject}/{query}.log"
     run:
         try:
+            query_list = []
             if(os.stat(input[1]).st_size != 0):
                 scores = []
                 queries = SeqIO.parse(open(input[0]), "fasta")
                 for query in queries:
-                    scores.append("#" + query.id)
                     fasta_sequences = SeqIO.parse(open(input[1]), "fasta")
                     for fasta in fasta_sequences:
                         fasta_name = fasta.id.split("::query=")[-1]
                         if(query.id == fasta_name):
+                            if(not query.id in query_list):
+                                scores.append("#" + query.id)
+                                query_list.append(query.id)
+
                             with open(output[2], "w") as query_writer:
                                 query_writer.write(">" + query.id + "\n" + str(query.seq))
 
@@ -44,6 +49,7 @@ rule alignment:
                 with open(output[0], "w") as score_writer:
                     score_writer.write("\n".join(scores))
 
+                del query_list[:]
                 del scores[:]
 
             if(not os.path.exists(output[0])):
@@ -57,6 +63,6 @@ rule alignment:
 
             if(not os.path.exists(output[3])):
                 os.system("touch " + output[3])
-        except Exception as ex:
+        except:
             with open(log[0], "w") as log_writer:
-                log_writer.write(str(ex))
+                log_writer.write(str(traceback.format_exc()))

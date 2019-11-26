@@ -1,4 +1,5 @@
 import os
+import traceback
 
 rule join_results:
     input:
@@ -50,6 +51,6 @@ rule join_results:
 
             if(not os.path.exists(output[1])):
                 os.system("touch " + output[1])
-        except Exception as ex:
+        except:
             with open(log[0], "w") as log_writer:
-                log_writer.write(str(ex))
+                log_writer.write(str(traceback.format_exc()))

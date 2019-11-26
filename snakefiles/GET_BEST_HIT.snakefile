@@ -1,4 +1,5 @@
 import os
+import traceback
 
 rule get_best_hit:
     input:
@@ -30,7 +31,8 @@ rule get_best_hit:
                 if(similarities):
                     for query, hit in similarities.items():
                         contig = hit[0].split("::query=")[0]
-                        best_hits.append(query + "\t" + contig + "\t" + str(hit[1]) + "\t" + hit[2] + "\t" + hit[3])
+                        if(hit[1] != -1):
+                            best_hits.append(query + "\t" + contig + "\t" + str(hit[1]) + "\t" + hit[2] + "\t" + hit[3])
 
                 with open(output[0], "w") as statistic_writer:
                     statistic_writer.write("\n".join(best_hits))
@@ -40,6 +42,6 @@ rule get_best_hit:
 
             if(not os.path.exists(output[0])):
                 os.system("touch " + output[0])
-        except Exception as ex:
+        except:
             with open(log[0], "w") as log_writer:
-                log_writer.write(str(ex))
+                log_writer.write(str(traceback.format_exc()))

@@ -1,5 +1,6 @@
 import os
 from Bio import SeqIO
+import traceback
 
 rule matcher:
     input:
@@ -72,6 +73,6 @@ rule matcher:
 
             if(not os.path.exists(output[0])):
                 os.system("touch " + output[0])
-        except Exception as ex:
+        except:
             with open(log[0], "w") as log_writer:
-                log_writer.write(str(ex))
+                log_writer.write(str(traceback.format_exc()))

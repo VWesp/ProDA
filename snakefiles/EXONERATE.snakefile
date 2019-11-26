@@ -1,5 +1,6 @@
 import os
 from Bio import SeqIO
+import traceback
 
 rule exonerate:
     input:
@@ -42,6 +43,6 @@ rule exonerate:
 
             if(not os.path.exists(output[2])):
                 os.system("touch " + output[2])
-        except Exception as ex:
+        except:
             with open(log[0], "w") as log_writer:
-                log_writer.write(str(ex))
+                log_writer.write(str(traceback.format_exc()))

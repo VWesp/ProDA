@@ -25,11 +25,11 @@ rule join_results:
                     with open(tsv, "r") as result_reader:
                         content = result_reader.readlines()
                         for line in content:
-                            query = line.split("\t")[0]
-                            contig = line.split("\t")[1]
-                            similarity = line.split("\t")[2]
-                            hit_seq = line.split("\t")[3]
-                            query_seq = line.split("\t")[4]
+                            query = line.split("\t")[0].strip()
+                            contig = line.split("\t")[1].strip()
+                            similarity = line.split("\t")[2].strip()
+                            hit_seq = line.split("\t")[3].strip()
+                            query_seq = line.split("\t")[4].strip()
                             result = subject + "\t" + query + "\t" + contig + "\t" + similarity + "\t" + hit_seq + "\t" + query_seq
                             if(float(similarity) >= params[0]):
                                 retained_list.append(result)

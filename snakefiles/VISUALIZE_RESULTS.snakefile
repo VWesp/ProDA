@@ -16,7 +16,7 @@ rule visualize_results:
                     next(proda_reader)
                     content = proda_reader.readlines()
                     for line in content:
-                        if(line)
+                        if(line):
                             subject = line.split("\t")[0]
                             query = line.split("\t")[1]
                             hit_sequence = line.split("\t")[4]

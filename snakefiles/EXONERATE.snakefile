@@ -5,7 +5,6 @@ import multiprocessing as mp
 from functools import partial
 
 
-
 def exonerateSearchMultiprocessing(query, matches, blosum, percent, log):
     temp_query = output[2].replace(".faa", "_" + query.id + ".faa")
     with open(temp_query, "w") as query_writer:

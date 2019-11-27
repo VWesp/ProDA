@@ -11,7 +11,7 @@ right_addendum: 100000
 exonerate_percentage: 20
 blosum: 45
 pam: 200
-cd_hit_threshold: 95
+cd_hit_threshold: 99
 sim_threshold: 50
 properties: $HOME/.jalview_properties
 threads: 10

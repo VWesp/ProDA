@@ -17,10 +17,11 @@ rule Find_Candidates:
     output:
         "blast_results/{subject}/{query}.hit"
     params:
-        evalue=config["blast_evalue"],
+        evalue=config["blast_evalue"]
+    threads: config["threads"]
     log:
         "log/blast_results/{subject}/{query}.log"
     shell:
         "(tblastn -query {input[1]} -db blast_dbs/{wildcards.subject}/{wildcards.subject} "
         "-outfmt '6 qseqid sseqid sstart send' "
-        "-evalue {params.evalue} > {output}) 2> {log}"
+        "-evalue {params.evalue} -num_threads {threads} > {output}) 2> {log}"

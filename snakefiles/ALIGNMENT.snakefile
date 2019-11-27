@@ -69,7 +69,7 @@ rule Retrieve_Sequence_Similarities:
                     with open(output[0], "w") as score_writer:
                         score_writer.write("\n\n".join(al_joined_results))
 
-                    del scores[:]
+                    del al_joined_results[:]
                     del al_mp_results.get()[:]
 
                 if(not os.path.exists(output[0])):

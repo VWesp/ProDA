@@ -78,7 +78,7 @@ rule Build_Exonerate_Alignment:
                         ryo_writer.write("\n".join(ryo_joined_results))
 
                     del ryo_joined_results[:]
-                    del ryo_mp_results[:]
+                    del ryo_mp_results.get()[:]
                     os.system("(tail -n +4 " + output[0] + " | head -n -1) > " + output[2])
                     fastas = SeqIO.parse(open(output[2]), "fasta")
                     translated_fastas = []

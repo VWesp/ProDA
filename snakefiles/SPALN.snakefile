@@ -72,7 +72,7 @@ rule spaln:
                         spaln_writer.write("\n".join(sp_joined_results))
 
                     del sp_joined_results[:]
-                    del sp_mp_results[:]
+                    del sp_mp_results.get()[:]
                     translated_fastas = []
                     with open(output[0], "r") as spaln_reader:
                         content = spaln_reader.readlines()

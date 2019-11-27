@@ -40,6 +40,7 @@ rule Retrieve_Sequence_Similarities:
         "cd_hit/{subject}/{query}_merged.faa"
     output:
         "scores/{subject}/{query}.sim"
+    threads: config["threads"]
     log:
         "log/scores/{subject}/{query}.log"
     run:

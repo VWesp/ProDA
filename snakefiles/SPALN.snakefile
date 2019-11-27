@@ -40,7 +40,7 @@ rule spaln:
         "spaln/{subject}/{query}.sp",
         "spaln/{subject}/{query}.faa"
     params:
-        pam=config["pam"]
+        config["pam"]
     threads: config["threads"]
     log:
         "log/spaln/{subject}/{query}.log"

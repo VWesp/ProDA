@@ -45,8 +45,8 @@ rule Build_Exonerate_Alignment:
         "exonerate/{subject}/{query}.faa",
         temp("exonerate/{subject}/{query}.fna")
     params:
-        bls=config["blosum"],
-        per=config["exonerate_percentage"]
+        config["blosum"],
+        config["exonerate_percentage"]
     threads: config["threads"]
     log:
         "log/exonerate/{subject}/{query}.log"

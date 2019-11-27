@@ -1,9 +1,10 @@
 subjects:
-  genome1: data/subjects/genome1.fna
-  genome2: data/subjects/genome2.fna
+  csp: data/subjects/csp.fna
+  gpe: data/subjects/gpe.fna
 queries:
-  proteins1: data/queries/proteins1.faa
-  proteins2: data/queries/proteins2.faa
+  actin: data/queries/actin.faa
+  beta_tubulin2: data/queries/beta_tubulin2.faa
+  trp_channels: data/queries/trp_channels.faa
 
 blast_evalue: 1e-4
 left_addendum: 100000

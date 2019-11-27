@@ -50,6 +50,7 @@ rule Filter_Out_Useless_Regions:
                             hit_end += params[1]
 
                         header = contig_id + "_start:" + str(hit_start) + "_end:" + str(hit_end) + "_query:" + query_id
+                        sequence = subjects_contigs[subject_name][contig_id][hit_start:hit_end]
                         fasta.append(">" + header + "\n" + sequence)
 
                 subjects_contigs.clear()

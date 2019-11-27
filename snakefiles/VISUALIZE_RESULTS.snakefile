@@ -19,8 +19,8 @@ rule Visualize_Results:
                         if(line):
                             subject = line.split("\t")[0]
                             query = line.split("\t")[1]
-                            hit_sequence = line.split("\t")[4]
-                            query_sequence = line.split("\t")[5]
+                            hit_sequence = line.split("\t")[5]
+                            query_sequence = line.split("\t")[6]
                             hit_output =  "results/retained/alignments/" + subject + "/" + query + "_hit.faa"
                             if(not os.path.exists("results/retained/alignments/" + subject)):
                                 os.makedirs("results/retained/alignments/" + subject)

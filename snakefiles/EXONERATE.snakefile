@@ -18,22 +18,21 @@ def exonerateSearchMultiprocessing(query, matches, blosum, percent, log):
             with open(temp_target, "w") as target_target:
                 target_target.write(">" + match.id + "\n" + str(match.seq))
 
+            temp_output = output[0].replace(".ryo", "_" + query.id + "_" + match.id + ".ryo")
             os.system("(exonerate --model protein2genome --targettype dna --querytype protein "
                       "--ryo '>%ti::query=%qi\n%tcs' --showalignment no --showvulgar no "
                       "--refine region --proteinsubmat blosum/" + str(blosum) + ".txt --percent " + str(percent) +
                       " --query " + temp_query + " --target " + temp_target +
-                      " > " + output[0] + ") 2> " + log)
+                      " > " + temp_output + ") 2> " + log)
 
-            with open(output[0], "r") as ouput_reader:
+            with open(temp_output, "r") as ouput_reader:
                 ryo_results.append(ouput_reader.read())
 
-            if(os.path.exists(temp_target)):
-                os.remove(temp_target)
+            os.remove(temp_target)
+            os.remove(temp_output)
 
-    if(os.path.exists(temp_query)):
-        os.remove(temp_query)
-
-    current_progress += 1
+    os.remove(temp_query)
+    current_progress.value += 1
     return ryo_results
 
 
@@ -57,7 +56,11 @@ rule Build_Exonerate_Alignment:
                 if(os.stat(input[1]).st_size != 0):
                     queries = list(SeqIO.parse(open(input[0]), "fasta"))
                     matches = SeqIO.parse(open(input[1]), "fasta")
-                    pool = mp.Pool(processes=threads[0])
+                    ex_threads = threads[0]
+                    if(len(queries) < ex_threads):
+                        ex_threads = len(queries)
+
+                    pool = mp.Pool(processes=ex_threads)
                     pool_map = partial(exonerateSearchMultiprocessing, matches=matches, blosum=params[0],
                                        percent=params[1], log=log[0])
                     ryo_mp_results = pool.map_async(pool_map, queries)

@@ -8,6 +8,7 @@ rule Merge_Results:
     output:
         "cd_hit/{subject}/{query}_joined.faa",
         "cd_hit/{subject}/{query}_merged.faa"
+    threads: config["threads"]
     log:
         "log/cd_hit/{subject}/{query}.log"
     params:
@@ -27,7 +28,7 @@ rule Merge_Results:
 
                 del merge[:]
                 os.system("(cd-hit -i " + output[0] + " -o " + output[1] +
-                          " -c " + str(float(params[0])/100) + ") 2> " + log[0])
+                          " -c " + str(float(params[0])/100) + " -T {threads}) 2> " + log[0])
 
             if(not os.path.exists(output[0])):
                 os.system("touch " + output[0])

@@ -14,4 +14,4 @@ pam: 200
 cd_hit_threshold: 99
 sim_threshold: 50
 properties: $HOME/.jalview_properties
-threads: 10
+threads: 4

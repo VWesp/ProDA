@@ -6,7 +6,7 @@ from functools import partial
 
 
 def exonerateSearchMultiprocessing(query, matches, blosum, percent, log):
-    temp_query = output[2].replace(".faa", "_" + query.id + ".faa")
+    temp_query = output[1].replace(".faa", "_" + query.id + ".faa")
     with open(temp_query, "w") as query_writer:
         query_writer.write(">" + query.id + "\n" + str(query.seq))
 
@@ -14,17 +14,17 @@ def exonerateSearchMultiprocessing(query, matches, blosum, percent, log):
     for match in matches:
         query_id = match.id.split("_query:")[-1]
         if(query.id == query_id):
-            temp_target = output[2].replace(".faa", "_" + match.id + ".faa")
+            temp_target = output[2].replace(".fna", "_" + match.id + ".fna")
             with open(temp_target, "w") as target_target:
                 target_target.write(">" + match.id + "\n" + str(match.seq))
 
             temp_output = output[0].replace(".ryo", "_" + query.id + "_" + match.id + ".ryo")
+            #ryo: ::orientation=%g::score=%s::similarity=%ps
             os.system("(exonerate --model protein2genome --targettype dna --querytype protein "
                       "--ryo '>%ti::query=%qi\n%tcs' --showalignment no --showvulgar no "
                       "--refine region --proteinsubmat blosum/" + str(blosum) + ".txt --percent " + str(percent) +
                       " --query " + temp_query + " --target " + temp_target +
                       " > " + temp_output + ") 2> " + log)
-
             with open(temp_output, "r") as ouput_reader:
                 ryo_results.append(ouput_reader.read())
 
@@ -78,14 +78,7 @@ rule Build_Exonerate_Alignment:
                         ryo_writer.write("\n".join(ryo_joined_results))
 
                     del ryo_joined_results[:]
-
-                    #ryo: ::orientation=%g::score=%s::similarity=%ps
-                    '''os.system("(exonerate --model protein2genome --targettype dna --querytype protein "
-                              "--ryo '>%ti::query=%qi\n%tcs' --showalignment no --showvulgar no "
-                              "--refine region --proteinsubmat blosum/" + str(params[0]) + ".txt --percent " + str(params[1]) + " "
-                              "--query " + input[0] + " --target " + input[1] +
-                              " > " + output[0] + ") 2> " + log[0])'''
-
+                    del ryo_mp_results[:]
                     os.system("(tail -n +4 " + output[0] + " | head -n -1) > " + output[2])
                     fastas = SeqIO.parse(open(output[2]), "fasta")
                     translated_fastas = []

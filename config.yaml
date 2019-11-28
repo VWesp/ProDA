@@ -3,6 +3,7 @@ subjects:
   gpe: data/subjects/gpe.fna
   hpl: data/subjects/hpl.fna
   egr: data/subjects/egr.fna
+  pmi: data/subjects/pmi.fna
   ppr: data/subjects/ppr.fna
 queries:
   actin: data/queries/actin.faa

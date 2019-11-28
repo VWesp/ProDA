@@ -2,7 +2,7 @@ import os
 from Bio.Seq import Seq
 import traceback
 
-rule spaln:
+rule Build_Spaln_Alignment:
     input:
         "data/queries/{query}.faa",
         "matches/{subject}/{query}.fna"

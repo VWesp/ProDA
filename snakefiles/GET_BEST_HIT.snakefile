@@ -1,7 +1,7 @@
 import os
 import traceback
 
-rule get_best_hit:
+rule Retrieve_Sequence_With_Highest_Similarity:
     input:
         "scores/{subject}/{query}.sim"
     output:
@@ -19,20 +19,21 @@ rule get_best_hit:
                         if(line.strip()):
                             if(line.startswith("#")):
                                 current_query = line[1:].strip()
-                                similarities[current_query] = ["", -1, "", ""]
+                                similarities[current_query] = ["", -1, -1, "", ""]
                             else:
                                 contig = line.split("\t")[0].strip()
-                                similarity = float(line.split("\t")[1].strip())
-                                hit_sequence = line.split("\t")[2].strip()
-                                query_sequence = line.split("\t")[3].strip()
-                                if(similarity > similarities[current_query][1]):
-                                    similarities[current_query] = [contig, similarity, hit_sequence, query_sequence]
+                                Identity = float(line.split("\t")[1].strip())
+                                similarity = float(line.split("\t")[2].strip())
+                                hit_sequence = line.split("\t")[3].strip()
+                                query_sequence = line.split("\t")[4].strip()
+                                if(similarity > similarities[current_query][2]):
+                                    similarities[current_query] = [contig, Identity, similarity, hit_sequence, query_sequence]
                 best_hits = []
                 if(similarities):
                     for query, hit in similarities.items():
                         contig = hit[0].split("::query=")[0]
-                        if(hit[1] != -1):
-                            best_hits.append(query + "\t" + contig + "\t" + str(hit[1]) + "\t" + hit[2] + "\t" + hit[3])
+                        if(hit[2] != -1):
+                            best_hits.append(query + "\t" + contig + "\t" + str(hit[1]) + "\t" + str(hit[2]) + "\t" + hit[3] + "\t" + hit[4])
 
                 with open(output[0], "w") as statistic_writer:
                     statistic_writer.write("\n".join(best_hits))

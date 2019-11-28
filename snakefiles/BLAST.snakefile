@@ -1,4 +1,4 @@
-rule makeblastdb:
+rule Build_DNA_Databases:
     input:
         "data/subjects/{subject}.fna"
     output:
@@ -10,17 +10,18 @@ rule makeblastdb:
         "-out blast_dbs/{wildcards.subject}/{wildcards.subject}) 2> {log} && "
         "touch {output}"
 
-rule blast:
+rule Find_Candidates:
     input:
         "blast_dbs/{subject}/temp.db",
         "data/queries/{query}.faa"
     output:
         "blast_results/{subject}/{query}.hit"
     params:
-        evalue=config["blast_evalue"],
+        evalue=config["blast_evalue"]
+    threads: config["threads"]
     log:
         "log/blast_results/{subject}/{query}.log"
     shell:
         "(tblastn -query {input[1]} -db blast_dbs/{wildcards.subject}/{wildcards.subject} "
         "-outfmt '6 qseqid sseqid sstart send' "
-        "-evalue {params.evalue} > {output}) 2> {log}"
+        "-evalue {params.evalue} -num_threads {threads} > {output}) 2> {log}"

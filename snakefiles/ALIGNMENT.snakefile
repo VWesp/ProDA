@@ -4,9 +4,6 @@ import traceback
 import multiprocessing as mp
 from functools import partial
 
-manager = mp.Manager()
-current_progress = manager.Value("i", 0.0)
-
 def stretcherAlignmentMultiprocessing(query, targets, output, log):
     temp_query = output[0].replace(".sim", "_" + query.id + ".faa")
     with open(temp_query, "w") as query_writer:
@@ -21,11 +18,11 @@ def stretcherAlignmentMultiprocessing(query, targets, output, log):
                 scores.append("#" + query.id)
                 query_found = True
 
-            temp_target = output[0].replace(".sim", "_target.faa")
+            temp_target = output[0].replace(".sim", "_" + query.id + "_target.fna")
             with open(temp_target, "w") as target_writer:
                 target_writer.write(">" + target.id + "\n" + str(target.seq))
 
-            temp_output = output[0].replace(".sim", "_" + query.id + "_target.st")
+            temp_output = output[0].replace(".sim", "_" + query.id + "_output.st")
             os.system("(stretcher -asequence " + temp_query + " -sprotein1 -bsequence " +
                       temp_target + " -auto -stdout > " + temp_output + ") 2> " + log)
             with open(temp_output, "r") as output_reader:
@@ -45,7 +42,6 @@ def stretcherAlignmentMultiprocessing(query, targets, output, log):
             os.remove(temp_output)
 
     os.remove(temp_query)
-    current_progress.value += 1
     return scores
 
 
@@ -61,21 +57,14 @@ rule Retrieve_Sequence_Similarities:
     run:
         try:
             if(os.stat(input[1]).st_size != 0):
+                subject = input[1].split("/")[-2]
+                query = input[1].split("/")[-1].split(".fna")[0]
                 queries = list(SeqIO.parse(open(input[0]), "fasta"))
                 targets = list(SeqIO.parse(open(input[1]), "fasta"))
-                al_threads = threads
-                if(len(queries) < al_threads):
-                    al_threads = len(queries)
-
-                pool = mp.Pool(processes=al_threads)
+                pool = mp.Pool(processes=threads)
                 pool_map = partial(stretcherAlignmentMultiprocessing, targets=targets, output=output, log=log[0])
                 al_mp_results = pool.map_async(pool_map, queries)
                 pool.close()
-                while(current_progress.value != len(queries)):
-                    if(al_mp_results.ready()):
-                        pool.terminate()
-                        raise Exception(al_mp_results.get()[0])
-
                 pool.join()
                 al_joined_results = [r.strip() for result in al_mp_results.get() for r in result]
                 with open(output[0], "w") as score_writer:

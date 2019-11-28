@@ -4,9 +4,6 @@ import traceback
 import multiprocessing as mp
 from functools import partial
 
-manager = mp.Manager()
-current_progress = manager.Value("i", 0.0)
-
 def spalnSearchMultiprocessing(query, matches, pam, output, log):
     temp_query = output[0].replace(".faa", "_" + query.id + ".faa")
     with open(temp_query, "w") as query_writer:
@@ -16,11 +13,11 @@ def spalnSearchMultiprocessing(query, matches, pam, output, log):
     for match in matches:
         query_id = match.id.split("_query:")[-1]
         if(query.id == query_id):
-            temp_target = output[0].replace(".faa", "_target.fna")
-            with open(temp_target, "w") as target_target:
-                target_target.write(">" + match.id + "\n" + str(match.seq))
+            temp_target = output[0].replace(".faa", "_" + query.id + "_target.fna")
+            with open(temp_target, "w") as target_writer:
+                target_writer.write(">" + match.id + "\n" + str(match.seq))
 
-            temp_output = output[0].replace(".faa", "_" + query.id + "_target.sp")
+            temp_output = output[0].replace(".faa", "_" + query.id + "_output.sp")
             os.system("(spaln -M -Q3 -O6 -S3 -yp" + str(pam) + " -yq" + str(pam) +
                       " -o" + temp_output + " " + temp_target + " " + temp_query + ") 2> " + log)
             with open(temp_output, "r") as output_reader:
@@ -30,7 +27,6 @@ def spalnSearchMultiprocessing(query, matches, pam, output, log):
             os.remove(temp_output)
 
     os.remove(temp_query)
-    current_progress.value += 1
     return sp_results
 
 
@@ -49,22 +45,15 @@ rule Build_Spaln_Alignment:
     run:
         try:
             if(os.stat(input[1]).st_size != 0):
+                subject = input[1].split("/")[-2]
+                query = input[1].split("/")[-1].split(".fna")[0]
                 queries = list(SeqIO.parse(open(input[0]), "fasta"))
                 matches = list(SeqIO.parse(open(input[1]), "fasta"))
-                sp_threads = threads
-                if(len(queries) < sp_threads):
-                    sp_threads = len(queries)
-
-                pool = mp.Pool(processes=sp_threads)
+                pool = mp.Pool(processes=threads)
                 pool_map = partial(spalnSearchMultiprocessing, matches=matches, pam=params[0],
                                    output=output, log=log[0])
                 sp_mp_results = pool.map_async(pool_map, queries)
                 pool.close()
-                while(current_progress.value != len(queries)):
-                    if(sp_mp_results.ready()):
-                        pool.terminate()
-                        raise Exception(sp_mp_results.get()[0])
-
                 pool.join()
                 sp_joined_results = [r.strip() for result in sp_mp_results.get() for r in result]
                 with open(output[1], "w") as spaln_writer:

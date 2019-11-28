@@ -4,9 +4,6 @@ import traceback
 import multiprocessing as mp
 from functools import partial
 
-manager = mp.Manager()
-current_progress = manager.Value("i", 0.0)
-
 def exonerateSearchMultiprocessing(query, matches, blosum, percent, output, log):
     temp_query = output[0].replace(".faa", "_" + query.id + ".faa")
     with open(temp_query, "w") as query_writer:
@@ -16,11 +13,11 @@ def exonerateSearchMultiprocessing(query, matches, blosum, percent, output, log)
     for match in matches:
         query_id = match.id.split("_query:")[-1]
         if(query.id == query_id):
-            temp_target = output[0].replace(".faa", "_target.fna")
-            with open(temp_target, "w") as target_target:
-                target_target.write(">" + match.id + "\n" + str(match.seq))
+            temp_target = output[0].replace(".faa", "_" + query.id + "_target.fna")
+            with open(temp_target, "w") as target_writer:
+                target_writer.write(">" + match.id + "\n" + str(match.seq))
 
-            temp_output_ryo = output[0].replace(".faa", "_" + query.id + "_target.ryo")
+            temp_output_ryo = output[0].replace(".faa", "_" + query.id + "_output.sp")
             #ryo: ::orientation=%g::score=%s::similarity=%ps
             os.system("(exonerate --model protein2genome --targettype dna --querytype protein "
                       "--ryo '>%ti::query=%qi\n%tcs' --showalignment no --showvulgar no "
@@ -37,7 +34,6 @@ def exonerateSearchMultiprocessing(query, matches, blosum, percent, output, log)
             os.remove(temp_output_fna)
 
     os.remove(temp_query)
-    current_progress.value += 1
     return list(filter(None, ryo_results))
 
 
@@ -56,22 +52,15 @@ rule Build_Exonerate_Alignment:
     run:
         try:
             if(os.stat(input[1]).st_size != 0):
+                subject = input[1].split("/")[-2]
+                query = input[1].split("/")[-1].split(".fna")[0]
                 queries = list(SeqIO.parse(open(input[0]), "fasta"))
                 matches = list(SeqIO.parse(open(input[1]), "fasta"))
-                ex_threads = threads
-                if(len(queries) < ex_threads):
-                    ex_threads = len(queries)
-
-                pool = mp.Pool(processes=ex_threads)
+                pool = mp.Pool(processes=threads)
                 pool_map = partial(exonerateSearchMultiprocessing, matches=matches, blosum=params[0],
                                    percent=params[1], output=output, log=log[0])
                 ryo_mp_results = pool.map_async(pool_map, queries)
                 pool.close()
-                while(current_progress.value != len(queries)):
-                    if(ryo_mp_results.ready()):
-                        pool.terminate()
-                        raise Exception(ryo_mp_results.get()[0])
-
                 pool.join()
                 ryo_joined_results = [r.strip() for result in ryo_mp_results.get() for r in result]
                 translated_fastas = []

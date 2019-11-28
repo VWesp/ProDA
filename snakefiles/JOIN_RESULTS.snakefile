@@ -3,9 +3,6 @@ import traceback
 import multiprocessing as mp
 from functools import partial
 
-manager = mp.Manager()
-current_progress = manager.Value("i", 0.0)
-
 def joinResultsMultiprocessing(tsv, threshold):
     retained_list = []
     discarded_list = []
@@ -26,7 +23,6 @@ def joinResultsMultiprocessing(tsv, threshold):
                 else:
                     discarded_list.append(result)
 
-    current_progress.value += 1
     return[retained_list, discarded_list]
 
 
@@ -43,19 +39,10 @@ rule Join_ProDA_Results:
         "log/results/results.log"
     run:
         try:
-            jr_threads = threads
-            if(len(input) < jr_threads):
-                jr_threads = len(input)
-
-            pool = mp.Pool(processes=jr_threads)
+            pool = mp.Pool(processes=threads)
             pool_map = partial(joinResultsMultiprocessing, threshold=params[0])
             jr_mp_results = pool.map_async(pool_map, input)
             pool.close()
-            while(current_progress.value != len(input)):
-                if(jr_mp_results.ready()):
-                    pool.terminate()
-                    raise Exception(jr_mp_results.get()[0])
-
             pool.join()
             retained_joined_results = []
             discarded_joined_results = []

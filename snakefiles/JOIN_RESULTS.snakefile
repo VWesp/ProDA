@@ -30,8 +30,8 @@ rule Join_ProDA_Results:
     input:
         expand("best_hit/{subject}/{query}.tsv", subject=config["subjects"], query=config["queries"])
     output:
-        "results/retained/proda.tsv",
-        "results/discarded/proda.tsv"
+        temp("results/retained/proda_temp.tsv"),
+        temp("results/discarded/proda_temp.tsv")
     params:
         config["sim_threshold"]
     threads: config["threads"]

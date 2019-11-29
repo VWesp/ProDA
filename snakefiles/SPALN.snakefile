@@ -10,7 +10,7 @@ def spalnSearchMultiprocessing(query, matches, pam, output, log):
         query_writer.write(">" + query.id + "\n" + str(query.seq))
 
     sp_results = []
-    for match in matches:
+    for match in SeqIO.parse(open(matches), "fasta"):
         query_id = match.id.split("_query:")[-1]
         if(query.id == query_id):
             temp_target = output[0].replace(".faa", "_" + query.id + "_target.fna")
@@ -48,9 +48,8 @@ rule Build_Spaln_Alignment:
                 subject = input[1].split("/")[-2]
                 query = input[1].split("/")[-1].split(".fna")[0]
                 queries = list(SeqIO.parse(open(input[0]), "fasta"))
-                matches = list(SeqIO.parse(open(input[1]), "fasta"))
                 pool = mp.Pool(processes=threads)
-                pool_map = partial(spalnSearchMultiprocessing, matches=matches, pam=params[0],
+                pool_map = partial(spalnSearchMultiprocessing, matches=input[1], pam=params[0],
                                    output=output, log=log[0])
                 sp_mp_results = pool.map_async(pool_map, queries)
                 pool.close()

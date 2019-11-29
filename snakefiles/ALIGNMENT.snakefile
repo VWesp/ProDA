@@ -11,7 +11,7 @@ def stretcherAlignmentMultiprocessing(query, targets, output, log):
 
     scores = []
     query_found = False
-    for target in targets:
+    for target in SeqIO.parse(open(targets), "fasta"):
         query_id = target.id.split("::query=")[-1]
         if(query.id == query_id):
             if(not query_found):
@@ -60,9 +60,8 @@ rule Retrieve_Sequence_Similarities:
                 subject = input[1].split("/")[-2]
                 query = input[1].split("/")[-1].split(".fna")[0]
                 queries = list(SeqIO.parse(open(input[0]), "fasta"))
-                targets = list(SeqIO.parse(open(input[1]), "fasta"))
                 pool = mp.Pool(processes=threads)
-                pool_map = partial(stretcherAlignmentMultiprocessing, targets=targets, output=output, log=log[0])
+                pool_map = partial(stretcherAlignmentMultiprocessing, targets=input[1], output=output, log=log[0])
                 al_mp_results = pool.map_async(pool_map, queries)
                 pool.close()
                 pool.join()

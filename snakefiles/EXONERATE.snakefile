@@ -10,7 +10,7 @@ def exonerateSearchMultiprocessing(query, matches, blosum, percent, output, log)
         query_writer.write(">" + query.id + "\n" + str(query.seq))
 
     ryo_results = []
-    for match in matches:
+    for match in SeqIO.parse(open(matches), "fasta"):
         query_id = match.id.split("_query:")[-1]
         if(query.id == query_id):
             temp_target = output[0].replace(".faa", "_" + query.id + "_target.fna")
@@ -18,7 +18,6 @@ def exonerateSearchMultiprocessing(query, matches, blosum, percent, output, log)
                 target_writer.write(">" + match.id + "\n" + str(match.seq))
 
             temp_output_ryo = output[0].replace(".faa", "_" + query.id + "_output.sp")
-            #ryo: ::orientation=%g::score=%s::similarity=%ps
             os.system("(exonerate --model protein2genome --targettype dna --querytype protein "
                       "--ryo '>%ti::query=%qi\n%tcs' --showalignment no --showvulgar no "
                       "--refine region --proteinsubmat blosum/" + str(blosum) + ".txt --percent " + str(percent) +
@@ -55,9 +54,8 @@ rule Build_Exonerate_Alignment:
                 subject = input[1].split("/")[-2]
                 query = input[1].split("/")[-1].split(".fna")[0]
                 queries = list(SeqIO.parse(open(input[0]), "fasta"))
-                matches = list(SeqIO.parse(open(input[1]), "fasta"))
                 pool = mp.Pool(processes=threads)
-                pool_map = partial(exonerateSearchMultiprocessing, matches=matches, blosum=params[0],
+                pool_map = partial(exonerateSearchMultiprocessing, matches=input[1], blosum=params[0],
                                    percent=params[1], output=output, log=log[0])
                 ryo_mp_results = pool.map_async(pool_map, queries)
                 pool.close()

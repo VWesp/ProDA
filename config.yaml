@@ -1,22 +1,9 @@
 subjects:
   genome1: data/subjects/genome1.fna
   genome2: data/subjects/genome2.fna
-  #hpl: data/subjects/hpl.fna
-  #egr: data/subjects/egr.fna
-  #pmi: data/subjects/pmi.fna
-  #ppr: data/subjects/ppr.fna
 queries:
-  proteins1: data/queries/proteins2.faa
+  proteins1: data/queries/proteins1.faa
   proteins2: data/queries/proteins2.faa
-  #cav_channels: data/queries/cav_channels.faa
-  #channel_rhodopsin: data/queries/channel_rhodopsin.faa
-  #cng_channels: data/queries/cng_channels.faa
-  #cys-loop_channels: data/queries/cys-loop_channels.faa
-  #glr_channels: data/queries/glr_channels.faa
-  #ip3r_channels: data/queries/ip3r_channels.faa
-  #mscs_channels: data/queries/mscs_channels.faa
-  #photoreceptors: data/queries/photoreceptors.faa
-  #trp_channels: data/queries/trp_channels.faa
 
 blast_evalue: 1e-4
 left_addendum: 100000
@@ -24,7 +11,7 @@ right_addendum: 100000
 exonerate_percentage: 20
 blosum: 45
 pam: 200
-cd_hit_threshold: 99
+cd_hit_threshold: 95
 sim_threshold: 50
 properties: $HOME/.jalview_properties
-threads: 10
+threads: 8

@@ -19,7 +19,7 @@ rule Filter_Out_Useless_Regions:
                 subjects_contigs = {}
                 subject_name = input[0].split("/")[-1].split(".fna")[0]
                 subjects_contigs[subject_name] = {}
-                fasta_sequences = SeqIO.parse(open(input[0]), "fasta")
+                fasta_sequences = SeqIO.parse(input[0], "fasta")
                 for fasta in fasta_sequences:
                     subjects_contigs[subject_name][fasta.id] = str(fasta.seq)
 
@@ -49,7 +49,7 @@ rule Filter_Out_Useless_Regions:
                         else:
                             hit_end += params[1]
 
-                        header = contig_id + "_start:" + str(hit_start) + "_end:" + str(hit_end) + "_query:" + query_id
+                        header = contig_id + "_cstart:" + str(hit_start) + "_cend:" + str(hit_end) + "_query:" + query_id
                         sequence = subjects_contigs[subject_name][contig_id][hit_start:hit_end]
                         fasta.append(">" + header + "\n" + sequence)
 

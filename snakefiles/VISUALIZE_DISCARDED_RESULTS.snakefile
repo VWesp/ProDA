@@ -3,20 +3,20 @@ import traceback
 import multiprocessing as mp
 
 
-def visualizeResultsMultiprocessing(line, properties):
+def visualizeDiscardedResultsMultiprocessing(line, properties):
     stripped_line = line.strip()
     if(stripped_line):
         subject = stripped_line.split("\t")[0]
         query = stripped_line.split("\t")[1]
-        hit_sequence = stripped_line.split("\t")[5]
-        query_sequence = stripped_line.split("\t")[6]
-        hit_output =  "results/discarded/alignments/" + subject + "/" + query + "_hit.faa"
+        hit_sequence = stripped_line.split("\t")[7]
+        query_sequence = stripped_line.split("\t")[8]
         if(not os.path.exists("results/discarded/alignments/" + subject)):
             os.makedirs("results/discarded/alignments/" + subject)
 
         if(not os.path.exists("log/results/discarded/alignments/" + subject)):
             os.makedirs("log/results/discarded/alignments/" + subject)
 
+        hit_output =  "results/discarded/alignments/" + subject + "/" + query + "_hit.faa"
         with open(hit_output, "w") as hit_writer:
             hit_writer.write(">" + subject + "\n" + hit_sequence)
 
@@ -39,7 +39,7 @@ def visualizeResultsMultiprocessing(line, properties):
 
 rule Visualize_Discarded_Results:
     input:
-        "results/discarded/proda_temp.tsv"
+        "results/discarded/proda.tsv"
     output:
         temp("discarded_finished.txt")
     params:
@@ -51,7 +51,7 @@ rule Visualize_Discarded_Results:
                 with open(input[0], "r") as discarded_reader:
                     lines = discarded_reader.read().split("\n")[1:]
                     pool = mp.Pool(processes=threads)
-                    pool_map = partial(visualizeResultsMultiprocessing, properties=params[0])
+                    pool_map = partial(visualizeDiscardedResultsMultiprocessing, properties=params[0])
                     pool.map_async(pool_map, lines)
                     pool.close()
                     pool.join()

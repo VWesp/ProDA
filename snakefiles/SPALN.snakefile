@@ -4,13 +4,14 @@ import traceback
 import multiprocessing as mp
 from functools import partial
 
+
 def spalnSearchMultiprocessing(query, matches, pam, output, log):
     temp_query = output[0].replace(".faa", "_" + query.id + ".faa")
     with open(temp_query, "w") as query_writer:
         query_writer.write(">" + query.id + "\n" + str(query.seq))
 
     sp_results = []
-    for match in SeqIO.parse(open(matches), "fasta"):
+    for match in SeqIO.parse(matches, "fasta"):
         query_id = match.id.split("_query:")[-1]
         if(query.id == query_id):
             temp_target = output[0].replace(".faa", "_" + query.id + "_target.fna")
@@ -47,7 +48,7 @@ rule Build_Spaln_Alignment:
             if(os.stat(input[1]).st_size != 0):
                 subject = input[1].split("/")[-2]
                 query = input[1].split("/")[-1].split(".fna")[0]
-                queries = list(SeqIO.parse(open(input[0]), "fasta"))
+                queries = list(SeqIO.parse(input[0], "fasta"))
                 pool = mp.Pool(processes=threads)
                 pool_map = partial(spalnSearchMultiprocessing, matches=input[1], pam=params[0],
                                    output=output, log=log[0])
@@ -58,8 +59,6 @@ rule Build_Spaln_Alignment:
                 with open(output[1], "w") as spaln_writer:
                     spaln_writer.write("\n".join(sp_joined_results))
 
-                del sp_joined_results[:]
-                del sp_mp_results.get()[:]
                 translated_fastas = []
                 with open(output[1], "r") as spaln_reader:
                     content = spaln_reader.readlines()
@@ -68,9 +67,11 @@ rule Build_Spaln_Alignment:
                     for line in content:
                         if(line.startswith(">")):
                             if(current_header != None):
-                                translated_fastas.append(">" + current_header + "\n" + str(Seq("".join(sequence)).translate()))
+                                aa_sequence = str(Seq("".join(sequence)).translate())
+                                if(not "*" in aa_sequence):
+                                    translated_fastas.append(">" + current_header + "\n" + aa_sequence)
 
-                            current_header = line.split(" ")[1] + "::query=" + line.split(" ")[10]
+                            current_header = line.split(" ")[1] + "::hstart=" + line.split(" ")[6] + "::hend=" + line.split(" ")[8] + "::query=" + line.split(" ")[10]
                             del sequence[:]
                         elif(line.strip().isalpha()):
                             sequence.append(line.strip())
@@ -78,9 +79,11 @@ rule Build_Spaln_Alignment:
                     translated_fastas.append(">" + current_header + "\n" + str(Seq("".join(sequence)).translate()))
                     del sequence[:]
 
-                with open(output[0], "w") as translated_writer:
-                    translated_writer.write("\n".join(translated_fastas))
+                with open(output[0], "w") as ryo_writer:
+                    ryo_writer.write("\n".join(translated_fastas))
 
+                del sp_joined_results[:]
+                del sp_mp_results.get()[:]
                 del translated_fastas[:]
 
             if(not os.path.exists(output[0])):

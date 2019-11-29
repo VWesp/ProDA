@@ -3,13 +3,13 @@ import traceback
 import multiprocessing as mp
 
 
-def visualizeResultsMultiprocessing(line, properties):
+def visualizeRetainedResultsMultiprocessing(line, properties):
     stripped_line = line.strip()
     if(stripped_line):
         subject = stripped_line.split("\t")[0]
         query = stripped_line.split("\t")[1]
-        hit_sequence = stripped_line.split("\t")[5]
-        query_sequence = stripped_line.split("\t")[6]
+        hit_sequence = stripped_line.split("\t")[7]
+        query_sequence = stripped_line.split("\t")[8]
         if(not os.path.exists("results/retained/alignments/" + subject)):
             os.makedirs("results/retained/alignments/" + subject)
 
@@ -39,7 +39,7 @@ def visualizeResultsMultiprocessing(line, properties):
 
 rule Visualize_Retained_Results:
     input:
-        "results/retained/proda_temp.tsv"
+        "results/retained/proda.tsv"
     output:
         temp("retained_finished.txt")
     params:
@@ -51,16 +51,16 @@ rule Visualize_Retained_Results:
                 with open(input[0], "r") as retained_reader:
                     lines = retained_reader.read().split("\n")[1:]
                     pool = mp.Pool(processes=threads)
-                    pool_map = partial(visualizeResultsMultiprocessing, properties=params[0])
+                    pool_map = partial(visualizeRetainedResultsMultiprocessing, properties=params[0])
                     pool.map_async(pool_map, lines)
                     pool.close()
                     pool.join()
         except:
-            print("\033[1;31;mError: " + str(traceback.format_exc()) + "\nSee log file: log/results/discarded/alignments.log")
-            if(not os.path.exists("log/results/discarded")):
-                os.makedirs("log/results/discarded")
+            print("\033[1;31;mError: " + str(traceback.format_exc()) + "\nSee log file: log/results/retained/alignments.log")
+            if(not os.path.exists("log/results/retained")):
+                os.makedirs("log/results/retained")
 
-            with open("log/results/discarded/alignments.log", "w") as log_writer:
+            with open("log/results/retained/alignments.log", "w") as log_writer:
                 log_writer.write(str(traceback.format_exc()))
 
         os.system("touch retained_finished.txt")

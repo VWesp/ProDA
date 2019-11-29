@@ -4,6 +4,7 @@ import traceback
 import multiprocessing as mp
 from functools import partial
 
+
 def stretcherAlignmentMultiprocessing(query, targets, output, log):
     temp_query = output[0].replace(".sim", "_" + query.id + ".faa")
     with open(temp_query, "w") as query_writer:
@@ -11,7 +12,7 @@ def stretcherAlignmentMultiprocessing(query, targets, output, log):
 
     scores = []
     query_found = False
-    for target in SeqIO.parse(open(targets), "fasta"):
+    for target in SeqIO.parse(targets, "fasta"):
         query_id = target.id.split("::query=")[-1]
         if(query.id == query_id):
             if(not query_found):
@@ -59,7 +60,7 @@ rule Retrieve_Sequence_Similarities:
             if(os.stat(input[1]).st_size != 0):
                 subject = input[1].split("/")[-2]
                 query = input[1].split("/")[-1].split(".fna")[0]
-                queries = list(SeqIO.parse(open(input[0]), "fasta"))
+                queries = list(SeqIO.parse(input[0], "fasta"))
                 pool = mp.Pool(processes=threads)
                 pool_map = partial(stretcherAlignmentMultiprocessing, targets=input[1], output=output, log=log[0])
                 al_mp_results = pool.map_async(pool_map, queries)

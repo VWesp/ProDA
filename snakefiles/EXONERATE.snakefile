@@ -4,13 +4,14 @@ import traceback
 import multiprocessing as mp
 from functools import partial
 
+
 def exonerateSearchMultiprocessing(query, matches, blosum, percent, output, log):
     temp_query = output[0].replace(".faa", "_" + query.id + ".faa")
     with open(temp_query, "w") as query_writer:
         query_writer.write(">" + query.id + "\n" + str(query.seq))
 
     ryo_results = []
-    for match in SeqIO.parse(open(matches), "fasta"):
+    for match in SeqIO.parse(matches, "fasta"):
         query_id = match.id.split("_query:")[-1]
         if(query.id == query_id):
             temp_target = output[0].replace(".faa", "_" + query.id + "_target.fna")
@@ -19,7 +20,7 @@ def exonerateSearchMultiprocessing(query, matches, blosum, percent, output, log)
 
             temp_output_ryo = output[0].replace(".faa", "_" + query.id + "_output.sp")
             os.system("(exonerate --model protein2genome --targettype dna --querytype protein "
-                      "--ryo '>%ti::query=%qi\n%tcs' --showalignment no --showvulgar no "
+                      "--ryo '>%ti::hstart=%tcb::hend=%tce::query=%qi\n%tcs' --showalignment no --showvulgar no "
                       "--refine region --proteinsubmat blosum/" + str(blosum) + ".txt --percent " + str(percent) +
                       " --query " + temp_query + " --target " + temp_target +
                       " > " + temp_output_ryo + ") 2> " + log)
@@ -53,7 +54,7 @@ rule Build_Exonerate_Alignment:
             if(os.stat(input[1]).st_size != 0):
                 subject = input[1].split("/")[-2]
                 query = input[1].split("/")[-1].split(".fna")[0]
-                queries = list(SeqIO.parse(open(input[0]), "fasta"))
+                queries = list(SeqIO.parse(input[0], "fasta"))
                 pool = mp.Pool(processes=threads)
                 pool_map = partial(exonerateSearchMultiprocessing, matches=input[1], blosum=params[0],
                                    percent=params[1], output=output, log=log[0])
@@ -66,7 +67,9 @@ rule Build_Exonerate_Alignment:
                     hits = result.split(">")
                     for hit in hits:
                         lines = hit.split("\n")
-                        translated_fastas.append(">" + lines[0] + "\n" + str(Seq("".join(lines[1:])).translate()))
+                        aa_sequence = str(Seq("".join(lines[1:])).translate())
+                        if(not "*" in aa_sequence):
+                            translated_fastas.append(">" + lines[0] + "\n" + aa_sequence)
 
                 with open(output[0], "w") as ryo_writer:
                     ryo_writer.write("\n".join(translated_fastas))

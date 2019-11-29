@@ -1,6 +1,6 @@
 configfile: "config.yaml"
 
-rule all:
+rule finish:
     input:
         "results/retained/proda.tsv",
         "results/discarded/proda.tsv",

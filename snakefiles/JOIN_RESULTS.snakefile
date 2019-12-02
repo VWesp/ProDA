@@ -5,7 +5,7 @@ import multiprocessing as mp
 from functools import partial
 
 
-def joinResultsMultiprocessing(tsv, threshold):
+def joinResultsMultiprocessing(tsv, id_threshold, sim_threshold):
     retained_list = []
     discarded_list = []
     if(os.stat(tsv).st_size != 0):
@@ -27,7 +27,7 @@ def joinResultsMultiprocessing(tsv, threshold):
                     hit_seq = stripped_line.split("\t")[4].strip()
                     query_seq = stripped_line.split("\t")[5].strip()
                     result = subject + "\t" + query + "\t" + contig + "\t" + str(hit_start) + "\t" + str(hit_end) + "\t" + idenity + "\t" + similarity + "\t" + hit_seq + "\t" + query_seq
-                    if(float(similarity) >= threshold):
+                    if(float(idenity) >= id_threshold and float(similarity) >= sim_threshold):
                         retained_list.append(result)
                     else:
                         discarded_list.append(result)
@@ -42,6 +42,7 @@ rule Join_ProDA_Results:
         "results/retained/proda.tsv",
         "results/discarded/proda.tsv"
     params:
+        config["id_threshold"],
         config["sim_threshold"]
     threads: config["threads"]
     log:
@@ -49,7 +50,7 @@ rule Join_ProDA_Results:
     run:
         try:
             pool = mp.Pool(processes=threads)
-            pool_map = partial(joinResultsMultiprocessing, threshold=params[0])
+            pool_map = partial(joinResultsMultiprocessing, id_threshold=params[0], sim_threshold=params[1])
             jr_mp_results = pool.map_async(pool_map, input)
             pool.close()
             pool.join()

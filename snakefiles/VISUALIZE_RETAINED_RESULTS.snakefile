@@ -44,7 +44,7 @@ rule Visualize_Retained_Results:
         temp("retained_finished.txt")
     params:
         props=config["properties"]
-    threads: config["threads"]
+    threads: 1
     run:
         try:
             if(os.stat(input[0]).st_size != 0):

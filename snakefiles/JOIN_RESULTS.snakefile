@@ -62,21 +62,23 @@ def joinResultsMultiprocessing(sc, id_threshold, sim_threshold, ol_percentage):
                             result_dic[contig] = {}
                             result_dic[contig][index] = [subject, query, contig, str(hit_start), str(hit_end), str(identity), str(similarity), hit_seq, query_seq]
                         else:
+                            no_overlap = True
                             for index_key,det in result_dic[contig].items():
-                                if(overlap(hit_start, hit_end, len(hit_seq), det[3], det[4], len(det[7])) >= ol_percentage):
+                                if(overlap(hit_start, hit_end, len(hit_seq), int(det[3]), int(det[4]), len(det[7])) >= ol_percentage):
+                                    no_overlap = False
                                     if((hit_seq.startswith("M") and det[7].startswith("M")) or
                                        not (hit_seq.startswith("M") or det[7].startswith("M"))):
-                                        if(identity > det[5]):
+                                        if(identity > float(det[5])):
                                             index_remove_list.append(index_key)
-                                        elif(identity == det[5] and similarity > det[6]):
+                                        elif(identity == float(det[5]) and similarity > float(det[6])):
                                             index_remove_list.append(index_key)
                                     elif(hit_seq.startswith("M")):
                                         index_remove_list.append(index_key)
-                                else:
-                                    index += 1
-                                    result_dic[contig][index] = [subject, query, contig, str(hit_start), str(hit_end), str(identity), str(similarity), hit_seq, query_seq]
 
-                            if(len(index_remove_list)):
+                            if(no_overlap):
+                                index += 1
+                                result_dic[contig][index] = [subject, query, contig, str(hit_start), str(hit_end), str(identity), str(similarity), hit_seq, query_seq]
+                            elif(len(index_remove_list)):
                                 for index_key in index_remove_list:
                                     result_dic[contig].pop(index_key, None)
 

@@ -10,6 +10,7 @@ def visualizeDiscardedResultsMultiprocessing(line, properties):
         query = stripped_line.split("\t")[1]
         hit_sequence = stripped_line.split("\t")[7]
         query_sequence = stripped_line.split("\t")[8]
+        index = stripped_line.split("\t")[9]
         if(not os.path.exists("results/discarded/alignments/" + subject)):
             os.makedirs("results/discarded/alignments/" + subject)
 
@@ -24,12 +25,12 @@ def visualizeDiscardedResultsMultiprocessing(line, properties):
         with open(query_output, "w") as query_writer:
             query_writer.write(">" + query + "\n" + query_sequence)
 
-        clustal_output =  "results/discarded/alignments/" + subject + "/" + query + ".clustal"
-        log_output = "log/results/discarded/alignments/" + subject + "/" + query + ".log"
+        clustal_output =  "results/discarded/alignments/" + subject + "/" + query + "_index_" + index + ".clustal"
+        log_output = "log/results/discarded/alignments/" + subject + "/" + query + "_index_" + index + ".log"
         os.system("(stretcher -asequence " + hit_output + " -sprotein1 -bsequence " +
                   query_output + " -auto -aformat clustal -stdout > " + clustal_output + ") 2> " +log_output)
 
-        png_output = "results/discarded/alignments/" + subject + "/" + query + ".png"
+        png_output = "results/discarded/alignments/" + subject + "/" + query + "_index_" + index + ".png"
         os.system("(jalview -nodisplay -props " + properties + " -colour clustal -open " +
                   clustal_output + " -png " + png_output + ") 2> " + log_output)
 

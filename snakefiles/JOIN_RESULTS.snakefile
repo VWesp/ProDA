@@ -26,7 +26,7 @@ def joinResultsMultiprocessing(sc, id_threshold, sim_threshold, ol_percentage):
     retained_list = []
     discarded_list = []
     result_dic = {}
-    index = None
+    index = -1
     index_remove_list = []
     if(os.stat(sc).st_size != 0):
         subject = sc.split("/")[-2]
@@ -40,10 +40,10 @@ def joinResultsMultiprocessing(sc, id_threshold, sim_threshold, ol_percentage):
                     if(stripped_line.startswith("#")):
                         for contig in result_dic:
                             for index,det in result_dic[contig].items():
-                                if(det[5] >= id_threshold and det[6] >= sim_threshold):
-                                    retained_list.append("\t".join(det))
+                                if(float(det[5]) >= id_threshold and float(det[6]) >= sim_threshold):
+                                    retained_list.append("\t".join(det) + "\t" + str(index))
                                 else:
-                                    discarded_list.append("\t".join(det))
+                                    discarded_list.append("\t".join(det) + "\t" + str(index))
 
                         query = stripped_line[1:].strip()
                         result_dic.clear()
@@ -58,9 +58,9 @@ def joinResultsMultiprocessing(sc, id_threshold, sim_threshold, ol_percentage):
                         hit_seq = stripped_line.split("\t")[3].strip()
                         query_seq = stripped_line.split("\t")[4].strip()
                         if(not contig in result_dic):
-                            index = 0
+                            index += 1
                             result_dic[contig] = {}
-                            result_dic[contig][index] = [subject, query, contig, hit_start, hit_end, identity, similarity, hit_seq, query_seq]
+                            result_dic[contig][index] = [subject, query, contig, str(hit_start), str(hit_end), str(identity), str(similarity), hit_seq, query_seq]
                         else:
                             for index_key,det in result_dic[contig].items():
                                 if(overlap(hit_start, hit_end, len(hit_seq), det[3], det[4], len(det[7])) >= ol_percentage):
@@ -74,14 +74,14 @@ def joinResultsMultiprocessing(sc, id_threshold, sim_threshold, ol_percentage):
                                         index_remove_list.append(index_key)
                                 else:
                                     index += 1
-                                    result_dic[contig][index] = [subject, query, contig, hit_start, hit_end, identity, similarity, hit_seq, query_seq]
+                                    result_dic[contig][index] = [subject, query, contig, str(hit_start), str(hit_end), str(identity), str(similarity), hit_seq, query_seq]
 
                             if(len(index_remove_list)):
                                 for index_key in index_remove_list:
                                     result_dic[contig].pop(index_key, None)
 
-                                index = index_remove_list[0]
-                                result_dic[contig][index] = [subject, query, contig, hit_start, hit_end, identity, similarity, hit_seq, query_seq]
+                                index += 1
+                                result_dic[contig][index] = [subject, query, contig, str(hit_start), str(hit_end), str(identity), str(similarity), hit_seq, query_seq]
                                 del index_remove_list[:]
 
     result_dic.clear()
@@ -120,11 +120,11 @@ rule Remove_Duplicates:
             if(len(retained_joined_results) or len(discarded_joined_results)):
                 with open(output[0], "w") as retained_writer:
                     retained_writer.write("Subject\tQuery\tContig\tStart\tEnd\tIdentity\tSimilarity"
-                                          "\tHit sequence\tQuery sequence\n" + "\n".join(retained_joined_results))
+                                          "\tHit sequence\tQuery sequence\tIndex\n" + "\n".join(retained_joined_results))
 
                 with open(output[1], "w") as discarded_writer:
                     discarded_writer.write("Subject\tQuery\tContig\tStart\tEnd\tIdentity\tSimilarity"
-                                           "\tHit sequence\tQuery sequence\n" + "\n".join(discarded_joined_results))
+                                           "\tHit sequence\tQuery sequence\tIndex\n" + "\n".join(discarded_joined_results))
 
             del retained_joined_results[:]
             del discarded_joined_results[:]

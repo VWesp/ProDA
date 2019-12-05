@@ -5,13 +5,15 @@ queries:
   proteins1: data/queries/proteins1.faa
   proteins2: data/queries/proteins2.faa
 
-blast_evalue: {num}
-left_addendum: {num}
-right_addendum: {num}
-exonerate_percentage: {num}
-blosum: {num}
-pam: {num}
-id_threshold: {num}
-sim_threshold: {num}
-properties: {path}
-threads: {num}
+blast_evalue: 0.01
+left_addendum: 100000
+right_addendum: 100000
+exonerate_percentage: 20
+blosum: 45
+pam: 200
+cd_hit_threshold: 99
+id_threshold: 40
+sim_threshold: 0
+overlap_percentage: 80
+properties: $HOME/.jalview_properties
+threads: 8

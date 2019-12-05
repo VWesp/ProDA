@@ -17,8 +17,6 @@ include: "snakefiles/CD_HIT.snakefile"
 
 include: "snakefiles/ALIGNMENT.snakefile"
 
-include: "snakefiles/GET_BEST_HIT.snakefile"
-
 include: "snakefiles/JOIN_RESULTS.snakefile"
 
 include: "snakefiles/VISUALIZE_RETAINED_RESULTS.snakefile"

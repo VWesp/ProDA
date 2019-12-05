@@ -12,8 +12,8 @@ exonerate_percentage: 20
 blosum: 45
 pam: 200
 cd_hit_threshold: 100
-id_threshold: 40
-sim_threshold: 0
+id_threshold: 35
+sim_threshold: 55
 overlap_percentage: 80
 properties: $HOME/.jalview_properties
 threads: 8

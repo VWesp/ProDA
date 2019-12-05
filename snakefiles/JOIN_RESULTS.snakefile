@@ -40,7 +40,7 @@ def joinResultsMultiprocessing(sc, id_threshold, sim_threshold, ol_percentage):
                     if(stripped_line.startswith("#")):
                         for contig in result_dic:
                             for index,det in result_dic[contig].items():
-                                if(float(det[5]) >= id_threshold and float(det[6]) >= sim_threshold):
+                                if(float(det[5]) >= id_threshold or float(det[6]) >= sim_threshold):
                                     retained_list.append("\t".join(det) + "\t" + str(index))
                                 else:
                                     discarded_list.append("\t".join(det) + "\t" + str(index))

@@ -84,7 +84,8 @@ def joinResultsMultiprocessing(sc, id_threshold, sim_threshold, ol_percentage):
 
                                 index += 1
                                 result_dic[contig][index] = [subject, query, contig, str(hit_start), str(hit_end), str(identity), str(similarity), hit_seq, query_seq]
-                                del index_remove_list[:]
+
+                            del index_remove_list[:]
 
     result_dic.clear()
     return[retained_list, discarded_list]

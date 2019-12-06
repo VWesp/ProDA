@@ -5,20 +5,33 @@ import multiprocessing as mp
 from functools import partial
 
 
+manager = mp.Manager()
+index = manager.Value("i", -1)
+lock = manager.Lock()
+
 def spalnSearchMultiprocessing(query, matches, pam, output, log):
-    temp_query = output[0].replace(".faa", "_" + query.id + ".faa")
+    local_index = None
+    with lock:
+        index.value += 1
+        local_index = index.value
+
+    temp_query = output[0].replace(".faa", "_" + str(local_index) + "_query.faa")
     with open(temp_query, "w") as query_writer:
         query_writer.write(">" + query.id + "\n" + str(query.seq))
 
     sp_results = []
     for match in SeqIO.parse(matches, "fasta"):
         query_id = match.id.split("_query:")[-1]
+        with lock:
+            index.value += 1
+            local_index = index.value
+
         if(query.id == query_id):
-            temp_target = output[0].replace(".faa", "_" + query.id + "_target.fna")
+            temp_target = output[0].replace(".faa", "_" + str(local_index) + "_target.fna")
             with open(temp_target, "w") as target_writer:
                 target_writer.write(">" + match.id + "\n" + str(match.seq))
 
-            temp_output = output[0].replace(".faa", "_" + query.id + "_output.sp")
+            temp_output = output[0].replace(".faa", "_" + str(local_index) + "_output.sp")
             os.system("(spaln -M -Q3 -O6 -S3 -yp" + str(pam) + " -yq" + str(pam) +
                       " -o" + temp_output + " " + temp_target + " " + temp_query + ") 2> " + log)
             with open(temp_output, "r") as output_reader:
@@ -46,8 +59,6 @@ rule Build_Spaln_Alignment:
     run:
         try:
             if(os.stat(input[1]).st_size != 0):
-                subject = input[1].split("/")[-2]
-                query = input[1].split("/")[-1].split(".fna")[0]
                 queries = list(SeqIO.parse(input[0], "fasta"))
                 pool = mp.Pool(processes=threads)
                 pool_map = partial(spalnSearchMultiprocessing, matches=input[1], pam=params[0],

@@ -74,37 +74,37 @@ rule Filter_Sequences:
                                 below_pep_list.append(">" + contig + "|" + query + "|" + str(below_index) + "\n" + pep_seq)
                                 below_index += 1
 
-            with open(output[0], "w") as gff_writer:
-                gff_writer.write("\n".join(above_gff_list))
+                with open(output[0], "w") as gff_writer:
+                    gff_writer.write("\n".join(above_gff_list))
 
-            with open(output[1], "w") as nuc_writer:
-                nuc_writer.write("\n".join(above_nuc_list))
+                with open(output[1], "w") as nuc_writer:
+                    nuc_writer.write("\n".join(above_nuc_list))
 
-            with open(output[2], "w") as cds_writer:
-                cds_writer.write("\n".join(above_cds_list))
+                with open(output[2], "w") as cds_writer:
+                    cds_writer.write("\n".join(above_cds_list))
 
-            with open(output[3], "w") as pep_writer:
-                pep_writer.write("\n".join(above_pep_list))
+                with open(output[3], "w") as pep_writer:
+                    pep_writer.write("\n".join(above_pep_list))
 
-            with open(output[4], "w") as gff_writer:
-                gff_writer.write("\n".join(below_gff_list))
+                with open(output[4], "w") as gff_writer:
+                    gff_writer.write("\n".join(below_gff_list))
 
-            with open(output[5], "w") as nuc_writer:
-                nuc_writer.write("\n".join(below_nuc_list))
+                with open(output[5], "w") as nuc_writer:
+                    nuc_writer.write("\n".join(below_nuc_list))
 
-            with open(output[6], "w") as cds_writer:
-                cds_writer.write("\n".join(below_cds_list))
+                with open(output[6], "w") as cds_writer:
+                    cds_writer.write("\n".join(below_cds_list))
 
-            with open(output[7], "w") as pep_writer:
-                pep_writer.write("\n".join(below_pep_list))
+                with open(output[7], "w") as pep_writer:
+                    pep_writer.write("\n".join(below_pep_list))
 
-            del above_gff_list[:]
-            del above_nuc_list[:]
-            del above_cds_list[:]
-            del above_pep_list[:]
-            del below_nuc_list[:]
-            del below_cds_list[:]
-            del below_pep_list[:]
+                del above_gff_list[:]
+                del above_nuc_list[:]
+                del above_cds_list[:]
+                del above_pep_list[:]
+                del below_nuc_list[:]
+                del below_cds_list[:]
+                del below_pep_list[:]
 
             for out in output:
                 if(not os.path.exists(out)):

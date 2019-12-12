@@ -52,8 +52,8 @@ rule Merge_Results:
                             elif(line.startswith(">cds")):
                                 infos["cds"] = line.split(">cds:")[-1].strip()
                             elif(line.startswith(">pep")):
-                                if(not "*" in line.split(">pep:")[-1]):
-                                    infos["pep"] = line.split(">pep:")[-1].strip()
+                                infos["pep"] = line.split(">pep:")[-1].strip()
+                                if(not "*" in infos["pep"][:-1]):
                                     if(not contig in ex_gff):
                                         ex_gff[contig] = {}
 
@@ -65,11 +65,10 @@ rule Merge_Results:
                                         for hit in ex_gff[contig][query]:
                                             if(overlap(start, end, infos["orientation"], hit["start"], hit["end"], hit["orientation"]) >= params[0]):
                                                 no_overlap = False
-                                                if(infos["pep"].startswith("M") and hit["pep"].startswith("M") or
-                                                   not infos["pep"].startswith("M") and not hit["pep"].startswith("M")):
-                                                    if(infos["identity"] > hit["identity"]):
-                                                        index_remove_list.append(ex_gff[contig][query].index(hit))
-                                                    elif(infos["identity"] == hit["identity"] and infos["similarity"] > hit["similarity"]):
+                                                if((infos["pep"].startswith("M") and hit["pep"].startswith("M")) or
+                                                   not (infos["pep"].startswith("M") and not hit["pep"].startswith("M"))):
+                                                    if(infos["identity"] > hit["identity"] or
+                                                       (infos["identity"] == hit["identity"] and infos["similarity"] > hit["similarity"])):
                                                         index_remove_list.append(ex_gff[contig][query].index(hit))
                                                 elif(infos["pep"].startswith("M")):
                                                     index_remove_list.append(ex_gff[contig][query].index(hit))
@@ -113,8 +112,8 @@ rule Merge_Results:
                             elif(line.startswith(">cds")):
                                 infos["cds"] = line.split(">cds:")[-1].strip()
                             elif(line.startswith(">pep")):
-                                if(not "*" in line.split(">pep:")[-1]):
-                                    infos["pep"] = line.split(">pep:")[-1].strip()
+                                infos["pep"] = line.split(">pep:")[-1].strip()
+                                if(not "*" in infos["pep"][:-1]):
                                     if(not contig in sp_gff):
                                         sp_gff[contig] = {}
 

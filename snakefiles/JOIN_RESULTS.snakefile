@@ -90,65 +90,65 @@ rule Merge_Results:
                                 end = int(splitted_line[3].strip())
                                 infos["pos"].append(str(start) + ";" + str(end))
 
-                sp_gff = {}
-                if(os.stat(input[1]).st_size != 0):
-                    with open(input[1], "r") as ex_reader:
-                        content = ex_reader.readlines()
-                        #infos = {}
-                        contig = None
-                        query = None
-                        for line in content:
-                            if(line):
-                                if(line.startswith("#")):
-                                    #infos.clear()
-                                    infos = {}
-                                    splitted_line = line.split("\t")
-                                    contig = splitted_line[0][1:].strip()
-                                    query = splitted_line[1].strip()
-                                    infos["start"] = int(splitted_line[2].strip())
-                                    infos["end"] = int(splitted_line[3].strip())
-                                    infos["pos"] = []
-                                    infos["orientation"] = splitted_line[4].strip()
-                                    infos["identity"] = float(splitted_line[5].strip())
-                                    infos["similarity"] = float(splitted_line[6].strip())
-                                elif(line.startswith(">nuc")):
-                                    infos["nuc"] = line.split(">nuc:")[-1].strip()
-                                elif(line.startswith(">cds")):
-                                    infos["cds"] = line.split(">cds:")[-1].strip()
-                                elif(line.startswith(">pep")):
-                                    if(not "*" in line.split(">pep:")[-1]):
-                                        infos["pep"] = line.split(">pep:")[-1].strip()
-                                        if(not contig in sp_gff):
-                                            sp_gff[contig] = {}
+            sp_gff = {}
+            if(os.stat(input[1]).st_size != 0):
+                with open(input[1], "r") as ex_reader:
+                    content = ex_reader.readlines()
+                    #infos = {}
+                    contig = None
+                    query = None
+                    for line in content:
+                        if(line):
+                            if(line.startswith("#")):
+                                #infos.clear()
+                                infos = {}
+                                splitted_line = line.split("\t")
+                                contig = splitted_line[0][1:].strip()
+                                query = splitted_line[1].strip()
+                                infos["start"] = int(splitted_line[2].strip())
+                                infos["end"] = int(splitted_line[3].strip())
+                                infos["pos"] = []
+                                infos["orientation"] = splitted_line[4].strip()
+                                infos["identity"] = float(splitted_line[5].strip())
+                                infos["similarity"] = float(splitted_line[6].strip())
+                            elif(line.startswith(">nuc")):
+                                infos["nuc"] = line.split(">nuc:")[-1].strip()
+                            elif(line.startswith(">cds")):
+                                infos["cds"] = line.split(">cds:")[-1].strip()
+                            elif(line.startswith(">pep")):
+                                if(not "*" in line.split(">pep:")[-1]):
+                                    infos["pep"] = line.split(">pep:")[-1].strip()
+                                    if(not contig in sp_gff):
+                                        sp_gff[contig] = {}
 
-                                        if(not query in sp_gff[contig]):
-                                            sp_gff[contig][query] = [infos]
-                                        else:
-                                            no_overlap = True
-                                            index_remove_list = []
-                                            for hit in sp_gff[contig][query]:
-                                                if(overlap(start, end, infos["orientation"], hit["start"], hit["end"], hit["orientation"]) >= params[0]):
-                                                    no_overlap = False
-                                                    if((infos["pep"].startswith("M") and hit["pep"].startswith("M")) or
-                                                       not (infos["pep"].startswith("M") or hit["pep"].startswith("M"))):
-                                                        if(infos["identity"] > hit["identity"] or
-                                                           (infos["identity"] == hit["identity"] and infos["similarity"] > hit["similarity"])):
-                                                            index_remove_list.append(sp_gff[contig][query].index(hit))
-                                                    elif(infos["pep"].startswith("M")):
+                                    if(not query in sp_gff[contig]):
+                                        sp_gff[contig][query] = [infos]
+                                    else:
+                                        no_overlap = True
+                                        index_remove_list = []
+                                        for hit in sp_gff[contig][query]:
+                                            if(overlap(start, end, infos["orientation"], hit["start"], hit["end"], hit["orientation"]) >= params[0]):
+                                                no_overlap = False
+                                                if((infos["pep"].startswith("M") and hit["pep"].startswith("M")) or
+                                                   not (infos["pep"].startswith("M") or hit["pep"].startswith("M"))):
+                                                    if(infos["identity"] > hit["identity"] or
+                                                       (infos["identity"] == hit["identity"] and infos["similarity"] > hit["similarity"])):
                                                         index_remove_list.append(sp_gff[contig][query].index(hit))
+                                                elif(infos["pep"].startswith("M")):
+                                                    index_remove_list.append(sp_gff[contig][query].index(hit))
 
-                                            if(no_overlap):
-                                                sp_gff[contig][query].append(infos)
-                                            elif(len(index_remove_list)):
-                                                for index in index_remove_list:
-                                                    del sp_gff[contig][query][index]
+                                        if(no_overlap):
+                                            sp_gff[contig][query].append(infos)
+                                        elif(len(index_remove_list)):
+                                            for index in index_remove_list:
+                                                del sp_gff[contig][query][index]
 
-                                                sp_gff[contig][query].append(infos)
-                                else:
-                                    splitted_line = line.split("\t")
-                                    start = int(splitted_line[2].strip())
-                                    end = int(splitted_line[3].strip())
-                                    infos["pos"].append(str(start) + ";" + str(end))
+                                            sp_gff[contig][query].append(infos)
+                            else:
+                                splitted_line = line.split("\t")
+                                start = int(splitted_line[2].strip())
+                                end = int(splitted_line[3].strip())
+                                infos["pos"].append(str(start) + ";" + str(end))
 
             joined_results = []
             inner_joined_results = []

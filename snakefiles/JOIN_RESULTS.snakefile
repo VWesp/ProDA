@@ -11,10 +11,7 @@ def overlap(start1, end1, orientation1, start2, end2, orientation2):
     if(start1 >= start2 and end1 <= end2):
         return 100
 
-    if(start1 > end1):
-        return ((min(start1, start2) - max(end1, end2)) / min(abs(end1-start1), abs(end2-start2))) * 100
-    else:
-        return ((min(end1, end2) - max(start1, start2)) / min(abs(end1-start1), abs(end2-start2))) * 100
+    return ((min(end1, end2) - max(start1, start2)) / min(end1-start1, end2-start2)) * 100
 
 
 rule Merge_Results:

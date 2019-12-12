@@ -5,12 +5,11 @@ queries:
   proteins2: data/queries/proteins2.faa
 
 blast_evalue: 0.01
-left_addendum: 100000
-right_addendum: 100000
+left_addendum: 1000000
+right_addendum: 1000000
 exonerate_percentage: 20
 blosum: 45
 pam: 200
-cd_hit_threshold: 100
 id_threshold: 35
 sim_threshold: 55
 overlap_percentage: 80

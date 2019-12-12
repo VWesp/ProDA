@@ -7,6 +7,7 @@ configfile: "config.yaml"
 def readGFF(gff, subjects):
     gff_list = []
     sequence = []
+    last_orientation = None
     for result in gff:
         lines = result.split("\n")
         for line in lines:
@@ -21,19 +22,38 @@ def readGFF(gff, subjects):
                 orientation = splitted_line[6].strip()
                 if(type == "gene"):
                     if(len(sequence)):
-                        seq = Seq("".join(sequence))
+                        seq = None
+                        if(last_orientation == "-"):
+                            seq = Seq("".join(sequence[::-1]))
+                        else:
+                            seq = Seq("".join(sequence))
+
                         gff_list.append(">cds:" + str(seq))
                         gff_list.append(">pep:" + str(seq.translate()))
 
+                    last_orientation = orientation
                     gff_list.append("#" + contig + "\t" + query + "\t" + str(start) + "\t" + str(end) + "\t" + orientation)
-                    gff_list.append(">nuc:" + str(subjects[contig].seq).upper()[start:end])
+                    if(orientation == "-"):
+                        gff_list.append(">nuc:" + str(subjects[contig].seq[start:end].reverse_complement()).upper())
+                    else:
+                        gff_list.append(">nuc:" + str(subjects[contig].seq[start:end]).upper())
+
                     del sequence[:]
                 elif(type == "cds"):
-                    sequence.append(str(subjects[contig].seq).upper()[start:end])
+                    if(orientation == "-"):
+                        sequence.append(str(subjects[contig].seq[start:end].reverse_complement()).upper())
+                    else:
+                        sequence.append(str(subjects[contig].seq[start:end]).upper())
+
                     gff_list.append(contig + "\t" + query + "\t" + str(start) + "\t" + str(end) + "\t" + orientation)
 
     if(len(sequence)):
-        seq = Seq("".join(sequence))
+        seq = None
+        if(last_orientation == "-"):
+            seq = Seq("".join(sequence[::-1]))
+        else:
+            seq = Seq("".join(sequence))
+
         gff_list.append(">cds:" + str(seq))
         gff_list.append(">pep:" + str(seq.translate()))
 

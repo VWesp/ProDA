@@ -1,13 +1,8 @@
-import os
-import traceback
-from Bio import SeqIO
-import multiprocessing as mp
-from functools import partial
+from Bio.Seq import Seq
 
 
-def overlap(start1, end1, lenght1, start2, end2, lenght2):
-    if((start1 <= end1 and start2 >= end2) or
-       (start1 >= end1 and start2 <= end2)):
+def overlap(start1, end1, orientation1, start2, end2, orientation2):
+    if(orientation1 != orientation2):
         return 0
 
     if(start1 <= start2 and end1 >= end2):
@@ -17,127 +12,215 @@ def overlap(start1, end1, lenght1, start2, end2, lenght2):
         return 100
 
     if(start1 > end1):
-        return ((min(start1, start2) - max(end1, end2)) / min(lenght1, lenght2)) * 100
+        return ((min(start1, start2) - max(end1, end2)) / min(abs(end1-start1), abs(end2-start2))) * 100
     else:
-        return ((min(end1, end2) - max(start1, start2)) / min(lenght1, lenght2)) * 100
+        return ((min(end1, end2) - max(start1, start2)) / min(abs(end1-start1), abs(end2-start2))) * 100
 
 
-def joinResultsMultiprocessing(sc, id_threshold, sim_threshold, ol_percentage):
-    retained_list = []
-    discarded_list = []
-    result_dic = {}
-    index = -1
-    index_remove_list = []
-    if(os.stat(sc).st_size != 0):
-        subject = sc.split("/")[-2]
-        subjects = SeqIO.index("data/subjects/" + subject + ".fna", "fasta")
-        with open(sc, "r") as result_reader:
-            content = result_reader.readlines()
-            query = None
-            for line in content:
-                stripped_line = line.strip()
-                if(stripped_line):
-                    if(stripped_line.startswith("#")):
-                        for contig in result_dic:
-                            for index,det in result_dic[contig].items():
-                                if(float(det[5]) >= id_threshold or float(det[6]) >= sim_threshold):
-                                    retained_list.append("\t".join(det) + "\t" + str(index))
-                                else:
-                                    discarded_list.append("\t".join(det) + "\t" + str(index))
-
-                        query = stripped_line[1:].strip()
-                        result_dic.clear()
-                    else:
-                        header = stripped_line.split("\t")[0].strip()
-                        contig = header.split("_cstart:")[0].strip()
-                        contig_start = int(header.split("_cstart:")[-1].split("_cend:")[0].strip())
-                        hit_start = int(header.split("::hstart=")[-1].split("::hend=")[0].strip()) + contig_start
-                        hit_end = int(header.split("::hend=")[-1].split("::query=")[0].strip()) + contig_start
-                        identity = float(stripped_line.split("\t")[1].strip())
-                        similarity = float(stripped_line.split("\t")[2].strip())
-                        hit_seq = stripped_line.split("\t")[3].strip()
-                        query_seq = stripped_line.split("\t")[4].strip()
-                        if(not contig in result_dic):
-                            index += 1
-                            result_dic[contig] = {}
-                            result_dic[contig][index] = [subject, query, contig, str(hit_start), str(hit_end), str(identity), str(similarity), hit_seq, query_seq]
-                        else:
-                            no_overlap = True
-                            for index_key,det in result_dic[contig].items():
-                                if(overlap(hit_start, hit_end, len(hit_seq), int(det[3]), int(det[4]), len(det[7])) >= ol_percentage):
-                                    no_overlap = False
-                                    if((hit_seq.startswith("M") and det[7].startswith("M")) or
-                                       not (hit_seq.startswith("M") or det[7].startswith("M"))):
-                                        if(identity > float(det[5])):
-                                            index_remove_list.append(index_key)
-                                        elif(identity == float(det[5]) and similarity > float(det[6])):
-                                            index_remove_list.append(index_key)
-                                    elif(hit_seq.startswith("M")):
-                                        index_remove_list.append(index_key)
-
-                            if(no_overlap):
-                                index += 1
-                                result_dic[contig][index] = [subject, query, contig, str(hit_start), str(hit_end), str(identity), str(similarity), hit_seq, query_seq]
-                            elif(len(index_remove_list)):
-                                for index_key in index_remove_list:
-                                    result_dic[contig].pop(index_key, None)
-
-                                index += 1
-                                result_dic[contig][index] = [subject, query, contig, str(hit_start), str(hit_end), str(identity), str(similarity), hit_seq, query_seq]
-
-                            del index_remove_list[:]
-
-    result_dic.clear()
-    return[retained_list, discarded_list]
-
-
-rule Remove_Duplicates:
+rule Merge_Results:
     input:
-        expand("scores/{subject}/{query}.sim", subject=config["subjects"], query=config["queries"])
+        "scores/exonerate/{subject}/{query}.sc_gff",
+        "scores/spaln/{subject}/{query}.sc_gff"
     output:
-        "results/retained/proda.tsv",
-        "results/discarded/proda.tsv"
+        "merged/{subject}/{query}.seq_gff"
     params:
-        config["id_threshold"],
-        config["sim_threshold"],
         config["overlap_percentage"]
-    threads: config["threads"]
     log:
-        "log/results/results.log"
+        "log/merged/{subject}/{query}.log"
     run:
         try:
-            pool = mp.Pool(processes=threads)
-            pool_map = partial(joinResultsMultiprocessing, id_threshold=params[0], sim_threshold=params[1], ol_percentage=params[2])
-            jr_mp_results = pool.map_async(pool_map, input)
-            pool.close()
-            pool.join()
-            retained_joined_results = []
-            discarded_joined_results = []
-            for result in jr_mp_results.get():
-                for retained in result[0]:
-                    retained_joined_results.append(retained)
+            ex_gff = {}
+            if(os.stat(input[0]).st_size != 0):
+                with open(input[0], "r") as ex_reader:
+                    content = ex_reader.readlines()
+                    #infos = {}
+                    contig = None
+                    query = None
+                    for line in content:
+                        if(line):
+                            if(line.startswith("#")):
+                                #infos.clear()
+                                infos = {}
+                                splitted_line = line.split("\t")
+                                contig = splitted_line[0][1:].strip()
+                                query = splitted_line[1].strip()
+                                infos["start"] = int(splitted_line[2].strip())
+                                infos["end"] = int(splitted_line[3].strip())
+                                infos["pos"] = []
+                                infos["orientation"] = splitted_line[4].strip()
+                                infos["identity"] = float(splitted_line[5].strip())
+                                infos["similarity"] = float(splitted_line[6].strip())
+                            elif(line.startswith(">nuc")):
+                                infos["nuc"] = line.split(">nuc:")[-1].strip()
+                            elif(line.startswith(">cds")):
+                                infos["cds"] = line.split(">cds:")[-1].strip()
+                            elif(line.startswith(">pep")):
+                                if(not "*" in line.split(">pep:")[-1]):
+                                    infos["pep"] = line.split(">pep:")[-1].strip()
+                                    if(not contig in ex_gff):
+                                        ex_gff[contig] = {}
 
-                for discarded in result[1]:
-                    discarded_joined_results.append(discarded)
+                                    if(not query in ex_gff[contig]):
+                                        ex_gff[contig][query] = [infos]
+                                    else:
+                                        no_overlap = True
+                                        index_remove_list = []
+                                        for hit in ex_gff[contig][query]:
+                                            if(overlap(start, end, infos["orientation"], hit["start"], hit["end"], hit["orientation"]) >= params[0]):
+                                                no_overlap = False
+                                                if(infos["pep"].startswith("M") and hit["pep"].startswith("M") or
+                                                   not infos["pep"].startswith("M") and not hit["pep"].startswith("M")):
+                                                    if(infos["identity"] > hit["identity"]):
+                                                        index_remove_list.append(ex_gff[contig][query].index(hit))
+                                                    elif(infos["identity"] == hit["identity"] and infos["similarity"] > hit["similarity"]):
+                                                        index_remove_list.append(ex_gff[contig][query].index(hit))
+                                                elif(infos["pep"].startswith("M")):
+                                                    index_remove_list.append(ex_gff[contig][query].index(hit))
 
-            if(len(retained_joined_results) or len(discarded_joined_results)):
-                with open(output[0], "w") as retained_writer:
-                    retained_writer.write("Subject\tQuery\tContig\tStart\tEnd\tIdentity\tSimilarity"
-                                          "\tHit sequence\tQuery sequence\tIndex\n" + "\n".join(retained_joined_results))
+                                        if(no_overlap):
+                                            ex_gff[contig][query].append(infos)
+                                        elif(len(index_remove_list)):
+                                            for index in index_remove_list:
+                                                del ex_gff[contig][query][index]
 
-                with open(output[1], "w") as discarded_writer:
-                    discarded_writer.write("Subject\tQuery\tContig\tStart\tEnd\tIdentity\tSimilarity"
-                                           "\tHit sequence\tQuery sequence\tIndex\n" + "\n".join(discarded_joined_results))
+                                            ex_gff[contig][query].append(infos)
+                            else:
+                                splitted_line = line.split("\t")
+                                start = int(splitted_line[2].strip())
+                                end = int(splitted_line[3].strip())
+                                infos["pos"].append(str(start) + ";" + str(end))
 
-            del retained_joined_results[:]
-            del discarded_joined_results[:]
-            del jr_mp_results.get()[:]
+                sp_gff = {}
+                if(os.stat(input[1]).st_size != 0):
+                    with open(input[1], "r") as ex_reader:
+                        content = ex_reader.readlines()
+                        #infos = {}
+                        contig = None
+                        query = None
+                        for line in content:
+                            if(line):
+                                if(line.startswith("#")):
+                                    #infos.clear()
+                                    infos = {}
+                                    splitted_line = line.split("\t")
+                                    contig = splitted_line[0][1:].strip()
+                                    query = splitted_line[1].strip()
+                                    infos["start"] = int(splitted_line[2].strip())
+                                    infos["end"] = int(splitted_line[3].strip())
+                                    infos["pos"] = []
+                                    infos["orientation"] = splitted_line[4].strip()
+                                    infos["identity"] = float(splitted_line[5].strip())
+                                    infos["similarity"] = float(splitted_line[6].strip())
+                                elif(line.startswith(">nuc")):
+                                    infos["nuc"] = line.split(">nuc:")[-1].strip()
+                                elif(line.startswith(">cds")):
+                                    infos["cds"] = line.split(">cds:")[-1].strip()
+                                elif(line.startswith(">pep")):
+                                    if(not "*" in line.split(">pep:")[-1]):
+                                        infos["pep"] = line.split(">pep:")[-1].strip()
+                                        if(not contig in sp_gff):
+                                            sp_gff[contig] = {}
 
-            if(not os.path.exists(output[0])):
+                                        if(not query in sp_gff[contig]):
+                                            sp_gff[contig][query] = [infos]
+                                        else:
+                                            no_overlap = True
+                                            index_remove_list = []
+                                            for hit in sp_gff[contig][query]:
+                                                if(overlap(start, end, infos["orientation"], hit["start"], hit["end"], hit["orientation"]) >= params[0]):
+                                                    no_overlap = False
+                                                    if((infos["pep"].startswith("M") and hit["pep"].startswith("M")) or
+                                                       not (infos["pep"].startswith("M") or hit["pep"].startswith("M"))):
+                                                        if(infos["identity"] > hit["identity"] or
+                                                           (infos["identity"] == hit["identity"] and infos["similarity"] > hit["similarity"])):
+                                                            index_remove_list.append(sp_gff[contig][query].index(hit))
+                                                    elif(infos["pep"].startswith("M")):
+                                                        index_remove_list.append(sp_gff[contig][query].index(hit))
+
+                                            if(no_overlap):
+                                                sp_gff[contig][query].append(infos)
+                                            elif(len(index_remove_list)):
+                                                for index in index_remove_list:
+                                                    del sp_gff[contig][query][index]
+
+                                                sp_gff[contig][query].append(infos)
+                                else:
+                                    splitted_line = line.split("\t")
+                                    start = int(splitted_line[2].strip())
+                                    end = int(splitted_line[3].strip())
+                                    infos["pos"].append(str(start) + ";" + str(end))
+
+            joined_results = []
+            inner_joined_results = []
+            for contig in ex_gff:
+                #joined_results.append("#" + contig)
+                if(contig in sp_gff):
+                    for query in ex_gff[contig]:
+                        #joined_results.append("##" + query)
+                        if(query in sp_gff[contig]):
+                            for ex_info in ex_gff[contig][query]:
+                                del inner_joined_results[:]
+                                for sp_info in sp_gff[contig][query]:
+                                    if(overlap(ex_info["start"], ex_info["end"], ex_info["orientation"], sp_info["start"], sp_info["end"], sp_info["orientation"]) >= params[0]):
+                                        if((ex_info["pep"].startswith("M") and sp_info["pep"].startswith("M")) or
+                                           not (ex_info["pep"].startswith("M") or sp_info["pep"].startswith("M"))):
+                                            if(ex_info["identity"] > sp_info["identity"] or
+                                               (ex_info["identity"] == sp_info["identity"] and ex_info["similarity"] > sp_info["similarity"])):
+                                                if(not ex_info in inner_joined_results):
+                                                    inner_joined_results.append(ex_info)
+                                            else:
+                                                if(not sp_info in inner_joined_results):
+                                                    inner_joined_results.append(sp_info)
+                                        elif(ex_info["pep"].startswith("M")):
+                                            if(not ex_info in inner_joined_results):
+                                                inner_joined_results.append(ex_info)
+                                        else:
+                                            if(not sp_info in inner_joined_results):
+                                                inner_joined_results.append(sp_info)
+
+                                for info in inner_joined_results:
+                                    joined_results.append(contig + "\t" + query + "\t" + str(info["start"]) + "\t" + str(info["end"]) +
+                                                          "\t" + info["orientation"] + "\t" + "|".join(info["pos"]) + "\t" + str(info["identity"]) +
+                                                          "\t" + str(info["similarity"]) + "\t" + info["nuc"] + "\t" + info["cds"] +
+                                                          "\t" + info["pep"])
+                        else:
+                            for info in ex_gff[contig][query]:
+                                joined_results.append(contig + "\t" + query + "\t" + str(info["start"]) + "\t" + str(info["end"]) + "\t" +
+                                                      info["orientation"] + "\t" + "|".join(info["pos"]) + "\t" + str(info["identity"]) +
+                                                      "\t" + str(info["similarity"]) + "\t" + info["nuc"] + "\t" + info["cds"] + "\t" + info["pep"])
+                    for query in sp_gff[contig]:
+                        if(not query in sp_gff[contig]):
+                            #joined_results.append("##" + query)
+                            for info in sp_gff[contig][query]:
+                                joined_results.append(contig + "\t" + query + "\t" + str(info["start"]) + "\t" + str(info["end"]) + "\t" +
+                                                      info["orientation"] + "\t" + "|".join(info["pos"]) + "\t" + str(info["identity"]) +
+                                                      "\t" + str(info["similarity"]) + "\t" + info["nuc"] + "\t" + info["cds"] + "\t" + info["pep"])
+                else:
+                    for query in ex_gff[contig]:
+                        #joined_results.append("##" + query)
+                        for info in ex_gff[contig][query]:
+                            joined_results.append(contig + "\t" + query + "\t" + str(info["start"]) + "\t" + str(info["end"]) + "\t" +
+                                                  info["orientation"] + "\t" + "|".join(info["pos"]) + "\t" + str(info["identity"]) +
+                                                  "\t" + str(info["similarity"]) + "\t" + info["nuc"] + "\t" + info["cds"] + "\t" + info["pep"])
+
+            for contig in sp_gff:
+                if(not contig in ex_gff):
+                    #joined_results.append("#" + contig)
+                    for query in sp_gff[contig]:
+                        #joined_results.append("##" + query)
+                        for info in sp_gff[contig][query]:
+                            joined_results.append(contig + "\t" + query + "\t" + str(info["start"]) + "\t" + str(info["end"]) + "\t" +
+                                                  info["orientation"] + "\t" + "|".join(info["pos"]) + "\t" + str(info["identity"]) +
+                                                  "\t" + str(info["similarity"]) + "\t" + info["nuc"] + "\t" + info["cds"] + "\t" + info["pep"])
+
+            with open(output[0], "w") as merged_writer:
+                merged_writer.write("\n".join(joined_results))
+
+            ex_gff.clear()
+            sp_gff.clear()
+            del joined_results[:]
+            if(os.path.exists(output[0])):
                 os.system("touch " + output[0])
-
-            if(not os.path.exists(output[1])):
-                os.system("touch " + output[1])
         except Exception as ex:
             with open(log[0], "w") as log_writer:
                 log_writer.write(str(traceback.format_exc()) + "\n" + str(ex))

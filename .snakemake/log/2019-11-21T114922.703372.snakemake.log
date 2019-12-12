@@ -1,0 +1,75 @@
+Building DAG of jobs...
+Using shell: /bin/bash
+Provided cores: 1
+Rules claiming more threads will be scaled down.
+Job counts:
+	count	jobs
+	1	all
+	2	blast
+	2	makeblastdb
+	2	matcher
+	1	test
+	8
+
+[Thu Nov 21 11:49:22 2019]
+rule makeblastdb:
+    input: data/subjects/gonium.fna
+    output: blast_dbs/gonium/temp.db
+    log: log/blast_dbs/gonium.log
+    jobid: 7
+    wildcards: subject=gonium
+
+(makeblastdb -in data/subjects/gonium.fna -dbtype nucl -out blast_dbs/gonium/gonium) 2> log/blast_dbs/gonium.log && touch blast_dbs/gonium/temp.db
+[Thu Nov 21 11:49:24 2019]
+Finished job 7.
+1 of 8 steps (12%) done
+
+[Thu Nov 21 11:49:24 2019]
+rule makeblastdb:
+    input: data/subjects/csp.fna
+    output: blast_dbs/csp/temp.db
+    log: log/blast_dbs/csp.log
+    jobid: 6
+    wildcards: subject=csp
+
+(makeblastdb -in data/subjects/csp.fna -dbtype nucl -out blast_dbs/csp/csp) 2> log/blast_dbs/csp.log && touch blast_dbs/csp/temp.db
+[Thu Nov 21 11:49:25 2019]
+Finished job 6.
+2 of 8 steps (25%) done
+
+[Thu Nov 21 11:49:25 2019]
+rule blast:
+    input: blast_dbs/csp/temp.db, data/queries/actin.faa
+    output: blast_results/csp/actin.hit
+    log: log/blast_results/csp/actin.log
+    jobid: 4
+    wildcards: subject=csp, query=actin
+
+(tblastn -query data/queries/actin.faa -db blast_dbs/csp/csp -outfmt '6 qseqid sseqid sstart send' -evalue 1e-4 > blast_results/csp/actin.hit) 2> log/blast_results/csp/actin.log
+[Thu Nov 21 11:49:26 2019]
+Finished job 4.
+3 of 8 steps (38%) done
+
+[Thu Nov 21 11:49:26 2019]
+rule matcher:
+    input: blast_results/csp/actin.hit
+    output: matches/csp/actin.fna
+    log: log/matches/csp/actin.log
+    jobid: 2
+    wildcards: subject=csp, query=actin
+
+/home/valentin/anaconda3/bin/python3.6 /home/valentin/git/ProDA/.snakemake/scripts/tmpt71aafya.contig_query_matcher.py
+[Thu Nov 21 11:49:26 2019]
+Error in rule matcher:
+    jobid: 2
+    output: matches/csp/actin.fna
+    log: log/matches/csp/actin.log (check log file(s) for error message)
+
+RuleException:
+CalledProcessError in line 24 of /home/valentin/git/ProDA/Snakefile:
+Command 'set -euo pipefail;  /home/valentin/anaconda3/bin/python3.6 /home/valentin/git/ProDA/.snakemake/scripts/tmpt71aafya.contig_query_matcher.py' returned non-zero exit status 1.
+  File "/home/valentin/git/ProDA/Snakefile", line 24, in __rule_matcher
+  File "/home/valentin/anaconda3/lib/python3.6/concurrent/futures/thread.py", line 56, in run
+Shutting down, this might take some time.
+Exiting because a job execution failed. Look above for error message
+Complete log: /home/valentin/git/ProDA/.snakemake/log/2019-11-21T114922.703372.snakemake.log

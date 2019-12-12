@@ -1,0 +1,130 @@
+Building DAG of jobs...
+Using shell: /bin/bash
+Provided cores: 1
+Rules claiming more threads will be scaled down.
+Job counts:
+	count	jobs
+	6	alignment
+	1	all
+	6	blast
+	6	cd_hit
+	6	exonerate
+	6	get_best_hit
+	2	makeblastdb
+	6	matcher
+	6	spaln
+	1	test
+	46
+
+[Thu Nov 21 15:47:33 2019]
+rule makeblastdb:
+    input: data/subjects/gonium.fna
+    output: blast_dbs/gonium/temp.db
+    log: log/blast_dbs/gonium.log
+    jobid: 45
+    wildcards: subject=gonium
+
+(makeblastdb -in data/subjects/gonium.fna -dbtype nucl -out blast_dbs/gonium/gonium) 2> log/blast_dbs/gonium.log && touch blast_dbs/gonium/temp.db
+[Thu Nov 21 15:47:35 2019]
+Finished job 45.
+1 of 46 steps (2%) done
+
+[Thu Nov 21 15:47:35 2019]
+rule makeblastdb:
+    input: data/subjects/csp.fna
+    output: blast_dbs/csp/temp.db
+    log: log/blast_dbs/csp.log
+    jobid: 44
+    wildcards: subject=csp
+
+(makeblastdb -in data/subjects/csp.fna -dbtype nucl -out blast_dbs/csp/csp) 2> log/blast_dbs/csp.log && touch blast_dbs/csp/temp.db
+[Thu Nov 21 15:47:36 2019]
+Finished job 44.
+2 of 46 steps (4%) done
+
+[Thu Nov 21 15:47:36 2019]
+rule blast:
+    input: blast_dbs/csp/temp.db, data/queries/cng_channels.faa
+    output: blast_results/csp/cng_channels.hit
+    log: log/blast_results/csp/cng_channels.log
+    jobid: 40
+    wildcards: subject=csp, query=cng_channels
+
+(tblastn -query data/queries/cng_channels.faa -db blast_dbs/csp/csp -outfmt '6 qseqid sseqid sstart send' -evalue 1e-4 > blast_results/csp/cng_channels.hit) 2> log/blast_results/csp/cng_channels.log
+[Thu Nov 21 15:47:43 2019]
+Finished job 40.
+3 of 46 steps (7%) done
+
+[Thu Nov 21 15:47:43 2019]
+rule matcher:
+    input: data/subjects/csp.fna, blast_results/csp/cng_channels.hit
+    output: matches/csp/cng_channels.fna
+    log: log/matches/csp/cng_channels.log
+    jobid: 34
+    wildcards: subject=csp, query=cng_channels
+
+/home/valentin/anaconda3/bin/python3.6 /home/valentin/git/ProDA/.snakemake/scripts/tmpdywvnt7c.contig_query_matcher.py
+[Thu Nov 21 15:47:43 2019]
+Finished job 34.
+4 of 46 steps (9%) done
+
+[Thu Nov 21 15:47:43 2019]
+rule spaln:
+    input: data/queries/cng_channels.faa, matches/csp/cng_channels.fna
+    output: spaln/csp/cng_channels.sp, spaln/csp/cng_channels.fna, spaln/csp/cng_channels_temp.fna, spaln/csp/cng_channels.faa
+    log: log/spaln/csp/cng_channels.log
+    jobid: 25
+    wildcards: subject=csp, query=cng_channels
+
+Removing temporary output file spaln/csp/cng_channels_temp.fna.
+[Thu Nov 21 15:48:27 2019]
+Finished job 25.
+5 of 46 steps (11%) done
+
+[Thu Nov 21 15:48:27 2019]
+rule exonerate:
+    input: data/queries/cng_channels.faa, matches/csp/cng_channels.fna
+    output: exonerate/csp/cng_channels.ryo, exonerate/csp/cng_channels.fna, exonerate/csp/cng_channels.faa
+    log: log/exonerate/csp/cng_channels.log
+    jobid: 24
+    wildcards: subject=csp, query=cng_channels
+
+[Thu Nov 21 15:50:08 2019]
+Finished job 24.
+6 of 46 steps (13%) done
+
+[Thu Nov 21 15:50:08 2019]
+rule cd_hit:
+    input: exonerate/csp/cng_channels.faa, spaln/csp/cng_channels.faa
+    output: cd_hit/csp/cng_channels_joined.faa, cd_hit/csp/cng_channels_merged.faa
+    log: log/cd_hit/csp/cng_channels.log
+    jobid: 13
+    wildcards: subject=csp, query=cng_channels
+
+[Thu Nov 21 15:50:08 2019]
+Finished job 13.
+7 of 46 steps (15%) done
+
+[Thu Nov 21 15:50:08 2019]
+rule alignment:
+    input: data/queries/cng_channels.faa, cd_hit/csp/cng_channels_merged.faa
+    output: scores/csp/cng_channels.sc
+    log: log/scores/csp/cng_channels.log
+    jobid: 12
+    wildcards: subject=csp, query=cng_channels
+
+[Thu Nov 21 15:50:10 2019]
+Finished job 12.
+8 of 46 steps (17%) done
+
+[Thu Nov 21 15:50:10 2019]
+rule get_best_hit:
+    input: scores/csp/cng_channels.sc, cd_hit/csp/cng_channels_merged.faa
+    output: best_hit/csp/cng_channels.faa
+    log: log.best_hit/csp/cng_channels.log
+    jobid: 4
+    wildcards: subject=csp, query=cng_channels
+
+Shutting down, this might take some time.
+Exiting because a job execution failed. Look above for error message
+Complete log: /home/valentin/git/ProDA/.snakemake/log/2019-11-21T154733.413758.snakemake.log

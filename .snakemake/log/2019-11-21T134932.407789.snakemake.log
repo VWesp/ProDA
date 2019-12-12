@@ -1,0 +1,3 @@
+SyntaxError in line 17 of /home/valentin/git/ProDA/snakefiles/ALIGNMENT.snakefile:
+invalid syntax
+  File "/home/valentin/git/ProDA/Snakefile", line 31, in <module>

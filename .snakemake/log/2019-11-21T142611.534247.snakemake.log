@@ -1,0 +1,37 @@
+Building DAG of jobs...
+Using shell: /bin/bash
+Provided cores: 1
+Rules claiming more threads will be scaled down.
+Job counts:
+	count	jobs
+	6	alignment
+	1	all
+	6	blast
+	6	cd_hit
+	6	exonerate
+	2	makeblastdb
+	6	matcher
+	6	spaln
+	1	test
+	40
+
+[Thu Nov 21 14:26:11 2019]
+rule makeblastdb:
+    input: data/subjects/gonium.fna
+    output: blast_dbs/gonium/temp.db
+    log: log/blast_dbs/gonium.log
+    jobid: 39
+    wildcards: subject=gonium
+
+(makeblastdb -in data/subjects/gonium.fna -dbtype nucl -out blast_dbs/gonium/gonium) 2> log/blast_dbs/gonium.log && touch blast_dbs/gonium/temp.db
+Terminating processes on user request, this might take some time.
+[Thu Nov 21 14:26:11 2019]
+Error in rule makeblastdb:
+    jobid: 39
+    output: blast_dbs/gonium/temp.db
+    log: log/blast_dbs/gonium.log (check log file(s) for error message)
+    shell:
+        (makeblastdb -in data/subjects/gonium.fna -dbtype nucl -out blast_dbs/gonium/gonium) 2> log/blast_dbs/gonium.log && touch blast_dbs/gonium/temp.db
+        (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
+
+Complete log: /home/valentin/git/ProDA/.snakemake/log/2019-11-21T142611.534247.snakemake.log

@@ -1,0 +1,4 @@
+KeyError in line 17 of /home/valentin/git/ProDA/snakefiles/VISUALIZE_RESULTS.snakefile:
+'properties'
+  File "/home/valentin/git/ProDA/Snakefile", line 23, in <module>
+  File "/home/valentin/git/ProDA/snakefiles/VISUALIZE_RESULTS.snakefile", line 17, in <module>

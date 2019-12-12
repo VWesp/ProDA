@@ -1,0 +1,3 @@
+SyntaxError in line 9 of /home/valentin/git/ProDA/snakefiles/JOIN_RESULTS.snakefile:
+invalid syntax
+  File "/home/valentin/git/ProDA/Snakefile", line 20, in <module>

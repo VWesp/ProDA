@@ -1,67 +1,66 @@
 import os
 import traceback
+from Bio import SeqIO
 import multiprocessing as mp
+from functools import partial
 
 
-def visualizeDiscardedResultsMultiprocessing(line, properties):
-    stripped_line = line.strip()
-    if(stripped_line):
-        subject = stripped_line.split("\t")[0]
-        query = stripped_line.split("\t")[1]
-        hit_sequence = stripped_line.split("\t")[7]
-        query_sequence = stripped_line.split("\t")[8]
-        index = stripped_line.split("\t")[9]
-        if(not os.path.exists("results/discarded/alignments/" + subject)):
-            os.makedirs("results/discarded/alignments/" + subject)
+def visualizeDiscardedResultsMultiprocessing(hit, subject, input, properties):
+    queries = SeqIO.index(input, "fasta")
+    query = hit.id.split("|")[1]
+    index = hit.id.split("|")[-1]
+    hit_output =  "results/below_threshold/" + subject + "/alignments/" + query + "_index_" + index + "_hit.faa"
+    with open(hit_output, "w") as hit_writer:
+        hit_writer.write(">" + hit.id + "\n" + str(hit.seq))
 
-        if(not os.path.exists("log/results/discarded/alignments/" + subject)):
-            os.makedirs("log/results/discarded/alignments/" + subject)
+    query_output =  "results/below_threshold/" + subject + "/alignments/" + query + "_index_" + index + "_query.faa"
+    with open(query_output, "w") as query_writer:
+        query_writer.write(">" + queries[query].id + "\n" + str(queries[query].seq))
 
-        hit_output =  "results/discarded/alignments/" + subject + "/" + query + "_hit.faa"
-        with open(hit_output, "w") as hit_writer:
-            hit_writer.write(">" + subject + "\n" + hit_sequence)
+    clustal_output =  "results/below_threshold/" + subject + "/alignments/" + query + "_index_" + index + ".clustal"
+    log_output = "log/results/below_threshold/" + subject + "/alignments/" + query + "_index_" + index + ".log"
+    os.system("(stretcher -asequence " + hit_output + " -sprotein1 -bsequence " +
+              query_output + " -auto -aformat clustal -stdout > " + clustal_output + ") 2> " +log_output)
 
-        query_output =  "results/discarded/alignments/" + subject + "/" + query + "_query.faa"
-        with open(query_output, "w") as query_writer:
-            query_writer.write(">" + query + "\n" + query_sequence)
+    png_output = "results/below_threshold/" + subject + "/alignments/" + query + "_index_" + index + ".png"
+    os.system("(jalview -nodisplay -props " + properties + " -colour clustal -open " +
+              clustal_output + " -png " + png_output + ") 2> " + log_output)
 
-        clustal_output =  "results/discarded/alignments/" + subject + "/" + query + "_index_" + index + ".clustal"
-        log_output = "log/results/discarded/alignments/" + subject + "/" + query + "_index_" + index + ".log"
-        os.system("(stretcher -asequence " + hit_output + " -sprotein1 -bsequence " +
-                  query_output + " -auto -aformat clustal -stdout > " + clustal_output + ") 2> " +log_output)
-
-        png_output = "results/discarded/alignments/" + subject + "/" + query + "_index_" + index + ".png"
-        os.system("(jalview -nodisplay -props " + properties + " -colour clustal -open " +
-                  clustal_output + " -png " + png_output + ") 2> " + log_output)
-
-        os.remove(hit_output)
-        os.remove(query_output)
+    os.remove(hit_output)
+    os.remove(query_output)
 
 
-rule Visualize_Discarded_Results:
+rule Visualize_Results_Below_Threshold:
     input:
-        "results/discarded/proda.tsv"
+        "data/queries/{query}.faa",
+        "results/below_threshold/{subject}/{query}.pep"
     output:
-        temp("discarded_finished.txt")
+        temp("temp/below/{subject}/{query}.txt")
     params:
-        props=config["properties"]
-    threads: 1
+        config["properties"]
+    threads: config["threads"]
     run:
         try:
-            if(os.stat(input[0]).st_size != 0):
-                with open(input[0], "r") as discarded_reader:
-                    lines = discarded_reader.read().split("\n")[1:]
-                    pool = mp.Pool(processes=threads)
-                    pool_map = partial(visualizeDiscardedResultsMultiprocessing, properties=params[0])
-                    pool.map_async(pool_map, lines)
-                    pool.close()
-                    pool.join()
-        except:
-            print("\033[1;31;mError: " + str(traceback.format_exc()) + "\nSee log file: log/results/discarded/alignments.log")
-            if(not os.path.exists("log/results/discarded")):
-                os.makedirs("log/results/discarded")
+            if(os.stat(input[1]).st_size != 0):
+                subject = input[1].split("/")[-2]
+                if(not os.path.exists("results/below_threshold/" + subject + "/alignments")):
+                    os.makedirs("results/below_threshold/" + subject + "/alignments")
 
-            with open("log/results/discarded/alignments.log", "w") as log_writer:
+                if(not os.path.exists("log/results/below_threshold/" + subject + "/alignments")):
+                    os.makedirs("log/results/below_threshold/" + subject + "/alignments")
+
+                hits = list(SeqIO.parse(input[1], "fasta"))
+                pool = mp.Pool(processes=threads)
+                pool_map = partial(visualizeDiscardedResultsMultiprocessing, subject=subject, input=input[0], properties=params[0])
+                pool.map_async(pool_map, hits)
+                pool.close()
+                pool.join()
+        except:
+            print("\033[1;31;mError: " + str(traceback.format_exc()) + "\nSee log file: log/results/below_threshold/" + subject + "/alignments/.log")
+            if(not os.path.exists("log/results/below_threshold")):
+                os.makedirs("log/results/below_threshold")
+
+            with open("log/results/below_threshold/" + subject + "/alignments/.log", "w") as log_writer:
                 log_writer.write(str(traceback.format_exc()))
 
-        os.system("touch discarded_finished.txt")
+        os.system("touch " + output[0])

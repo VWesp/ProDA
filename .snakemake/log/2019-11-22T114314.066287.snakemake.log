@@ -1,0 +1,66 @@
+Building DAG of jobs...
+Using shell: /bin/bash
+Provided cores: 1
+Rules claiming more threads will be scaled down.
+Job counts:
+	count	jobs
+	6	alignment
+	1	all
+	6	blast
+	6	cd_hit
+	6	exonerate
+	6	get_best_hit
+	2	makeblastdb
+	6	matcher
+	6	spaln
+	1	test
+	46
+
+[Fri Nov 22 11:43:14 2019]
+rule makeblastdb:
+    input: data/subjects/gonium.fna
+    output: blast_dbs/gonium/temp.db
+    log: log/blast_dbs/gonium.log
+    jobid: 45
+    wildcards: subject=gonium
+
+(makeblastdb -in data/subjects/gonium.fna -dbtype nucl -out blast_dbs/gonium/gonium) 2> log/blast_dbs/gonium.log && touch blast_dbs/gonium/temp.db
+[Fri Nov 22 11:43:15 2019]
+Finished job 45.
+1 of 46 steps (2%) done
+
+[Fri Nov 22 11:43:15 2019]
+rule makeblastdb:
+    input: data/subjects/csp.fna
+    output: blast_dbs/csp/temp.db
+    log: log/blast_dbs/csp.log
+    jobid: 44
+    wildcards: subject=csp
+
+(makeblastdb -in data/subjects/csp.fna -dbtype nucl -out blast_dbs/csp/csp) 2> log/blast_dbs/csp.log && touch blast_dbs/csp/temp.db
+[Fri Nov 22 11:43:16 2019]
+Finished job 44.
+2 of 46 steps (4%) done
+
+[Fri Nov 22 11:43:16 2019]
+rule blast:
+    input: blast_dbs/gonium/temp.db, data/queries/cng_channels.faa
+    output: blast_results/gonium/cng_channels.hit
+    log: log/blast_results/gonium/cng_channels.log
+    jobid: 43
+    wildcards: subject=gonium, query=cng_channels
+
+(tblastn -query data/queries/cng_channels.faa -db blast_dbs/gonium/gonium -outfmt '6 qseqid sseqid sstart send' -evalue 1e-4 > blast_results/gonium/cng_channels.hit) 2> log/blast_results/gonium/cng_channels.log
+Terminating processes on user request, this might take some time.
+[Fri Nov 22 11:43:19 2019]
+Error in rule blast:
+    jobid: 43
+    output: blast_results/gonium/cng_channels.hit
+    log: log/blast_results/gonium/cng_channels.log (check log file(s) for error message)
+    shell:
+        (tblastn -query data/queries/cng_channels.faa -db blast_dbs/gonium/gonium -outfmt '6 qseqid sseqid sstart send' -evalue 1e-4 > blast_results/gonium/cng_channels.hit) 2> log/blast_results/gonium/cng_channels.log
+        (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
+
+Removing output files of failed job blast since they might be corrupted:
+blast_results/gonium/cng_channels.hit
+Complete log: /home/valentin/git/ProDA/.snakemake/log/2019-11-22T114314.066287.snakemake.log

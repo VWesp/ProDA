@@ -1,0 +1,378 @@
+Building DAG of jobs...
+Using shell: /bin/bash
+Provided cores: 1
+Rules claiming more threads will be scaled down.
+Job counts:
+	count	jobs
+	6	alignment
+	1	all
+	6	blast
+	6	cd_hit
+	6	exonerate
+	2	makeblastdb
+	6	matcher
+	6	spaln
+	1	test
+	40
+
+[Thu Nov 21 14:58:40 2019]
+rule makeblastdb:
+    input: data/subjects/gonium.fna
+    output: blast_dbs/gonium/temp.db
+    log: log/blast_dbs/gonium.log
+    jobid: 39
+    wildcards: subject=gonium
+
+(makeblastdb -in data/subjects/gonium.fna -dbtype nucl -out blast_dbs/gonium/gonium) 2> log/blast_dbs/gonium.log && touch blast_dbs/gonium/temp.db
+[Thu Nov 21 14:58:42 2019]
+Finished job 39.
+1 of 40 steps (2%) done
+
+[Thu Nov 21 14:58:42 2019]
+rule makeblastdb:
+    input: data/subjects/csp.fna
+    output: blast_dbs/csp/temp.db
+    log: log/blast_dbs/csp.log
+    jobid: 38
+    wildcards: subject=csp
+
+(makeblastdb -in data/subjects/csp.fna -dbtype nucl -out blast_dbs/csp/csp) 2> log/blast_dbs/csp.log && touch blast_dbs/csp/temp.db
+[Thu Nov 21 14:58:43 2019]
+Finished job 38.
+2 of 40 steps (5%) done
+
+[Thu Nov 21 14:58:43 2019]
+rule blast:
+    input: blast_dbs/csp/temp.db, data/queries/cng_channels.faa
+    output: blast_results/csp/cng_channels.hit
+    log: log/blast_results/csp/cng_channels.log
+    jobid: 34
+    wildcards: subject=csp, query=cng_channels
+
+(tblastn -query data/queries/cng_channels.faa -db blast_dbs/csp/csp -outfmt '6 qseqid sseqid sstart send' -evalue 1e-4 > blast_results/csp/cng_channels.hit) 2> log/blast_results/csp/cng_channels.log
+[Thu Nov 21 14:58:50 2019]
+Finished job 34.
+3 of 40 steps (8%) done
+
+[Thu Nov 21 14:58:50 2019]
+rule matcher:
+    input: data/subjects/csp.fna, blast_results/csp/cng_channels.hit
+    output: matches/csp/cng_channels.fna
+    log: log/matches/csp/cng_channels.log
+    jobid: 28
+    wildcards: subject=csp, query=cng_channels
+
+/home/valentin/anaconda3/bin/python3.6 /home/valentin/git/ProDA/.snakemake/scripts/tmp4pz967nu.contig_query_matcher.py
+[Thu Nov 21 14:58:51 2019]
+Finished job 28.
+4 of 40 steps (10%) done
+
+[Thu Nov 21 14:58:51 2019]
+rule exonerate:
+    input: data/queries/cng_channels.faa, matches/csp/cng_channels.fna
+    output: exonerate/csp/cng_channels.ryo, exonerate/csp/cng_channels.fna, exonerate/csp/cng_channels.faa
+    log: log/exonerate/csp/cng_channels.log
+    jobid: 18
+    wildcards: subject=csp, query=cng_channels
+
+[Thu Nov 21 15:00:31 2019]
+Finished job 18.
+5 of 40 steps (12%) done
+
+[Thu Nov 21 15:00:31 2019]
+rule spaln:
+    input: data/queries/cng_channels.faa, matches/csp/cng_channels.fna
+    output: spaln/csp/cng_channels.sp, spaln/csp/cng_channels.fna, spaln/csp/cng_channels_temp.fna, spaln/csp/cng_channels.faa
+    log: log/spaln/csp/cng_channels.log
+    jobid: 19
+    wildcards: subject=csp, query=cng_channels
+
+Removing temporary output file spaln/csp/cng_channels_temp.fna.
+[Thu Nov 21 15:01:11 2019]
+Finished job 19.
+6 of 40 steps (15%) done
+
+[Thu Nov 21 15:01:11 2019]
+rule cd_hit:
+    input: exonerate/csp/cng_channels.faa, spaln/csp/cng_channels.faa
+    output: cd_hit/csp/cng_channels_joined.faa, cd_hit/csp/cng_channels_merged.faa
+    log: log/cd_hit/csp/cng_channels.log
+    jobid: 10
+    wildcards: subject=csp, query=cng_channels
+
+[Thu Nov 21 15:01:12 2019]
+Finished job 10.
+7 of 40 steps (18%) done
+
+[Thu Nov 21 15:01:12 2019]
+rule alignment:
+    input: data/queries/cng_channels.faa, cd_hit/csp/cng_channels_merged.faa
+    output: scores/csp/cng_channels.sc
+    log: log/scores/csp/cng_channels.log
+    jobid: 4
+    wildcards: subject=csp, query=cng_channels
+
+[Thu Nov 21 15:01:13 2019]
+Finished job 4.
+8 of 40 steps (20%) done
+
+[Thu Nov 21 15:01:13 2019]
+rule blast:
+    input: blast_dbs/gonium/temp.db, data/queries/cng_channels.faa
+    output: blast_results/gonium/cng_channels.hit
+    log: log/blast_results/gonium/cng_channels.log
+    jobid: 37
+    wildcards: subject=gonium, query=cng_channels
+
+(tblastn -query data/queries/cng_channels.faa -db blast_dbs/gonium/gonium -outfmt '6 qseqid sseqid sstart send' -evalue 1e-4 > blast_results/gonium/cng_channels.hit) 2> log/blast_results/gonium/cng_channels.log
+[Thu Nov 21 15:01:25 2019]
+Finished job 37.
+9 of 40 steps (22%) done
+
+[Thu Nov 21 15:01:25 2019]
+rule matcher:
+    input: data/subjects/gonium.fna, blast_results/gonium/cng_channels.hit
+    output: matches/gonium/cng_channels.fna
+    log: log/matches/gonium/cng_channels.log
+    jobid: 31
+    wildcards: subject=gonium, query=cng_channels
+
+/home/valentin/anaconda3/bin/python3.6 /home/valentin/git/ProDA/.snakemake/scripts/tmpgcib5u6s.contig_query_matcher.py
+[Thu Nov 21 15:01:26 2019]
+Finished job 31.
+10 of 40 steps (25%) done
+
+[Thu Nov 21 15:01:26 2019]
+rule exonerate:
+    input: data/queries/cng_channels.faa, matches/gonium/cng_channels.fna
+    output: exonerate/gonium/cng_channels.ryo, exonerate/gonium/cng_channels.fna, exonerate/gonium/cng_channels.faa
+    log: log/exonerate/gonium/cng_channels.log
+    jobid: 24
+    wildcards: subject=gonium, query=cng_channels
+
+[Thu Nov 21 15:03:14 2019]
+Finished job 24.
+11 of 40 steps (28%) done
+
+[Thu Nov 21 15:03:14 2019]
+rule spaln:
+    input: data/queries/cng_channels.faa, matches/gonium/cng_channels.fna
+    output: spaln/gonium/cng_channels.sp, spaln/gonium/cng_channels.fna, spaln/gonium/cng_channels_temp.fna, spaln/gonium/cng_channels.faa
+    log: log/spaln/gonium/cng_channels.log
+    jobid: 25
+    wildcards: subject=gonium, query=cng_channels
+
+Removing temporary output file spaln/gonium/cng_channels_temp.fna.
+[Thu Nov 21 15:04:22 2019]
+Finished job 25.
+12 of 40 steps (30%) done
+
+[Thu Nov 21 15:04:22 2019]
+rule cd_hit:
+    input: exonerate/gonium/cng_channels.faa, spaln/gonium/cng_channels.faa
+    output: cd_hit/gonium/cng_channels_joined.faa, cd_hit/gonium/cng_channels_merged.faa
+    log: log/cd_hit/gonium/cng_channels.log
+    jobid: 13
+    wildcards: subject=gonium, query=cng_channels
+
+[Thu Nov 21 15:04:22 2019]
+Finished job 13.
+13 of 40 steps (32%) done
+
+[Thu Nov 21 15:04:22 2019]
+rule alignment:
+    input: data/queries/cng_channels.faa, cd_hit/gonium/cng_channels_merged.faa
+    output: scores/gonium/cng_channels.sc
+    log: log/scores/gonium/cng_channels.log
+    jobid: 7
+    wildcards: subject=gonium, query=cng_channels
+
+[Thu Nov 21 15:04:26 2019]
+Finished job 7.
+14 of 40 steps (35%) done
+
+[Thu Nov 21 15:04:26 2019]
+rule blast:
+    input: blast_dbs/gonium/temp.db, data/queries/beta_tubulin2.faa
+    output: blast_results/gonium/beta_tubulin2.hit
+    log: log/blast_results/gonium/beta_tubulin2.log
+    jobid: 36
+    wildcards: subject=gonium, query=beta_tubulin2
+
+(tblastn -query data/queries/beta_tubulin2.faa -db blast_dbs/gonium/gonium -outfmt '6 qseqid sseqid sstart send' -evalue 1e-4 > blast_results/gonium/beta_tubulin2.hit) 2> log/blast_results/gonium/beta_tubulin2.log
+[Thu Nov 21 15:04:28 2019]
+Finished job 36.
+15 of 40 steps (38%) done
+
+[Thu Nov 21 15:04:28 2019]
+rule matcher:
+    input: data/subjects/gonium.fna, blast_results/gonium/beta_tubulin2.hit
+    output: matches/gonium/beta_tubulin2.fna
+    log: log/matches/gonium/beta_tubulin2.log
+    jobid: 30
+    wildcards: subject=gonium, query=beta_tubulin2
+
+/home/valentin/anaconda3/bin/python3.6 /home/valentin/git/ProDA/.snakemake/scripts/tmpcaxridqx.contig_query_matcher.py
+[Thu Nov 21 15:04:29 2019]
+Finished job 30.
+16 of 40 steps (40%) done
+
+[Thu Nov 21 15:04:29 2019]
+rule exonerate:
+    input: data/queries/beta_tubulin2.faa, matches/gonium/beta_tubulin2.fna
+    output: exonerate/gonium/beta_tubulin2.ryo, exonerate/gonium/beta_tubulin2.fna, exonerate/gonium/beta_tubulin2.faa
+    log: log/exonerate/gonium/beta_tubulin2.log
+    jobid: 22
+    wildcards: subject=gonium, query=beta_tubulin2
+
+[Thu Nov 21 15:04:30 2019]
+Finished job 22.
+17 of 40 steps (42%) done
+
+[Thu Nov 21 15:04:30 2019]
+rule spaln:
+    input: data/queries/beta_tubulin2.faa, matches/gonium/beta_tubulin2.fna
+    output: spaln/gonium/beta_tubulin2.sp, spaln/gonium/beta_tubulin2.fna, spaln/gonium/beta_tubulin2_temp.fna, spaln/gonium/beta_tubulin2.faa
+    log: log/spaln/gonium/beta_tubulin2.log
+    jobid: 23
+    wildcards: subject=gonium, query=beta_tubulin2
+
+Removing temporary output file spaln/gonium/beta_tubulin2_temp.fna.
+[Thu Nov 21 15:04:33 2019]
+Finished job 23.
+18 of 40 steps (45%) done
+
+[Thu Nov 21 15:04:33 2019]
+rule cd_hit:
+    input: exonerate/gonium/beta_tubulin2.faa, spaln/gonium/beta_tubulin2.faa
+    output: cd_hit/gonium/beta_tubulin2_joined.faa, cd_hit/gonium/beta_tubulin2_merged.faa
+    log: log/cd_hit/gonium/beta_tubulin2.log
+    jobid: 12
+    wildcards: subject=gonium, query=beta_tubulin2
+
+[Thu Nov 21 15:04:34 2019]
+Finished job 12.
+19 of 40 steps (48%) done
+
+[Thu Nov 21 15:04:34 2019]
+rule alignment:
+    input: data/queries/beta_tubulin2.faa, cd_hit/gonium/beta_tubulin2_merged.faa
+    output: scores/gonium/beta_tubulin2.sc
+    log: log/scores/gonium/beta_tubulin2.log
+    jobid: 6
+    wildcards: subject=gonium, query=beta_tubulin2
+
+[Thu Nov 21 15:04:34 2019]
+Finished job 6.
+20 of 40 steps (50%) done
+
+[Thu Nov 21 15:04:34 2019]
+rule blast:
+    input: blast_dbs/csp/temp.db, data/queries/beta_tubulin2.faa
+    output: blast_results/csp/beta_tubulin2.hit
+    log: log/blast_results/csp/beta_tubulin2.log
+    jobid: 33
+    wildcards: subject=csp, query=beta_tubulin2
+
+(tblastn -query data/queries/beta_tubulin2.faa -db blast_dbs/csp/csp -outfmt '6 qseqid sseqid sstart send' -evalue 1e-4 > blast_results/csp/beta_tubulin2.hit) 2> log/blast_results/csp/beta_tubulin2.log
+[Thu Nov 21 15:04:35 2019]
+Finished job 33.
+21 of 40 steps (52%) done
+
+[Thu Nov 21 15:04:35 2019]
+rule matcher:
+    input: data/subjects/csp.fna, blast_results/csp/beta_tubulin2.hit
+    output: matches/csp/beta_tubulin2.fna
+    log: log/matches/csp/beta_tubulin2.log
+    jobid: 27
+    wildcards: subject=csp, query=beta_tubulin2
+
+/home/valentin/anaconda3/bin/python3.6 /home/valentin/git/ProDA/.snakemake/scripts/tmp0j4z_9vd.contig_query_matcher.py
+[Thu Nov 21 15:04:36 2019]
+Finished job 27.
+22 of 40 steps (55%) done
+
+[Thu Nov 21 15:04:36 2019]
+rule exonerate:
+    input: data/queries/beta_tubulin2.faa, matches/csp/beta_tubulin2.fna
+    output: exonerate/csp/beta_tubulin2.ryo, exonerate/csp/beta_tubulin2.fna, exonerate/csp/beta_tubulin2.faa
+    log: log/exonerate/csp/beta_tubulin2.log
+    jobid: 16
+    wildcards: subject=csp, query=beta_tubulin2
+
+[Thu Nov 21 15:04:42 2019]
+Finished job 16.
+23 of 40 steps (57%) done
+
+[Thu Nov 21 15:04:42 2019]
+rule spaln:
+    input: data/queries/beta_tubulin2.faa, matches/csp/beta_tubulin2.fna
+    output: spaln/csp/beta_tubulin2.sp, spaln/csp/beta_tubulin2.fna, spaln/csp/beta_tubulin2_temp.fna, spaln/csp/beta_tubulin2.faa
+    log: log/spaln/csp/beta_tubulin2.log
+    jobid: 17
+    wildcards: subject=csp, query=beta_tubulin2
+
+Removing temporary output file spaln/csp/beta_tubulin2_temp.fna.
+[Thu Nov 21 15:04:45 2019]
+Finished job 17.
+24 of 40 steps (60%) done
+
+[Thu Nov 21 15:04:45 2019]
+rule cd_hit:
+    input: exonerate/csp/beta_tubulin2.faa, spaln/csp/beta_tubulin2.faa
+    output: cd_hit/csp/beta_tubulin2_joined.faa, cd_hit/csp/beta_tubulin2_merged.faa
+    log: log/cd_hit/csp/beta_tubulin2.log
+    jobid: 9
+    wildcards: subject=csp, query=beta_tubulin2
+
+[Thu Nov 21 15:04:46 2019]
+Finished job 9.
+25 of 40 steps (62%) done
+
+[Thu Nov 21 15:04:46 2019]
+rule alignment:
+    input: data/queries/beta_tubulin2.faa, cd_hit/csp/beta_tubulin2_merged.faa
+    output: scores/csp/beta_tubulin2.sc
+    log: log/scores/csp/beta_tubulin2.log
+    jobid: 3
+    wildcards: subject=csp, query=beta_tubulin2
+
+[Thu Nov 21 15:04:46 2019]
+Finished job 3.
+26 of 40 steps (65%) done
+
+[Thu Nov 21 15:04:46 2019]
+rule blast:
+    input: blast_dbs/gonium/temp.db, data/queries/actin.faa
+    output: blast_results/gonium/actin.hit
+    log: log/blast_results/gonium/actin.log
+    jobid: 35
+    wildcards: subject=gonium, query=actin
+
+(tblastn -query data/queries/actin.faa -db blast_dbs/gonium/gonium -outfmt '6 qseqid sseqid sstart send' -evalue 1e-4 > blast_results/gonium/actin.hit) 2> log/blast_results/gonium/actin.log
+[Thu Nov 21 15:04:48 2019]
+Finished job 35.
+27 of 40 steps (68%) done
+
+[Thu Nov 21 15:04:48 2019]
+rule matcher:
+    input: data/subjects/gonium.fna, blast_results/gonium/actin.hit
+    output: matches/gonium/actin.fna
+    log: log/matches/gonium/actin.log
+    jobid: 29
+    wildcards: subject=gonium, query=actin
+
+/home/valentin/anaconda3/bin/python3.6 /home/valentin/git/ProDA/.snakemake/scripts/tmpgu3ish4r.contig_query_matcher.py
+Terminating processes on user request, this might take some time.
+[Thu Nov 21 15:04:49 2019]
+Error in rule matcher:
+    jobid: 29
+    output: matches/gonium/actin.fna
+    log: log/matches/gonium/actin.log (check log file(s) for error message)
+
+RuleException:
+CalledProcessError in line 23 of /home/valentin/git/ProDA/Snakefile:
+Command 'set -euo pipefail;  /home/valentin/anaconda3/bin/python3.6 /home/valentin/git/ProDA/.snakemake/scripts/tmpgu3ish4r.contig_query_matcher.py' returned non-zero exit status 1.
+  File "/home/valentin/git/ProDA/Snakefile", line 23, in __rule_matcher
+  File "/home/valentin/anaconda3/lib/python3.6/concurrent/futures/thread.py", line 56, in run
+Complete log: /home/valentin/git/ProDA/.snakemake/log/2019-11-21T145840.265341.snakemake.log

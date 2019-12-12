@@ -1,0 +1,144 @@
+Building DAG of jobs...
+Using shell: /bin/bash
+Provided cores: 1
+Rules claiming more threads will be scaled down.
+Job counts:
+	count	jobs
+	4	alignment
+	1	all
+	4	blast
+	4	cd_hit
+	4	exonerate
+	1	finisher
+	4	get_best_hit
+	1	join_results
+	2	makeblastdb
+	4	matcher
+	4	spaln
+	4	visualize_results
+	37
+
+[Fri Nov 22 16:30:31 2019]
+rule makeblastdb:
+    input: data/subjects/gonium.fna
+    output: blast_dbs/gonium/temp.db
+    log: log/blast_dbs/gonium.log
+    jobid: 36
+    wildcards: subject=gonium
+
+(makeblastdb -in data/subjects/gonium.fna -dbtype nucl -out blast_dbs/gonium/gonium) 2> log/blast_dbs/gonium.log && touch blast_dbs/gonium/temp.db
+[Fri Nov 22 16:30:33 2019]
+Finished job 36.
+1 of 37 steps (3%) done
+
+[Fri Nov 22 16:30:33 2019]
+rule makeblastdb:
+    input: data/subjects/csp.fna
+    output: blast_dbs/csp/temp.db
+    log: log/blast_dbs/csp.log
+    jobid: 35
+    wildcards: subject=csp
+
+(makeblastdb -in data/subjects/csp.fna -dbtype nucl -out blast_dbs/csp/csp) 2> log/blast_dbs/csp.log && touch blast_dbs/csp/temp.db
+[Fri Nov 22 16:30:34 2019]
+Finished job 35.
+2 of 37 steps (5%) done
+
+[Fri Nov 22 16:30:34 2019]
+rule blast:
+    input: blast_dbs/gonium/temp.db, data/queries/beta_tubulin2.faa
+    output: blast_results/gonium/beta_tubulin2.hit
+    log: log/blast_results/gonium/beta_tubulin2.log
+    jobid: 34
+    wildcards: subject=gonium, query=beta_tubulin2
+
+(tblastn -query data/queries/beta_tubulin2.faa -db blast_dbs/gonium/gonium -outfmt '6 qseqid sseqid sstart send' -evalue 1e-4 > blast_results/gonium/beta_tubulin2.hit) 2> log/blast_results/gonium/beta_tubulin2.log
+[Fri Nov 22 16:30:36 2019]
+Finished job 34.
+3 of 37 steps (8%) done
+
+[Fri Nov 22 16:30:36 2019]
+rule matcher:
+    input: data/subjects/gonium.fna, blast_results/gonium/beta_tubulin2.hit
+    output: matches/gonium/beta_tubulin2.fna
+    log: log/matches/gonium/beta_tubulin2.log
+    jobid: 30
+    wildcards: subject=gonium, query=beta_tubulin2
+
+Removing temporary output file blast_results/gonium/beta_tubulin2.hit.
+[Fri Nov 22 16:30:37 2019]
+Finished job 30.
+4 of 37 steps (11%) done
+
+[Fri Nov 22 16:30:37 2019]
+rule spaln:
+    input: data/queries/beta_tubulin2.faa, matches/gonium/beta_tubulin2.fna
+    output: spaln/gonium/beta_tubulin2.sp, spaln/gonium/beta_tubulin2.fna, spaln/gonium/beta_tubulin2_temp.fna, spaln/gonium/beta_tubulin2.faa
+    log: log/spaln/gonium/beta_tubulin2.log
+    jobid: 26
+    wildcards: subject=gonium, query=beta_tubulin2
+
+Removing temporary output file spaln/gonium/beta_tubulin2.sp.
+Removing temporary output file spaln/gonium/beta_tubulin2.fna.
+Removing temporary output file spaln/gonium/beta_tubulin2_temp.fna.
+[Fri Nov 22 16:30:40 2019]
+Finished job 26.
+5 of 37 steps (14%) done
+
+[Fri Nov 22 16:30:40 2019]
+rule exonerate:
+    input: data/queries/beta_tubulin2.faa, matches/gonium/beta_tubulin2.fna
+    output: exonerate/gonium/beta_tubulin2.ryo, exonerate/gonium/beta_tubulin2.fna, exonerate/gonium/beta_tubulin2.faa
+    log: log/exonerate/gonium/beta_tubulin2.log
+    jobid: 25
+    wildcards: subject=gonium, query=beta_tubulin2
+
+Removing temporary output file matches/gonium/beta_tubulin2.fna.
+Removing temporary output file exonerate/gonium/beta_tubulin2.ryo.
+Removing temporary output file exonerate/gonium/beta_tubulin2.fna.
+[Fri Nov 22 16:30:42 2019]
+Finished job 25.
+6 of 37 steps (16%) done
+
+[Fri Nov 22 16:30:42 2019]
+rule cd_hit:
+    input: exonerate/gonium/beta_tubulin2.faa, spaln/gonium/beta_tubulin2.faa
+    output: cd_hit/gonium/beta_tubulin2_joined.faa, cd_hit/gonium/beta_tubulin2_merged.faa
+    log: log/cd_hit/gonium/beta_tubulin2.log
+    jobid: 18
+    wildcards: subject=gonium, query=beta_tubulin2
+
+Removing temporary output file exonerate/gonium/beta_tubulin2.faa.
+Removing temporary output file spaln/gonium/beta_tubulin2.faa.
+Removing temporary output file cd_hit/gonium/beta_tubulin2_joined.faa.
+[Fri Nov 22 16:30:42 2019]
+Finished job 18.
+7 of 37 steps (19%) done
+
+[Fri Nov 22 16:30:42 2019]
+rule alignment:
+    input: data/queries/beta_tubulin2.faa, cd_hit/gonium/beta_tubulin2_merged.faa
+    output: scores/gonium/beta_tubulin2.sim, scores/gonium/beta_tubulin2_temp.st, scores/gonium/beta_tubulin2_temp_query.faa, scores/gonium/beta_tubulin2_temp_hit.faa
+    log: log/scores/gonium/beta_tubulin2.log
+    jobid: 14
+    wildcards: subject=gonium, query=beta_tubulin2
+
+Removing temporary output file cd_hit/gonium/beta_tubulin2_merged.faa.
+Removing temporary output file scores/gonium/beta_tubulin2_temp.st.
+Removing temporary output file scores/gonium/beta_tubulin2_temp_query.faa.
+Removing temporary output file scores/gonium/beta_tubulin2_temp_hit.faa.
+[Fri Nov 22 16:30:43 2019]
+Finished job 14.
+8 of 37 steps (22%) done
+
+[Fri Nov 22 16:30:43 2019]
+rule get_best_hit:
+    input: scores/gonium/beta_tubulin2.sim
+    output: best_hit/gonium/beta_tubulin2.tsv
+    log: log/best_hit/gonium/beta_tubulin2.log
+    jobid: 10
+    wildcards: subject=gonium, query=beta_tubulin2
+
+Shutting down, this might take some time.
+Exiting because a job execution failed. Look above for error message
+Complete log: /home/valentin/git/ProDA/.snakemake/log/2019-11-22T163031.461866.snakemake.log

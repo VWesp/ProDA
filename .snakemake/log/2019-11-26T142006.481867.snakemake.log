@@ -1,0 +1,3 @@
+WorkflowError in line 1 of /home/valentin/git/ProDA/Snakefile:
+Config file must be given as JSON or YAML with keys at top level.
+  File "/home/valentin/git/ProDA/Snakefile", line 1, in <module>

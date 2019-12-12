@@ -1,0 +1,77 @@
+Building DAG of jobs...
+Using shell: /bin/bash
+Provided cores: 1
+Rules claiming more threads will be scaled down.
+Job counts:
+	count	jobs
+	1	all
+	4	blast
+	4	exonerate
+	2	makeblastdb
+	4	matcher
+	1	test
+	16
+
+[Thu Nov 21 12:02:41 2019]
+rule makeblastdb:
+    input: data/subjects/gonium.fna
+    output: blast_dbs/gonium/temp.db
+    log: log/blast_dbs/gonium.log
+    jobid: 15
+    wildcards: subject=gonium
+
+(makeblastdb -in data/subjects/gonium.fna -dbtype nucl -out blast_dbs/gonium/gonium) 2> log/blast_dbs/gonium.log && touch blast_dbs/gonium/temp.db
+[Thu Nov 21 12:02:43 2019]
+Finished job 15.
+1 of 16 steps (6%) done
+
+[Thu Nov 21 12:02:43 2019]
+rule makeblastdb:
+    input: data/subjects/csp.fna
+    output: blast_dbs/csp/temp.db
+    log: log/blast_dbs/csp.log
+    jobid: 14
+    wildcards: subject=csp
+
+(makeblastdb -in data/subjects/csp.fna -dbtype nucl -out blast_dbs/csp/csp) 2> log/blast_dbs/csp.log && touch blast_dbs/csp/temp.db
+[Thu Nov 21 12:02:44 2019]
+Finished job 14.
+2 of 16 steps (12%) done
+
+[Thu Nov 21 12:02:44 2019]
+rule blast:
+    input: blast_dbs/csp/temp.db, data/queries/beta_tubulin2.faa
+    output: blast_results/csp/beta_tubulin2.hit
+    log: log/blast_results/csp/beta_tubulin2.log
+    jobid: 11
+    wildcards: subject=csp, query=beta_tubulin2
+
+(tblastn -query data/queries/beta_tubulin2.faa -db blast_dbs/csp/csp -outfmt '6 qseqid sseqid sstart send' -evalue 1e-4 > blast_results/csp/beta_tubulin2.hit) 2> log/blast_results/csp/beta_tubulin2.log
+[Thu Nov 21 12:02:45 2019]
+Finished job 11.
+3 of 16 steps (19%) done
+
+[Thu Nov 21 12:02:45 2019]
+rule matcher:
+    input: data/subjects/csp.fna, blast_results/csp/beta_tubulin2.hit
+    output: matches/csp/beta_tubulin2.fna
+    log: log/matches/csp/beta_tubulin2.log
+    jobid: 7
+    wildcards: subject=csp, query=beta_tubulin2
+
+/home/valentin/anaconda3/bin/python3.6 /home/valentin/git/ProDA/.snakemake/scripts/tmp2kv7je7z.contig_query_matcher.py
+[Thu Nov 21 12:02:46 2019]
+Finished job 7.
+4 of 16 steps (25%) done
+
+[Thu Nov 21 12:02:46 2019]
+rule exonerate:
+    input: data/queries/beta_tubulin2.faa, matches/csp/beta_tubulin2.fna
+    output: exonerate/csp/beta_tubulin2.faa
+    log: log/exonerate/csp/beta_tubulin2.log
+    jobid: 3
+    wildcards: subject=csp, query=beta_tubulin2
+
+Shutting down, this might take some time.
+Exiting because a job execution failed. Look above for error message
+Complete log: /home/valentin/git/ProDA/.snakemake/log/2019-11-21T120241.580392.snakemake.log

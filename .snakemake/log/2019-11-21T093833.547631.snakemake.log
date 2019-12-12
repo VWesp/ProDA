@@ -1,0 +1,3 @@
+Building DAG of jobs...
+CyclicGraphException in line 1 of /home/valentin/git/ProDA/snakefiles/CD_HIT.snakefile:
+Cyclic dependency on rule cd_hit.

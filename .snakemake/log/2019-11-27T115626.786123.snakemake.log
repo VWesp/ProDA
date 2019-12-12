@@ -1,0 +1,3 @@
+SyntaxError in line 47 of /home/valentin/git/ProDA/snakefiles/SPALN.snakefile:
+EOF in multi-line statement (SPALN.snakefile, line 47)
+  File "/home/valentin/git/ProDA/Snakefile", line 13, in <module>

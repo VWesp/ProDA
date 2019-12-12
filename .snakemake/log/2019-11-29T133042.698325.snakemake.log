@@ -1,0 +1,37 @@
+Building DAG of jobs...
+Using shell: /bin/bash
+Provided cores: 10
+Rules claiming more threads will be scaled down.
+Job counts:
+	count	jobs
+	1	Join_Mapping_Results
+	1	Join_ProDA_Results
+	2	Map_Discarded_Results
+	2	Map_Retained_Results
+	1	Visualize_Discarded_Results
+	1	Visualize_Retained_Results
+	1	finish
+	9
+
+[Fri Nov 29 13:30:42 2019]
+rule Join_ProDA_Results:
+    input: best_hit/csp/actin.tsv, best_hit/csp/beta_tubulin2.tsv, best_hit/gpe/actin.tsv, best_hit/gpe/beta_tubulin2.tsv
+    output: results/retained/proda_temp.tsv, results/discarded/proda_temp.tsv
+    log: log/results/results.log
+    jobid: 8
+    threads: 10
+
+[Fri Nov 29 13:30:43 2019]
+Finished job 8.
+1 of 9 steps (11%) done
+
+[Fri Nov 29 13:30:43 2019]
+rule Map_Retained_Results:
+    input: data/subjects/gpe.fna, results/retained/proda_temp.tsv
+    output: results/retained/proda_gpe.tsv
+    jobid: 5
+    wildcards: subject=gpe
+    threads: 10
+
+Terminating processes on user request, this might take some time.
+Cancelling snakemake on user request.

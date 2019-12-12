@@ -1,0 +1,4 @@
+TypeError in line 14 of /home/valentin/git/ProDA/snakefiles/CD_HIT.snakefile:
+shellcmd() takes 2 positional arguments but 3 were given
+  File "/home/valentin/git/ProDA/Snakefile", line 29, in <module>
+  File "/home/valentin/git/ProDA/snakefiles/CD_HIT.snakefile", line 14, in <module>

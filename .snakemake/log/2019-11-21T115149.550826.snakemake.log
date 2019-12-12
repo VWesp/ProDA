@@ -1,0 +1,163 @@
+Building DAG of jobs...
+Using shell: /bin/bash
+Provided cores: 1
+Rules claiming more threads will be scaled down.
+Job counts:
+	count	jobs
+	1	all
+	4	blast
+	2	makeblastdb
+	4	matcher
+	1	test
+	12
+
+[Thu Nov 21 11:51:49 2019]
+rule makeblastdb:
+    input: data/subjects/gonium.fna
+    output: blast_dbs/gonium/temp.db
+    log: log/blast_dbs/gonium.log
+    jobid: 11
+    wildcards: subject=gonium
+
+(makeblastdb -in data/subjects/gonium.fna -dbtype nucl -out blast_dbs/gonium/gonium) 2> log/blast_dbs/gonium.log && touch blast_dbs/gonium/temp.db
+[Thu Nov 21 11:51:51 2019]
+Finished job 11.
+1 of 12 steps (8%) done
+
+[Thu Nov 21 11:51:51 2019]
+rule makeblastdb:
+    input: data/subjects/csp.fna
+    output: blast_dbs/csp/temp.db
+    log: log/blast_dbs/csp.log
+    jobid: 10
+    wildcards: subject=csp
+
+(makeblastdb -in data/subjects/csp.fna -dbtype nucl -out blast_dbs/csp/csp) 2> log/blast_dbs/csp.log && touch blast_dbs/csp/temp.db
+[Thu Nov 21 11:51:52 2019]
+Finished job 10.
+2 of 12 steps (17%) done
+
+[Thu Nov 21 11:51:52 2019]
+rule blast:
+    input: blast_dbs/gonium/temp.db, data/queries/beta_tubulin2.faa
+    output: blast_results/gonium/beta_tubulin2.hit
+    log: log/blast_results/gonium/beta_tubulin2.log
+    jobid: 9
+    wildcards: subject=gonium, query=beta_tubulin2
+
+(tblastn -query data/queries/beta_tubulin2.faa -db blast_dbs/gonium/gonium -outfmt '6 qseqid sseqid sstart send' -evalue 1e-4 > blast_results/gonium/beta_tubulin2.hit) 2> log/blast_results/gonium/beta_tubulin2.log
+[Thu Nov 21 11:51:54 2019]
+Finished job 9.
+3 of 12 steps (25%) done
+
+[Thu Nov 21 11:51:54 2019]
+rule matcher:
+    input: data/subjects/gonium.fna, blast_results/gonium/beta_tubulin2.hit
+    output: matches/gonium/beta_tubulin2.fna
+    log: log/matches/gonium/beta_tubulin2.log
+    jobid: 5
+    wildcards: subject=gonium, query=beta_tubulin2
+
+/home/valentin/anaconda3/bin/python3.6 /home/valentin/git/ProDA/.snakemake/scripts/tmp0kfl5i3s.contig_query_matcher.py
+[Thu Nov 21 11:51:55 2019]
+Finished job 5.
+4 of 12 steps (33%) done
+
+[Thu Nov 21 11:51:55 2019]
+rule blast:
+    input: blast_dbs/csp/temp.db, data/queries/beta_tubulin2.faa
+    output: blast_results/csp/beta_tubulin2.hit
+    log: log/blast_results/csp/beta_tubulin2.log
+    jobid: 7
+    wildcards: subject=csp, query=beta_tubulin2
+
+(tblastn -query data/queries/beta_tubulin2.faa -db blast_dbs/csp/csp -outfmt '6 qseqid sseqid sstart send' -evalue 1e-4 > blast_results/csp/beta_tubulin2.hit) 2> log/blast_results/csp/beta_tubulin2.log
+[Thu Nov 21 11:51:56 2019]
+Finished job 7.
+5 of 12 steps (42%) done
+
+[Thu Nov 21 11:51:56 2019]
+rule matcher:
+    input: data/subjects/csp.fna, blast_results/csp/beta_tubulin2.hit
+    output: matches/csp/beta_tubulin2.fna
+    log: log/matches/csp/beta_tubulin2.log
+    jobid: 3
+    wildcards: subject=csp, query=beta_tubulin2
+
+/home/valentin/anaconda3/bin/python3.6 /home/valentin/git/ProDA/.snakemake/scripts/tmp5qmn94h4.contig_query_matcher.py
+[Thu Nov 21 11:51:57 2019]
+Finished job 3.
+6 of 12 steps (50%) done
+
+[Thu Nov 21 11:51:57 2019]
+rule blast:
+    input: blast_dbs/gonium/temp.db, data/queries/actin.faa
+    output: blast_results/gonium/actin.hit
+    log: log/blast_results/gonium/actin.log
+    jobid: 8
+    wildcards: subject=gonium, query=actin
+
+(tblastn -query data/queries/actin.faa -db blast_dbs/gonium/gonium -outfmt '6 qseqid sseqid sstart send' -evalue 1e-4 > blast_results/gonium/actin.hit) 2> log/blast_results/gonium/actin.log
+[Thu Nov 21 11:51:59 2019]
+Finished job 8.
+7 of 12 steps (58%) done
+
+[Thu Nov 21 11:51:59 2019]
+rule matcher:
+    input: data/subjects/gonium.fna, blast_results/gonium/actin.hit
+    output: matches/gonium/actin.fna
+    log: log/matches/gonium/actin.log
+    jobid: 4
+    wildcards: subject=gonium, query=actin
+
+/home/valentin/anaconda3/bin/python3.6 /home/valentin/git/ProDA/.snakemake/scripts/tmpzasa3396.contig_query_matcher.py
+[Thu Nov 21 11:52:00 2019]
+Finished job 4.
+8 of 12 steps (67%) done
+
+[Thu Nov 21 11:52:00 2019]
+rule blast:
+    input: blast_dbs/csp/temp.db, data/queries/actin.faa
+    output: blast_results/csp/actin.hit
+    log: log/blast_results/csp/actin.log
+    jobid: 6
+    wildcards: subject=csp, query=actin
+
+(tblastn -query data/queries/actin.faa -db blast_dbs/csp/csp -outfmt '6 qseqid sseqid sstart send' -evalue 1e-4 > blast_results/csp/actin.hit) 2> log/blast_results/csp/actin.log
+[Thu Nov 21 11:52:01 2019]
+Finished job 6.
+9 of 12 steps (75%) done
+
+[Thu Nov 21 11:52:01 2019]
+rule matcher:
+    input: data/subjects/csp.fna, blast_results/csp/actin.hit
+    output: matches/csp/actin.fna
+    log: log/matches/csp/actin.log
+    jobid: 2
+    wildcards: subject=csp, query=actin
+
+/home/valentin/anaconda3/bin/python3.6 /home/valentin/git/ProDA/.snakemake/scripts/tmplogqdq1n.contig_query_matcher.py
+[Thu Nov 21 11:52:02 2019]
+Finished job 2.
+10 of 12 steps (83%) done
+
+[Thu Nov 21 11:52:02 2019]
+rule test:
+    input: matches/csp/actin.fna, matches/csp/beta_tubulin2.fna, matches/gonium/actin.fna, matches/gonium/beta_tubulin2.fna
+    output: temp/end.txt
+    jobid: 1
+
+touch temp/end.txt
+[Thu Nov 21 11:52:02 2019]
+Finished job 1.
+11 of 12 steps (92%) done
+
+[Thu Nov 21 11:52:02 2019]
+localrule all:
+    input: temp/end.txt
+    jobid: 0
+
+[Thu Nov 21 11:52:02 2019]
+Finished job 0.
+12 of 12 steps (100%) done
+Complete log: /home/valentin/git/ProDA/.snakemake/log/2019-11-21T115149.550826.snakemake.log

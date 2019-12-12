@@ -1,0 +1,436 @@
+Building DAG of jobs...
+Using shell: /bin/bash
+Provided cores: 10
+Rules claiming more threads will be scaled down.
+Job counts:
+	count	jobs
+	4	alignment
+	1	all
+	4	blast
+	4	cd_hit
+	4	exonerate
+	4	get_best_hit
+	1	join_results
+	2	makeblastdb
+	4	matcher
+	4	spaln
+	1	visualize_results
+	33
+
+[Mon Nov 25 09:22:37 2019]
+rule makeblastdb:
+    input: data/subjects/gpe.fna
+    output: blast_dbs/gpe/temp.db
+    log: log/blast_dbs/gpe.log
+    jobid: 32
+    wildcards: subject=gpe
+
+(makeblastdb -in data/subjects/gpe.fna -dbtype nucl -out blast_dbs/gpe/gpe) 2> log/blast_dbs/gpe.log && touch blast_dbs/gpe/temp.db
+
+[Mon Nov 25 09:22:37 2019]
+rule makeblastdb:
+    input: data/subjects/csp.fna
+    output: blast_dbs/csp/temp.db
+    log: log/blast_dbs/csp.log
+    jobid: 31
+    wildcards: subject=csp
+
+(makeblastdb -in data/subjects/csp.fna -dbtype nucl -out blast_dbs/csp/csp) 2> log/blast_dbs/csp.log && touch blast_dbs/csp/temp.db
+[Mon Nov 25 09:22:38 2019]
+Finished job 31.
+1 of 33 steps (3%) done
+
+[Mon Nov 25 09:22:38 2019]
+rule blast:
+    input: blast_dbs/csp/temp.db, data/queries/actin.faa
+    output: blast_results/csp/actin.hit
+    log: log/blast_results/csp/actin.log
+    jobid: 27
+    wildcards: subject=csp, query=actin
+
+(tblastn -query data/queries/actin.faa -db blast_dbs/csp/csp -outfmt '6 qseqid sseqid sstart send' -evalue 1e-4 > blast_results/csp/actin.hit) 2> log/blast_results/csp/actin.log
+
+[Mon Nov 25 09:22:38 2019]
+rule blast:
+    input: blast_dbs/csp/temp.db, data/queries/beta_tubulin2.faa
+    output: blast_results/csp/beta_tubulin2.hit
+    log: log/blast_results/csp/beta_tubulin2.log
+    jobid: 28
+    wildcards: subject=csp, query=beta_tubulin2
+
+(tblastn -query data/queries/beta_tubulin2.faa -db blast_dbs/csp/csp -outfmt '6 qseqid sseqid sstart send' -evalue 1e-4 > blast_results/csp/beta_tubulin2.hit) 2> log/blast_results/csp/beta_tubulin2.log
+[Mon Nov 25 09:22:39 2019]
+Finished job 32.
+2 of 33 steps (6%) done
+
+[Mon Nov 25 09:22:39 2019]
+rule blast:
+    input: blast_dbs/gpe/temp.db, data/queries/beta_tubulin2.faa
+    output: blast_results/gpe/beta_tubulin2.hit
+    log: log/blast_results/gpe/beta_tubulin2.log
+    jobid: 30
+    wildcards: subject=gpe, query=beta_tubulin2
+
+(tblastn -query data/queries/beta_tubulin2.faa -db blast_dbs/gpe/gpe -outfmt '6 qseqid sseqid sstart send' -evalue 1e-4 > blast_results/gpe/beta_tubulin2.hit) 2> log/blast_results/gpe/beta_tubulin2.log
+
+[Mon Nov 25 09:22:39 2019]
+rule blast:
+    input: blast_dbs/gpe/temp.db, data/queries/actin.faa
+    output: blast_results/gpe/actin.hit
+    log: log/blast_results/gpe/actin.log
+    jobid: 29
+    wildcards: subject=gpe, query=actin
+
+(tblastn -query data/queries/actin.faa -db blast_dbs/gpe/gpe -outfmt '6 qseqid sseqid sstart send' -evalue 1e-4 > blast_results/gpe/actin.hit) 2> log/blast_results/gpe/actin.log
+[Mon Nov 25 09:22:40 2019]
+Finished job 27.
+3 of 33 steps (9%) done
+
+[Mon Nov 25 09:22:40 2019]
+rule matcher:
+    input: data/subjects/csp.fna, blast_results/csp/actin.hit
+    output: matches/csp/actin.fna
+    log: log/matches/csp/actin.log
+    jobid: 23
+    wildcards: subject=csp, query=actin
+
+[Mon Nov 25 09:22:40 2019]
+Finished job 28.
+4 of 33 steps (12%) done
+
+[Mon Nov 25 09:22:40 2019]
+rule matcher:
+    input: data/subjects/csp.fna, blast_results/csp/beta_tubulin2.hit
+    output: matches/csp/beta_tubulin2.fna
+    log: log/matches/csp/beta_tubulin2.log
+    jobid: 24
+    wildcards: subject=csp, query=beta_tubulin2
+
+[Mon Nov 25 09:22:41 2019]
+Finished job 23.
+5 of 33 steps (15%) done
+
+[Mon Nov 25 09:22:41 2019]
+rule exonerate:
+    input: data/queries/actin.faa, matches/csp/actin.fna
+    output: exonerate/csp/actin.ryo, exonerate/csp/actin.faa, exonerate/csp/actin.fna
+    log: log/exonerate/csp/actin.log
+    jobid: 15
+    wildcards: subject=csp, query=actin
+
+[Mon Nov 25 09:22:41 2019]
+rule spaln:
+    input: data/queries/actin.faa, matches/csp/actin.fna
+    output: spaln/csp/actin.sp, spaln/csp/actin.faa, spaln/csp/actin_temp.sp, spaln/csp/actin.fna
+    log: log/spaln/csp/actin.log
+    jobid: 16
+    wildcards: subject=csp, query=actin
+
+[Mon Nov 25 09:22:41 2019]
+Finished job 24.
+6 of 33 steps (18%) done
+
+[Mon Nov 25 09:22:41 2019]
+rule exonerate:
+    input: data/queries/beta_tubulin2.faa, matches/csp/beta_tubulin2.fna
+    output: exonerate/csp/beta_tubulin2.ryo, exonerate/csp/beta_tubulin2.faa, exonerate/csp/beta_tubulin2.fna
+    log: log/exonerate/csp/beta_tubulin2.log
+    jobid: 17
+    wildcards: subject=csp, query=beta_tubulin2
+
+[Mon Nov 25 09:22:41 2019]
+rule spaln:
+    input: data/queries/beta_tubulin2.faa, matches/csp/beta_tubulin2.fna
+    output: spaln/csp/beta_tubulin2.sp, spaln/csp/beta_tubulin2.faa, spaln/csp/beta_tubulin2_temp.sp, spaln/csp/beta_tubulin2.fna
+    log: log/spaln/csp/beta_tubulin2.log
+    jobid: 18
+    wildcards: subject=csp, query=beta_tubulin2
+
+[Mon Nov 25 09:22:42 2019]
+Finished job 29.
+7 of 33 steps (21%) done
+
+[Mon Nov 25 09:22:42 2019]
+rule matcher:
+    input: data/subjects/gpe.fna, blast_results/gpe/actin.hit
+    output: matches/gpe/actin.fna
+    log: log/matches/gpe/actin.log
+    jobid: 25
+    wildcards: subject=gpe, query=actin
+
+[Mon Nov 25 09:22:42 2019]
+Finished job 30.
+8 of 33 steps (24%) done
+
+[Mon Nov 25 09:22:42 2019]
+rule matcher:
+    input: data/subjects/gpe.fna, blast_results/gpe/beta_tubulin2.hit
+    output: matches/gpe/beta_tubulin2.fna
+    log: log/matches/gpe/beta_tubulin2.log
+    jobid: 26
+    wildcards: subject=gpe, query=beta_tubulin2
+
+[Mon Nov 25 09:22:46 2019]
+Finished job 26.
+9 of 33 steps (27%) done
+
+[Mon Nov 25 09:22:46 2019]
+rule spaln:
+    input: data/queries/beta_tubulin2.faa, matches/gpe/beta_tubulin2.fna
+    output: spaln/gpe/beta_tubulin2.sp, spaln/gpe/beta_tubulin2.faa, spaln/gpe/beta_tubulin2_temp.sp, spaln/gpe/beta_tubulin2.fna
+    log: log/spaln/gpe/beta_tubulin2.log
+    jobid: 22
+    wildcards: subject=gpe, query=beta_tubulin2
+
+[Mon Nov 25 09:22:46 2019]
+rule exonerate:
+    input: data/queries/beta_tubulin2.faa, matches/gpe/beta_tubulin2.fna
+    output: exonerate/gpe/beta_tubulin2.ryo, exonerate/gpe/beta_tubulin2.faa, exonerate/gpe/beta_tubulin2.fna
+    log: log/exonerate/gpe/beta_tubulin2.log
+    jobid: 21
+    wildcards: subject=gpe, query=beta_tubulin2
+
+[Mon Nov 25 09:22:46 2019]
+Finished job 25.
+10 of 33 steps (30%) done
+
+[Mon Nov 25 09:22:46 2019]
+rule spaln:
+    input: data/queries/actin.faa, matches/gpe/actin.fna
+    output: spaln/gpe/actin.sp, spaln/gpe/actin.faa, spaln/gpe/actin_temp.sp, spaln/gpe/actin.fna
+    log: log/spaln/gpe/actin.log
+    jobid: 20
+    wildcards: subject=gpe, query=actin
+
+[Mon Nov 25 09:22:46 2019]
+rule exonerate:
+    input: data/queries/actin.faa, matches/gpe/actin.fna
+    output: exonerate/gpe/actin.ryo, exonerate/gpe/actin.faa, exonerate/gpe/actin.fna
+    log: log/exonerate/gpe/actin.log
+    jobid: 19
+    wildcards: subject=gpe, query=actin
+
+Removing temporary output file spaln/csp/actin_temp.sp.
+Removing temporary output file spaln/csp/actin.fna.
+[Mon Nov 25 09:22:50 2019]
+Finished job 16.
+11 of 33 steps (33%) done
+Removing temporary output file exonerate/gpe/beta_tubulin2.fna.
+[Mon Nov 25 09:22:53 2019]
+Finished job 21.
+12 of 33 steps (36%) done
+Removing temporary output file spaln/csp/beta_tubulin2_temp.sp.
+Removing temporary output file spaln/csp/beta_tubulin2.fna.
+[Mon Nov 25 09:22:53 2019]
+Finished job 18.
+13 of 33 steps (39%) done
+Removing temporary output file exonerate/csp/actin.fna.
+[Mon Nov 25 09:22:55 2019]
+Finished job 15.
+14 of 33 steps (42%) done
+
+[Mon Nov 25 09:22:55 2019]
+rule cd_hit:
+    input: exonerate/csp/actin.faa, spaln/csp/actin.faa
+    output: cd_hit/csp/actin_joined.faa, cd_hit/csp/actin_merged.faa
+    log: log/cd_hit/csp/actin.log
+    jobid: 11
+    wildcards: subject=csp, query=actin
+
+Removing temporary output file spaln/gpe/beta_tubulin2_temp.sp.
+Removing temporary output file spaln/gpe/beta_tubulin2.fna.
+[Mon Nov 25 09:22:56 2019]
+Finished job 22.
+15 of 33 steps (45%) done
+
+[Mon Nov 25 09:22:56 2019]
+rule cd_hit:
+    input: exonerate/gpe/beta_tubulin2.faa, spaln/gpe/beta_tubulin2.faa
+    output: cd_hit/gpe/beta_tubulin2_joined.faa, cd_hit/gpe/beta_tubulin2_merged.faa
+    log: log/cd_hit/gpe/beta_tubulin2.log
+    jobid: 14
+    wildcards: subject=gpe, query=beta_tubulin2
+
+[Mon Nov 25 09:22:56 2019]
+Finished job 11.
+16 of 33 steps (48%) done
+
+[Mon Nov 25 09:22:56 2019]
+rule alignment:
+    input: data/queries/actin.faa, cd_hit/csp/actin_merged.faa
+    output: scores/csp/actin.sim, scores/csp/actin_temp.st, scores/csp/actin_temp_query.faa, scores/csp/actin_temp_hit.faa
+    log: log/scores/csp/actin.log
+    jobid: 7
+    wildcards: subject=csp, query=actin
+
+Removing temporary output file spaln/gpe/actin_temp.sp.
+Removing temporary output file spaln/gpe/actin.fna.
+[Mon Nov 25 09:22:56 2019]
+Finished job 20.
+17 of 33 steps (52%) done
+[Mon Nov 25 09:22:57 2019]
+Finished job 14.
+18 of 33 steps (55%) done
+
+[Mon Nov 25 09:22:57 2019]
+rule alignment:
+    input: data/queries/beta_tubulin2.faa, cd_hit/gpe/beta_tubulin2_merged.faa
+    output: scores/gpe/beta_tubulin2.sim, scores/gpe/beta_tubulin2_temp.st, scores/gpe/beta_tubulin2_temp_query.faa, scores/gpe/beta_tubulin2_temp_hit.faa
+    log: log/scores/gpe/beta_tubulin2.log
+    jobid: 10
+    wildcards: subject=gpe, query=beta_tubulin2
+
+Removing temporary output file scores/csp/actin_temp.st.
+Removing temporary output file scores/csp/actin_temp_query.faa.
+Removing temporary output file scores/csp/actin_temp_hit.faa.
+[Mon Nov 25 09:22:57 2019]
+Finished job 7.
+19 of 33 steps (58%) done
+
+[Mon Nov 25 09:22:57 2019]
+rule get_best_hit:
+    input: scores/csp/actin.sim
+    output: best_hit/csp/actin.tsv
+    log: log/best_hit/csp/actin.log
+    jobid: 3
+    wildcards: subject=csp, query=actin
+
+[Mon Nov 25 09:22:57 2019]
+Finished job 3.
+20 of 33 steps (61%) done
+Removing temporary output file scores/gpe/beta_tubulin2_temp.st.
+Removing temporary output file scores/gpe/beta_tubulin2_temp_query.faa.
+Removing temporary output file scores/gpe/beta_tubulin2_temp_hit.faa.
+[Mon Nov 25 09:22:57 2019]
+Finished job 10.
+21 of 33 steps (64%) done
+
+[Mon Nov 25 09:22:57 2019]
+rule get_best_hit:
+    input: scores/gpe/beta_tubulin2.sim
+    output: best_hit/gpe/beta_tubulin2.tsv
+    log: log/best_hit/gpe/beta_tubulin2.log
+    jobid: 6
+    wildcards: subject=gpe, query=beta_tubulin2
+
+[Mon Nov 25 09:22:58 2019]
+Finished job 6.
+22 of 33 steps (67%) done
+Removing temporary output file exonerate/gpe/actin.fna.
+[Mon Nov 25 09:23:01 2019]
+Finished job 19.
+23 of 33 steps (70%) done
+
+[Mon Nov 25 09:23:01 2019]
+rule cd_hit:
+    input: exonerate/gpe/actin.faa, spaln/gpe/actin.faa
+    output: cd_hit/gpe/actin_joined.faa, cd_hit/gpe/actin_merged.faa
+    log: log/cd_hit/gpe/actin.log
+    jobid: 13
+    wildcards: subject=gpe, query=actin
+
+[Mon Nov 25 09:23:01 2019]
+Finished job 13.
+24 of 33 steps (73%) done
+
+[Mon Nov 25 09:23:01 2019]
+rule alignment:
+    input: data/queries/actin.faa, cd_hit/gpe/actin_merged.faa
+    output: scores/gpe/actin.sim, scores/gpe/actin_temp.st, scores/gpe/actin_temp_query.faa, scores/gpe/actin_temp_hit.faa
+    log: log/scores/gpe/actin.log
+    jobid: 9
+    wildcards: subject=gpe, query=actin
+
+Removing temporary output file exonerate/csp/beta_tubulin2.fna.
+[Mon Nov 25 09:23:01 2019]
+Finished job 17.
+25 of 33 steps (76%) done
+
+[Mon Nov 25 09:23:01 2019]
+rule cd_hit:
+    input: exonerate/csp/beta_tubulin2.faa, spaln/csp/beta_tubulin2.faa
+    output: cd_hit/csp/beta_tubulin2_joined.faa, cd_hit/csp/beta_tubulin2_merged.faa
+    log: log/cd_hit/csp/beta_tubulin2.log
+    jobid: 12
+    wildcards: subject=csp, query=beta_tubulin2
+
+[Mon Nov 25 09:23:01 2019]
+Finished job 12.
+26 of 33 steps (79%) done
+
+[Mon Nov 25 09:23:01 2019]
+rule alignment:
+    input: data/queries/beta_tubulin2.faa, cd_hit/csp/beta_tubulin2_merged.faa
+    output: scores/csp/beta_tubulin2.sim, scores/csp/beta_tubulin2_temp.st, scores/csp/beta_tubulin2_temp_query.faa, scores/csp/beta_tubulin2_temp_hit.faa
+    log: log/scores/csp/beta_tubulin2.log
+    jobid: 8
+    wildcards: subject=csp, query=beta_tubulin2
+
+Removing temporary output file scores/gpe/actin_temp.st.
+Removing temporary output file scores/gpe/actin_temp_query.faa.
+Removing temporary output file scores/gpe/actin_temp_hit.faa.
+[Mon Nov 25 09:23:02 2019]
+Finished job 9.
+27 of 33 steps (82%) done
+
+[Mon Nov 25 09:23:02 2019]
+rule get_best_hit:
+    input: scores/gpe/actin.sim
+    output: best_hit/gpe/actin.tsv
+    log: log/best_hit/gpe/actin.log
+    jobid: 5
+    wildcards: subject=gpe, query=actin
+
+[Mon Nov 25 09:23:02 2019]
+Finished job 5.
+28 of 33 steps (85%) done
+Removing temporary output file scores/csp/beta_tubulin2_temp.st.
+Removing temporary output file scores/csp/beta_tubulin2_temp_query.faa.
+Removing temporary output file scores/csp/beta_tubulin2_temp_hit.faa.
+[Mon Nov 25 09:23:02 2019]
+Finished job 8.
+29 of 33 steps (88%) done
+
+[Mon Nov 25 09:23:02 2019]
+rule get_best_hit:
+    input: scores/csp/beta_tubulin2.sim
+    output: best_hit/csp/beta_tubulin2.tsv
+    log: log/best_hit/csp/beta_tubulin2.log
+    jobid: 4
+    wildcards: subject=csp, query=beta_tubulin2
+
+[Mon Nov 25 09:23:02 2019]
+Finished job 4.
+30 of 33 steps (91%) done
+
+[Mon Nov 25 09:23:02 2019]
+rule join_results:
+    input: best_hit/csp/actin.tsv, best_hit/csp/beta_tubulin2.tsv, best_hit/gpe/actin.tsv, best_hit/gpe/beta_tubulin2.tsv
+    output: results/retained/proda.tsv, results/discarded/proda.tsv
+    log: log/results/results.log
+    jobid: 2
+
+[Mon Nov 25 09:23:03 2019]
+Finished job 2.
+31 of 33 steps (94%) done
+
+[Mon Nov 25 09:23:03 2019]
+rule visualize_results:
+    input: results/retained/proda.tsv, results/discarded/proda.tsv
+    output: finished.txt
+    jobid: 1
+
+[Mon Nov 25 09:23:03 2019]
+Finished job 1.
+32 of 33 steps (97%) done
+
+[Mon Nov 25 09:23:03 2019]
+localrule all:
+    input: finished.txt
+    jobid: 0
+
+Removing temporary output file finished.txt.
+[Mon Nov 25 09:23:03 2019]
+Finished job 0.
+33 of 33 steps (100%) done
+Complete log: /home/valentin/git/ProDA/.snakemake/log/2019-11-25T092237.284193.snakemake.log

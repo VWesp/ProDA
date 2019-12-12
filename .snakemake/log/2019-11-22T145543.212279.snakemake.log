@@ -1,0 +1,230 @@
+Building DAG of jobs...
+Using shell: /bin/bash
+Provided cores: 10
+Rules claiming more threads will be scaled down.
+Job counts:
+	count	jobs
+	2	alignment
+	1	all
+	2	blast
+	2	cd_hit
+	2	exonerate
+	2	get_best_hit
+	1	join_results
+	2	makeblastdb
+	2	matcher
+	2	spaln
+	18
+
+[Fri Nov 22 14:55:43 2019]
+rule makeblastdb:
+    input: data/subjects/gonium.fna
+    output: blast_dbs/gonium/temp.db
+    log: log/blast_dbs/gonium.log
+    jobid: 17
+    wildcards: subject=gonium
+
+(makeblastdb -in data/subjects/gonium.fna -dbtype nucl -out blast_dbs/gonium/gonium) 2> log/blast_dbs/gonium.log && touch blast_dbs/gonium/temp.db
+
+[Fri Nov 22 14:55:43 2019]
+rule makeblastdb:
+    input: data/subjects/csp.fna
+    output: blast_dbs/csp/temp.db
+    log: log/blast_dbs/csp.log
+    jobid: 16
+    wildcards: subject=csp
+
+(makeblastdb -in data/subjects/csp.fna -dbtype nucl -out blast_dbs/csp/csp) 2> log/blast_dbs/csp.log && touch blast_dbs/csp/temp.db
+[Fri Nov 22 14:55:44 2019]
+Finished job 16.
+1 of 18 steps (6%) done
+
+[Fri Nov 22 14:55:44 2019]
+rule blast:
+    input: blast_dbs/csp/temp.db, data/queries/actin.faa
+    output: blast_results/csp/actin.hit
+    log: log/blast_results/csp/actin.log
+    jobid: 14
+    wildcards: subject=csp, query=actin
+
+(tblastn -query data/queries/actin.faa -db blast_dbs/csp/csp -outfmt '6 qseqid sseqid sstart send' -evalue 1e-4 > blast_results/csp/actin.hit) 2> log/blast_results/csp/actin.log
+[Fri Nov 22 14:55:45 2019]
+Finished job 17.
+2 of 18 steps (11%) done
+
+[Fri Nov 22 14:55:45 2019]
+rule blast:
+    input: blast_dbs/gonium/temp.db, data/queries/actin.faa
+    output: blast_results/gonium/actin.hit
+    log: log/blast_results/gonium/actin.log
+    jobid: 15
+    wildcards: subject=gonium, query=actin
+
+(tblastn -query data/queries/actin.faa -db blast_dbs/gonium/gonium -outfmt '6 qseqid sseqid sstart send' -evalue 1e-4 > blast_results/gonium/actin.hit) 2> log/blast_results/gonium/actin.log
+[Fri Nov 22 14:55:45 2019]
+Finished job 14.
+3 of 18 steps (17%) done
+
+[Fri Nov 22 14:55:45 2019]
+rule matcher:
+    input: data/subjects/csp.fna, blast_results/csp/actin.hit
+    output: matches/csp/actin.fna
+    log: log/matches/csp/actin.log
+    jobid: 12
+    wildcards: subject=csp, query=actin
+
+[Fri Nov 22 14:55:46 2019]
+Finished job 12.
+4 of 18 steps (22%) done
+
+[Fri Nov 22 14:55:46 2019]
+rule spaln:
+    input: data/queries/actin.faa, matches/csp/actin.fna
+    output: spaln/csp/actin.sp, spaln/csp/actin.fna, spaln/csp/actin_temp.fna, spaln/csp/actin.faa
+    log: log/spaln/csp/actin.log
+    jobid: 9
+    wildcards: subject=csp, query=actin
+
+[Fri Nov 22 14:55:46 2019]
+rule exonerate:
+    input: data/queries/actin.faa, matches/csp/actin.fna
+    output: exonerate/csp/actin.ryo, exonerate/csp/actin.fna, exonerate/csp/actin.faa
+    log: log/exonerate/csp/actin.log
+    jobid: 8
+    wildcards: subject=csp, query=actin
+
+[Fri Nov 22 14:55:47 2019]
+Finished job 15.
+5 of 18 steps (28%) done
+
+[Fri Nov 22 14:55:47 2019]
+rule matcher:
+    input: data/subjects/gonium.fna, blast_results/gonium/actin.hit
+    output: matches/gonium/actin.fna
+    log: log/matches/gonium/actin.log
+    jobid: 13
+    wildcards: subject=gonium, query=actin
+
+Removing temporary output file spaln/csp/actin_temp.fna.
+[Fri Nov 22 14:55:49 2019]
+Finished job 9.
+6 of 18 steps (33%) done
+[Fri Nov 22 14:55:49 2019]
+Finished job 13.
+7 of 18 steps (39%) done
+
+[Fri Nov 22 14:55:49 2019]
+rule spaln:
+    input: data/queries/actin.faa, matches/gonium/actin.fna
+    output: spaln/gonium/actin.sp, spaln/gonium/actin.fna, spaln/gonium/actin_temp.fna, spaln/gonium/actin.faa
+    log: log/spaln/gonium/actin.log
+    jobid: 11
+    wildcards: subject=gonium, query=actin
+
+[Fri Nov 22 14:55:49 2019]
+rule exonerate:
+    input: data/queries/actin.faa, matches/gonium/actin.fna
+    output: exonerate/gonium/actin.ryo, exonerate/gonium/actin.fna, exonerate/gonium/actin.faa
+    log: log/exonerate/gonium/actin.log
+    jobid: 10
+    wildcards: subject=gonium, query=actin
+
+[Fri Nov 22 14:55:52 2019]
+Finished job 8.
+8 of 18 steps (44%) done
+
+[Fri Nov 22 14:55:52 2019]
+rule cd_hit:
+    input: exonerate/csp/actin.faa, spaln/csp/actin.faa
+    output: cd_hit/csp/actin_joined.faa, cd_hit/csp/actin_merged.faa
+    log: log/cd_hit/csp/actin.log
+    jobid: 6
+    wildcards: subject=csp, query=actin
+
+[Fri Nov 22 14:55:53 2019]
+Finished job 6.
+9 of 18 steps (50%) done
+
+[Fri Nov 22 14:55:53 2019]
+rule alignment:
+    input: data/queries/actin.faa, cd_hit/csp/actin_merged.faa
+    output: scores/csp/actin.sim, scores/csp/actin_temp.st, scores/csp/actin_temp_query.faa, scores/csp/actin_temp_hit.faa
+    log: log/scores/csp/actin.log
+    jobid: 4
+    wildcards: subject=csp, query=actin
+
+Removing temporary output file scores/csp/actin_temp.st.
+Removing temporary output file scores/csp/actin_temp_query.faa.
+Removing temporary output file scores/csp/actin_temp_hit.faa.
+[Fri Nov 22 14:55:53 2019]
+Finished job 4.
+10 of 18 steps (56%) done
+
+[Fri Nov 22 14:55:53 2019]
+rule get_best_hit:
+    input: scores/csp/actin.sim
+    output: best_hit/csp/actin.tsv
+    log: log/best_hit/csp/actin.log
+    jobid: 2
+    wildcards: subject=csp, query=actin
+
+[Fri Nov 22 14:55:54 2019]
+Finished job 2.
+11 of 18 steps (61%) done
+Removing temporary output file spaln/gonium/actin_temp.fna.
+[Fri Nov 22 14:55:54 2019]
+Finished job 11.
+12 of 18 steps (67%) done
+[Fri Nov 22 14:55:58 2019]
+Finished job 10.
+13 of 18 steps (72%) done
+
+[Fri Nov 22 14:55:58 2019]
+rule cd_hit:
+    input: exonerate/gonium/actin.faa, spaln/gonium/actin.faa
+    output: cd_hit/gonium/actin_joined.faa, cd_hit/gonium/actin_merged.faa
+    log: log/cd_hit/gonium/actin.log
+    jobid: 7
+    wildcards: subject=gonium, query=actin
+
+[Fri Nov 22 14:55:58 2019]
+Finished job 7.
+14 of 18 steps (78%) done
+
+[Fri Nov 22 14:55:58 2019]
+rule alignment:
+    input: data/queries/actin.faa, cd_hit/gonium/actin_merged.faa
+    output: scores/gonium/actin.sim, scores/gonium/actin_temp.st, scores/gonium/actin_temp_query.faa, scores/gonium/actin_temp_hit.faa
+    log: log/scores/gonium/actin.log
+    jobid: 5
+    wildcards: subject=gonium, query=actin
+
+Removing temporary output file scores/gonium/actin_temp.st.
+Removing temporary output file scores/gonium/actin_temp_query.faa.
+Removing temporary output file scores/gonium/actin_temp_hit.faa.
+[Fri Nov 22 14:55:58 2019]
+Finished job 5.
+15 of 18 steps (83%) done
+
+[Fri Nov 22 14:55:58 2019]
+rule get_best_hit:
+    input: scores/gonium/actin.sim
+    output: best_hit/gonium/actin.tsv
+    log: log/best_hit/gonium/actin.log
+    jobid: 3
+    wildcards: subject=gonium, query=actin
+
+[Fri Nov 22 14:55:59 2019]
+Finished job 3.
+16 of 18 steps (89%) done
+
+[Fri Nov 22 14:55:59 2019]
+rule join_results:
+    input: best_hit/csp/actin.tsv, best_hit/gonium/actin.tsv
+    output: results/proda.tsv, discarded/proda.tsv
+    log: log/results.log
+    jobid: 1
+
+Shutting down, this might take some time.
+Exiting because a job execution failed. Look above for error message
+Complete log: /home/valentin/git/ProDA/.snakemake/log/2019-11-22T145543.212279.snakemake.log

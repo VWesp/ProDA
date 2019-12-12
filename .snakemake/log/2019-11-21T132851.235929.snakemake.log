@@ -1,0 +1,116 @@
+Building DAG of jobs...
+Using shell: /bin/bash
+Provided cores: 1
+Rules claiming more threads will be scaled down.
+Job counts:
+	count	jobs
+	1	all
+	4	blast
+	4	cd_hit
+	4	exonerate
+	2	makeblastdb
+	4	matcher
+	4	spaln
+	1	test
+	24
+
+[Thu Nov 21 13:28:51 2019]
+rule makeblastdb:
+    input: data/subjects/gonium.fna
+    output: blast_dbs/gonium/temp.db
+    log: log/blast_dbs/gonium.log
+    jobid: 23
+    wildcards: subject=gonium
+
+(makeblastdb -in data/subjects/gonium.fna -dbtype nucl -out blast_dbs/gonium/gonium) 2> log/blast_dbs/gonium.log && touch blast_dbs/gonium/temp.db
+[Thu Nov 21 13:28:53 2019]
+Finished job 23.
+1 of 24 steps (4%) done
+
+[Thu Nov 21 13:28:53 2019]
+rule makeblastdb:
+    input: data/subjects/csp.fna
+    output: blast_dbs/csp/temp.db
+    log: log/blast_dbs/csp.log
+    jobid: 22
+    wildcards: subject=csp
+
+(makeblastdb -in data/subjects/csp.fna -dbtype nucl -out blast_dbs/csp/csp) 2> log/blast_dbs/csp.log && touch blast_dbs/csp/temp.db
+[Thu Nov 21 13:28:53 2019]
+Finished job 22.
+2 of 24 steps (8%) done
+
+[Thu Nov 21 13:28:53 2019]
+rule blast:
+    input: blast_dbs/csp/temp.db, data/queries/beta_tubulin2.faa
+    output: blast_results/csp/beta_tubulin2.hit
+    log: log/blast_results/csp/beta_tubulin2.log
+    jobid: 19
+    wildcards: subject=csp, query=beta_tubulin2
+
+(tblastn -query data/queries/beta_tubulin2.faa -db blast_dbs/csp/csp -outfmt '6 qseqid sseqid sstart send' -evalue 1e-4 > blast_results/csp/beta_tubulin2.hit) 2> log/blast_results/csp/beta_tubulin2.log
+[Thu Nov 21 13:28:55 2019]
+Finished job 19.
+3 of 24 steps (12%) done
+
+[Thu Nov 21 13:28:55 2019]
+rule matcher:
+    input: data/subjects/csp.fna, blast_results/csp/beta_tubulin2.hit
+    output: matches/csp/beta_tubulin2.fna
+    log: log/matches/csp/beta_tubulin2.log
+    jobid: 15
+    wildcards: subject=csp, query=beta_tubulin2
+
+/home/valentin/anaconda3/bin/python3.6 /home/valentin/git/ProDA/.snakemake/scripts/tmpa5bu6rsf.contig_query_matcher.py
+[Thu Nov 21 13:28:55 2019]
+Finished job 15.
+4 of 24 steps (17%) done
+
+[Thu Nov 21 13:28:55 2019]
+rule spaln:
+    input: data/queries/beta_tubulin2.faa, matches/csp/beta_tubulin2.fna
+    output: spaln/csp/beta_tubulin2.sp, spaln/csp/beta_tubulin2.fna, spaln/csp/beta_tubulin2_temp.fna, spaln/csp/beta_tubulin2.faa
+    log: log/spaln/csp/beta_tubulin2.log
+    jobid: 9
+    wildcards: subject=csp, query=beta_tubulin2
+
+Removing temporary output file spaln/csp/beta_tubulin2_temp.fna.
+[Thu Nov 21 13:28:58 2019]
+Finished job 9.
+5 of 24 steps (21%) done
+
+[Thu Nov 21 13:28:58 2019]
+rule exonerate:
+    input: data/queries/beta_tubulin2.faa, matches/csp/beta_tubulin2.fna
+    output: exonerate/csp/beta_tubulin2.ryo, exonerate/csp/beta_tubulin2.fna, exonerate/csp/beta_tubulin2.faa
+    log: log/exonerate/csp/beta_tubulin2.log
+    jobid: 8
+    wildcards: subject=csp, query=beta_tubulin2
+
+[Thu Nov 21 13:29:04 2019]
+Finished job 8.
+6 of 24 steps (25%) done
+
+[Thu Nov 21 13:29:04 2019]
+rule cd_hit:
+    input: exonerate/csp/beta_tubulin2.faa, spaln/csp/beta_tubulin2.faa
+    output: cd_hit/csp/beta_tubulin2_joined.faa, cd_hit/csp/beta_tubulin2_merged.faa
+    log: log/cd_hit/csp/beta_tubulin2.log
+    jobid: 3
+    wildcards: subject=csp, query=beta_tubulin2
+
+cat exonerate/csp/beta_tubulin2.faa spaln/csp/beta_tubulin2.faa > cd_hit/csp/beta_tubulin2_joined.faa & (cd-hit -i cd_hit/csp/beta_tubulin2_joined.faa -o cd_hit/csp/beta_tubulin2_merged.faa -c 95) 2> log/cd_hit/csp/beta_tubulin2.log
+[Thu Nov 21 13:29:04 2019]
+Error in rule cd_hit:
+    jobid: 3
+    output: cd_hit/csp/beta_tubulin2_joined.faa, cd_hit/csp/beta_tubulin2_merged.faa
+    log: log/cd_hit/csp/beta_tubulin2.log (check log file(s) for error message)
+    shell:
+        cat exonerate/csp/beta_tubulin2.faa spaln/csp/beta_tubulin2.faa > cd_hit/csp/beta_tubulin2_joined.faa & (cd-hit -i cd_hit/csp/beta_tubulin2_joined.faa -o cd_hit/csp/beta_tubulin2_merged.faa -c 95) 2> log/cd_hit/csp/beta_tubulin2.log
+        (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
+
+Removing output files of failed job cd_hit since they might be corrupted:
+cd_hit/csp/beta_tubulin2_joined.faa
+Shutting down, this might take some time.
+Exiting because a job execution failed. Look above for error message
+Complete log: /home/valentin/git/ProDA/.snakemake/log/2019-11-21T132851.235929.snakemake.log

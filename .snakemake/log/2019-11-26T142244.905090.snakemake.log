@@ -1,0 +1,5 @@
+Building DAG of jobs...
+MissingInputException in line 5 of /home/valentin/git/ProDA/snakefiles/ALIGNMENT.snakefile:
+Missing input files for rule Retrieve_Sequence_Similarities:
+cd_hit/genome1/proteins1_merged.faa
+data/queries/proteins1.faa

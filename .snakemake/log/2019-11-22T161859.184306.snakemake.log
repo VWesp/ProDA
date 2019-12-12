@@ -1,0 +1,4 @@
+Building DAG of jobs...
+MissingInputException in line 1 of /home/valentin/git/ProDA/snakefiles/BLAST.snakefile:
+Missing input files for rule makeblastdb:
+data/subjects/csp.fna

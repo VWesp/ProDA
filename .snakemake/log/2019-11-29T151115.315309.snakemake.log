@@ -1,0 +1,23 @@
+Building DAG of jobs...
+Using shell: /bin/bash
+Provided cores: 10
+Rules claiming more threads will be scaled down.
+Job counts:
+	count	jobs
+	1	Join_ProDA_Results
+	1	Visualize_Discarded_Results
+	1	Visualize_Retained_Results
+	1	finish
+	4
+
+[Fri Nov 29 15:11:15 2019]
+rule Join_ProDA_Results:
+    input: best_hit/csp/actin.tsv, best_hit/csp/beta_tubulin2.tsv, best_hit/gpe/actin.tsv, best_hit/gpe/beta_tubulin2.tsv
+    output: results/retained/proda.tsv, results/discarded/proda.tsv
+    log: log/results/results.log
+    jobid: 3
+    threads: 10
+
+Shutting down, this might take some time.
+Exiting because a job execution failed. Look above for error message
+Complete log: /home/valentin/git/ProDA/.snakemake/log/2019-11-29T151115.315309.snakemake.log

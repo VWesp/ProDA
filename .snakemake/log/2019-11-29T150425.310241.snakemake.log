@@ -1,0 +1,111 @@
+Building DAG of jobs...
+Using shell: /bin/bash
+Provided cores: 10
+Rules claiming more threads will be scaled down.
+Job counts:
+	count	jobs
+	2	Build_DNA_Databases
+	4	Build_Exonerate_Alignment
+	4	Build_Spaln_Alignment
+	4	Filter_Out_Useless_Regions
+	4	Find_Candidates
+	1	Join_ProDA_Results
+	4	Merge_Results
+	4	Retrieve_Sequence_Similarities
+	4	Retrieve_Sequence_With_Highest_Similarity
+	1	Visualize_Discarded_Results
+	1	Visualize_Retained_Results
+	1	finish
+	34
+
+[Fri Nov 29 15:04:25 2019]
+rule Build_DNA_Databases:
+    input: data/subjects/gpe.fna
+    output: blast_dbs/gpe/temp.db
+    log: log/blast_dbs/gpe.log
+    jobid: 33
+    wildcards: subject=gpe
+
+(makeblastdb -in data/subjects/gpe.fna -dbtype nucl -out blast_dbs/gpe/gpe) 2> log/blast_dbs/gpe.log && touch blast_dbs/gpe/temp.db
+
+[Fri Nov 29 15:04:25 2019]
+rule Build_DNA_Databases:
+    input: data/subjects/csp.fna
+    output: blast_dbs/csp/temp.db
+    log: log/blast_dbs/csp.log
+    jobid: 32
+    wildcards: subject=csp
+
+(makeblastdb -in data/subjects/csp.fna -dbtype nucl -out blast_dbs/csp/csp) 2> log/blast_dbs/csp.log && touch blast_dbs/csp/temp.db
+[Fri Nov 29 15:04:26 2019]
+Finished job 32.
+1 of 34 steps (3%) done
+[Fri Nov 29 15:04:27 2019]
+Finished job 33.
+2 of 34 steps (6%) done
+
+[Fri Nov 29 15:04:27 2019]
+rule Find_Candidates:
+    input: blast_dbs/gpe/temp.db, data/queries/beta_tubulin2.faa
+    output: blast_results/gpe/beta_tubulin2.hit
+    log: log/blast_results/gpe/beta_tubulin2.log
+    jobid: 31
+    wildcards: subject=gpe, query=beta_tubulin2
+    threads: 10
+
+(tblastn -query data/queries/beta_tubulin2.faa -db blast_dbs/gpe/gpe -outfmt '6 qseqid sseqid sstart send' -evalue 1e-4 -num_threads 10 > blast_results/gpe/beta_tubulin2.hit) 2> log/blast_results/gpe/beta_tubulin2.log
+[Fri Nov 29 15:04:28 2019]
+Finished job 31.
+3 of 34 steps (9%) done
+
+[Fri Nov 29 15:04:28 2019]
+rule Filter_Out_Useless_Regions:
+    input: data/subjects/gpe.fna, blast_results/gpe/beta_tubulin2.hit
+    output: matches/gpe/beta_tubulin2.fna
+    log: log/matches/gpe/beta_tubulin2.log
+    jobid: 27
+    wildcards: subject=gpe, query=beta_tubulin2
+
+[Fri Nov 29 15:04:30 2019]
+Finished job 27.
+4 of 34 steps (12%) done
+
+[Fri Nov 29 15:04:30 2019]
+rule Build_Exonerate_Alignment:
+    input: data/queries/beta_tubulin2.faa, matches/gpe/beta_tubulin2.fna
+    output: exonerate/gpe/beta_tubulin2.fna, exonerate/gpe/beta_tubulin2.faa
+    log: log/exonerate/gpe/beta_tubulin2.log
+    jobid: 22
+    wildcards: subject=gpe, query=beta_tubulin2
+    threads: 10
+
+[Fri Nov 29 15:05:02 2019]
+Finished job 22.
+5 of 34 steps (15%) done
+
+[Fri Nov 29 15:05:02 2019]
+rule Build_Spaln_Alignment:
+    input: data/queries/beta_tubulin2.faa, matches/gpe/beta_tubulin2.fna
+    output: spaln/gpe/beta_tubulin2.fna, spaln/gpe/beta_tubulin2.faa, spaln/gpe/beta_tubulin2.sp
+    log: log/spaln/gpe/beta_tubulin2.log
+    jobid: 23
+    wildcards: subject=gpe, query=beta_tubulin2
+    threads: 10
+
+Removing temporary output file spaln/gpe/beta_tubulin2.sp.
+[Fri Nov 29 15:05:17 2019]
+Finished job 23.
+6 of 34 steps (18%) done
+
+[Fri Nov 29 15:05:17 2019]
+rule Merge_Results:
+    input: exonerate/gpe/beta_tubulin2.fna, exonerate/gpe/beta_tubulin2.faa, spaln/gpe/beta_tubulin2.fna, spaln/gpe/beta_tubulin2.faa
+    output: cd_hit/gpe/beta_tubulin2_merged.fna, cd_hit/gpe/beta_tubulin2_merged.faa, cd_hit/gpe/beta_tubulin2_joined.fna, cd_hit/gpe/beta_tubulin2_joined.faa
+    log: log/cd_hit/gpe/beta_tubulin2.log
+    jobid: 15
+    wildcards: subject=gpe, query=beta_tubulin2
+    threads: 10
+
+Shutting down, this might take some time.
+Exiting because a job execution failed. Look above for error message
+Complete log: /home/valentin/git/ProDA/.snakemake/log/2019-11-29T150425.310241.snakemake.log

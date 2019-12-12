@@ -1,0 +1,4 @@
+ModuleNotFoundError in line 1 of /home/valentin/git/ProDA/snakefiles/SPALN.snakefile:
+No module named 'os.system'; 'os' is not a package
+  File "/home/valentin/git/ProDA/Snakefile", line 27, in <module>
+  File "/home/valentin/git/ProDA/snakefiles/SPALN.snakefile", line 1, in <module>

@@ -1,0 +1,130 @@
+Building DAG of jobs...
+Using shell: /bin/bash
+Provided cores: 1
+Rules claiming more threads will be scaled down.
+Job counts:
+	count	jobs
+	6	alignment
+	1	all
+	6	blast
+	6	cd_hit
+	6	exonerate
+	6	get_best_hit
+	2	makeblastdb
+	6	matcher
+	6	spaln
+	1	test
+	46
+
+[Thu Nov 21 15:51:21 2019]
+rule makeblastdb:
+    input: data/subjects/gonium.fna
+    output: blast_dbs/gonium/temp.db
+    log: log/blast_dbs/gonium.log
+    jobid: 45
+    wildcards: subject=gonium
+
+(makeblastdb -in data/subjects/gonium.fna -dbtype nucl -out blast_dbs/gonium/gonium) 2> log/blast_dbs/gonium.log && touch blast_dbs/gonium/temp.db
+[Thu Nov 21 15:51:23 2019]
+Finished job 45.
+1 of 46 steps (2%) done
+
+[Thu Nov 21 15:51:23 2019]
+rule makeblastdb:
+    input: data/subjects/csp.fna
+    output: blast_dbs/csp/temp.db
+    log: log/blast_dbs/csp.log
+    jobid: 44
+    wildcards: subject=csp
+
+(makeblastdb -in data/subjects/csp.fna -dbtype nucl -out blast_dbs/csp/csp) 2> log/blast_dbs/csp.log && touch blast_dbs/csp/temp.db
+[Thu Nov 21 15:51:23 2019]
+Finished job 44.
+2 of 46 steps (4%) done
+
+[Thu Nov 21 15:51:23 2019]
+rule blast:
+    input: blast_dbs/gonium/temp.db, data/queries/cng_channels.faa
+    output: blast_results/gonium/cng_channels.hit
+    log: log/blast_results/gonium/cng_channels.log
+    jobid: 43
+    wildcards: subject=gonium, query=cng_channels
+
+(tblastn -query data/queries/cng_channels.faa -db blast_dbs/gonium/gonium -outfmt '6 qseqid sseqid sstart send' -evalue 1e-4 > blast_results/gonium/cng_channels.hit) 2> log/blast_results/gonium/cng_channels.log
+[Thu Nov 21 15:51:35 2019]
+Finished job 43.
+3 of 46 steps (7%) done
+
+[Thu Nov 21 15:51:35 2019]
+rule matcher:
+    input: data/subjects/gonium.fna, blast_results/gonium/cng_channels.hit
+    output: matches/gonium/cng_channels.fna
+    log: log/matches/gonium/cng_channels.log
+    jobid: 37
+    wildcards: subject=gonium, query=cng_channels
+
+/home/valentin/anaconda3/bin/python3.6 /home/valentin/git/ProDA/.snakemake/scripts/tmpbs0ydytx.contig_query_matcher.py
+[Thu Nov 21 15:51:36 2019]
+Finished job 37.
+4 of 46 steps (9%) done
+
+[Thu Nov 21 15:51:36 2019]
+rule exonerate:
+    input: data/queries/cng_channels.faa, matches/gonium/cng_channels.fna
+    output: exonerate/gonium/cng_channels.ryo, exonerate/gonium/cng_channels.fna, exonerate/gonium/cng_channels.faa
+    log: log/exonerate/gonium/cng_channels.log
+    jobid: 30
+    wildcards: subject=gonium, query=cng_channels
+
+[Thu Nov 21 15:53:35 2019]
+Finished job 30.
+5 of 46 steps (11%) done
+
+[Thu Nov 21 15:53:35 2019]
+rule spaln:
+    input: data/queries/cng_channels.faa, matches/gonium/cng_channels.fna
+    output: spaln/gonium/cng_channels.sp, spaln/gonium/cng_channels.fna, spaln/gonium/cng_channels_temp.fna, spaln/gonium/cng_channels.faa
+    log: log/spaln/gonium/cng_channels.log
+    jobid: 31
+    wildcards: subject=gonium, query=cng_channels
+
+Removing temporary output file spaln/gonium/cng_channels_temp.fna.
+[Thu Nov 21 15:54:41 2019]
+Finished job 31.
+6 of 46 steps (13%) done
+
+[Thu Nov 21 15:54:41 2019]
+rule cd_hit:
+    input: exonerate/gonium/cng_channels.faa, spaln/gonium/cng_channels.faa
+    output: cd_hit/gonium/cng_channels_joined.faa, cd_hit/gonium/cng_channels_merged.faa
+    log: log/cd_hit/gonium/cng_channels.log
+    jobid: 19
+    wildcards: subject=gonium, query=cng_channels
+
+[Thu Nov 21 15:54:42 2019]
+Finished job 19.
+7 of 46 steps (15%) done
+
+[Thu Nov 21 15:54:42 2019]
+rule alignment:
+    input: data/queries/cng_channels.faa, cd_hit/gonium/cng_channels_merged.faa
+    output: scores/gonium/cng_channels.sc
+    log: log/scores/gonium/cng_channels.log
+    jobid: 18
+    wildcards: subject=gonium, query=cng_channels
+
+[Thu Nov 21 15:54:47 2019]
+Finished job 18.
+8 of 46 steps (17%) done
+
+[Thu Nov 21 15:54:47 2019]
+rule get_best_hit:
+    input: scores/gonium/cng_channels.sc, cd_hit/gonium/cng_channels_merged.faa
+    output: best_hit/gonium/cng_channels.faa
+    log: log/best_hit/gonium/cng_channels.log
+    jobid: 7
+    wildcards: subject=gonium, query=cng_channels
+
+Shutting down, this might take some time.
+Exiting because a job execution failed. Look above for error message
+Complete log: /home/valentin/git/ProDA/.snakemake/log/2019-11-21T155121.242263.snakemake.log

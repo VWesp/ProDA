@@ -1,0 +1,224 @@
+Building DAG of jobs...
+Using shell: /bin/bash
+Provided cores: 10
+Rules claiming more threads will be scaled down.
+Job counts:
+	count	jobs
+	1	Build_DNA_Databases
+	2	Build_Exonerate_Alignment
+	2	Filter_Out_Useless_Regions
+	2	Find_Candidates
+	1	Join_ProDA_Results
+	2	Merge_Results
+	2	Retrieve_Sequence_Similarities
+	2	Retrieve_Sequence_With_Highest_Similarity
+	1	Visualize_Results
+	1	all
+	2	spaln
+	18
+
+[Wed Nov 27 17:38:43 2019]
+rule Build_DNA_Databases:
+    input: data/subjects/csp.fna
+    output: blast_dbs/csp/temp.db
+    log: log/blast_dbs/csp.log
+    jobid: 17
+    wildcards: subject=csp
+
+(makeblastdb -in data/subjects/csp.fna -dbtype nucl -out blast_dbs/csp/csp) 2> log/blast_dbs/csp.log && touch blast_dbs/csp/temp.db
+[Wed Nov 27 17:38:44 2019]
+Finished job 17.
+1 of 18 steps (6%) done
+
+[Wed Nov 27 17:38:44 2019]
+rule Find_Candidates:
+    input: blast_dbs/csp/temp.db, data/queries/actin.faa
+    output: blast_results/csp/actin.hit
+    log: log/blast_results/csp/actin.log
+    jobid: 15
+    wildcards: subject=csp, query=actin
+    threads: 4
+
+(tblastn -query data/queries/actin.faa -db blast_dbs/csp/csp -outfmt '6 qseqid sseqid sstart send' -evalue 1e-4 -num_threads 4 > blast_results/csp/actin.hit) 2> log/blast_results/csp/actin.log
+
+[Wed Nov 27 17:38:44 2019]
+rule Find_Candidates:
+    input: blast_dbs/csp/temp.db, data/queries/beta_tubulin2.faa
+    output: blast_results/csp/beta_tubulin2.hit
+    log: log/blast_results/csp/beta_tubulin2.log
+    jobid: 16
+    wildcards: subject=csp, query=beta_tubulin2
+    threads: 4
+
+(tblastn -query data/queries/beta_tubulin2.faa -db blast_dbs/csp/csp -outfmt '6 qseqid sseqid sstart send' -evalue 1e-4 -num_threads 4 > blast_results/csp/beta_tubulin2.hit) 2> log/blast_results/csp/beta_tubulin2.log
+[Wed Nov 27 17:38:45 2019]
+Finished job 15.
+2 of 18 steps (11%) done
+
+[Wed Nov 27 17:38:45 2019]
+rule Filter_Out_Useless_Regions:
+    input: data/subjects/csp.fna, blast_results/csp/actin.hit
+    output: matches/csp/actin.fna
+    log: log/matches/csp/actin.log
+    jobid: 13
+    wildcards: subject=csp, query=actin
+
+[Wed Nov 27 17:38:45 2019]
+Finished job 16.
+3 of 18 steps (17%) done
+
+[Wed Nov 27 17:38:45 2019]
+rule Filter_Out_Useless_Regions:
+    input: data/subjects/csp.fna, blast_results/csp/beta_tubulin2.hit
+    output: matches/csp/beta_tubulin2.fna
+    log: log/matches/csp/beta_tubulin2.log
+    jobid: 14
+    wildcards: subject=csp, query=beta_tubulin2
+
+[Wed Nov 27 17:38:46 2019]
+Finished job 13.
+4 of 18 steps (22%) done
+
+[Wed Nov 27 17:38:46 2019]
+rule Build_Exonerate_Alignment:
+    input: data/queries/actin.faa, matches/csp/actin.fna
+    output: exonerate/csp/actin.faa
+    log: log/exonerate/csp/actin.log
+    jobid: 9
+    wildcards: subject=csp, query=actin
+    threads: 4
+
+[Wed Nov 27 17:38:46 2019]
+rule spaln:
+    input: data/queries/actin.faa, matches/csp/actin.fna
+    output: spaln/csp/actin.faa, spaln/csp/actin.sp
+    log: log/spaln/csp/actin.log
+    jobid: 10
+    wildcards: subject=csp, query=actin
+    threads: 4
+
+[Wed Nov 27 17:38:47 2019]
+Finished job 14.
+5 of 18 steps (28%) done
+[Wed Nov 27 17:38:59 2019]
+Finished job 9.
+6 of 18 steps (33%) done
+
+[Wed Nov 27 17:38:59 2019]
+rule Build_Exonerate_Alignment:
+    input: data/queries/beta_tubulin2.faa, matches/csp/beta_tubulin2.fna
+    output: exonerate/csp/beta_tubulin2.faa
+    log: log/exonerate/csp/beta_tubulin2.log
+    jobid: 11
+    wildcards: subject=csp, query=beta_tubulin2
+    threads: 4
+
+Removing temporary output file spaln/csp/actin.sp.
+[Wed Nov 27 17:39:09 2019]
+Finished job 10.
+7 of 18 steps (39%) done
+
+[Wed Nov 27 17:39:09 2019]
+rule spaln:
+    input: data/queries/beta_tubulin2.faa, matches/csp/beta_tubulin2.fna
+    output: spaln/csp/beta_tubulin2.faa, spaln/csp/beta_tubulin2.sp
+    log: log/spaln/csp/beta_tubulin2.log
+    jobid: 12
+    wildcards: subject=csp, query=beta_tubulin2
+    threads: 4
+
+[Wed Nov 27 17:39:22 2019]
+Finished job 11.
+8 of 18 steps (44%) done
+
+[Wed Nov 27 17:39:22 2019]
+rule Merge_Results:
+    input: exonerate/csp/actin.faa, spaln/csp/actin.faa
+    output: cd_hit/csp/actin_joined.faa, cd_hit/csp/actin_merged.faa
+    log: log/cd_hit/csp/actin.log
+    jobid: 7
+    wildcards: subject=csp, query=actin
+    threads: 4
+
+[Wed Nov 27 17:39:23 2019]
+Finished job 7.
+9 of 18 steps (50%) done
+
+[Wed Nov 27 17:39:23 2019]
+rule Retrieve_Sequence_Similarities:
+    input: data/queries/actin.faa, cd_hit/csp/actin_merged.faa
+    output: scores/csp/actin.sim
+    log: log/scores/csp/actin.log
+    jobid: 5
+    wildcards: subject=csp, query=actin
+    threads: 4
+
+[Wed Nov 27 17:39:24 2019]
+Finished job 5.
+10 of 18 steps (56%) done
+
+[Wed Nov 27 17:39:24 2019]
+rule Retrieve_Sequence_With_Highest_Similarity:
+    input: scores/csp/actin.sim
+    output: best_hit/csp/actin.tsv
+    log: log/best_hit/csp/actin.log
+    jobid: 3
+    wildcards: subject=csp, query=actin
+
+[Wed Nov 27 17:39:24 2019]
+Finished job 3.
+11 of 18 steps (61%) done
+Removing temporary output file spaln/csp/beta_tubulin2.sp.
+[Wed Nov 27 17:39:36 2019]
+Finished job 12.
+12 of 18 steps (67%) done
+
+[Wed Nov 27 17:39:36 2019]
+rule Merge_Results:
+    input: exonerate/csp/beta_tubulin2.faa, spaln/csp/beta_tubulin2.faa
+    output: cd_hit/csp/beta_tubulin2_joined.faa, cd_hit/csp/beta_tubulin2_merged.faa
+    log: log/cd_hit/csp/beta_tubulin2.log
+    jobid: 8
+    wildcards: subject=csp, query=beta_tubulin2
+    threads: 4
+
+[Wed Nov 27 17:39:37 2019]
+Finished job 8.
+13 of 18 steps (72%) done
+
+[Wed Nov 27 17:39:37 2019]
+rule Retrieve_Sequence_Similarities:
+    input: data/queries/beta_tubulin2.faa, cd_hit/csp/beta_tubulin2_merged.faa
+    output: scores/csp/beta_tubulin2.sim
+    log: log/scores/csp/beta_tubulin2.log
+    jobid: 6
+    wildcards: subject=csp, query=beta_tubulin2
+    threads: 4
+
+[Wed Nov 27 17:39:37 2019]
+Finished job 6.
+14 of 18 steps (78%) done
+
+[Wed Nov 27 17:39:37 2019]
+rule Retrieve_Sequence_With_Highest_Similarity:
+    input: scores/csp/beta_tubulin2.sim
+    output: best_hit/csp/beta_tubulin2.tsv
+    log: log/best_hit/csp/beta_tubulin2.log
+    jobid: 4
+    wildcards: subject=csp, query=beta_tubulin2
+
+[Wed Nov 27 17:39:38 2019]
+Finished job 4.
+15 of 18 steps (83%) done
+
+[Wed Nov 27 17:39:38 2019]
+rule Join_ProDA_Results:
+    input: best_hit/csp/actin.tsv, best_hit/csp/beta_tubulin2.tsv
+    output: results/retained/proda.tsv, results/discarded/proda.tsv
+    log: log/results/results.log
+    jobid: 2
+    threads: 4
+
+Shutting down, this might take some time.
+Exiting because a job execution failed. Look above for error message
+Complete log: /home/valentin/git/ProDA/.snakemake/log/2019-11-27T173843.532273.snakemake.log

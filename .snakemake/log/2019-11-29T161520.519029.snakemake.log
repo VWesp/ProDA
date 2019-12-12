@@ -1,0 +1,57 @@
+Building DAG of jobs...
+Using shell: /bin/bash
+Provided cores: 10
+Rules claiming more threads will be scaled down.
+Job counts:
+	count	jobs
+	1	Join_ProDA_Results
+	1	Visualize_Discarded_Results
+	1	Visualize_Retained_Results
+	1	finish
+	4
+
+[Fri Nov 29 16:15:20 2019]
+rule Join_ProDA_Results:
+    input: best_hit/csp/actin.tsv, best_hit/csp/beta_tubulin2.tsv, best_hit/gpe/actin.tsv, best_hit/gpe/beta_tubulin2.tsv
+    output: results/retained/proda.tsv, results/discarded/proda.tsv
+    log: log/results/results.log
+    jobid: 3
+    threads: 10
+
+[Fri Nov 29 16:15:25 2019]
+Finished job 3.
+1 of 4 steps (25%) done
+
+[Fri Nov 29 16:15:25 2019]
+rule Visualize_Retained_Results:
+    input: results/retained/proda.tsv
+    output: retained_finished.txt
+    jobid: 1
+    threads: 10
+
+[Fri Nov 29 16:15:37 2019]
+Finished job 1.
+2 of 4 steps (50%) done
+
+[Fri Nov 29 16:15:37 2019]
+rule Visualize_Discarded_Results:
+    input: results/discarded/proda.tsv
+    output: discarded_finished.txt
+    jobid: 2
+    threads: 10
+
+[Fri Nov 29 16:15:38 2019]
+Finished job 2.
+3 of 4 steps (75%) done
+
+[Fri Nov 29 16:15:38 2019]
+localrule finish:
+    input: retained_finished.txt, discarded_finished.txt
+    jobid: 0
+
+Removing temporary output file retained_finished.txt.
+Removing temporary output file discarded_finished.txt.
+[Fri Nov 29 16:15:38 2019]
+Finished job 0.
+4 of 4 steps (100%) done
+Complete log: /home/valentin/git/ProDA/.snakemake/log/2019-11-29T161520.519029.snakemake.log

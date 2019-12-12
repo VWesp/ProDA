@@ -1,0 +1,3 @@
+SyntaxError in line 11 of /home/valentin/git/ProDA/snakefiles/GET_BEST_HIT.snakefile:
+EOF in multi-line statement (GET_BEST_HIT.snakefile, line 11)
+  File "/home/valentin/git/ProDA/Snakefile", line 33, in <module>

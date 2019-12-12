@@ -1,0 +1,79 @@
+Building DAG of jobs...
+Using shell: /bin/bash
+Provided cores: 1
+Rules claiming more threads will be scaled down.
+Job counts:
+	count	jobs
+	1	all
+	4	cd_hit_exonerate
+	1	test
+	6
+
+[Wed Nov 20 11:36:01 2019]
+rule cd_hit_exonerate:
+    input: exonerate/csp/actin.fasta, exonerate/csp/beta_tubulin2.fasta, exonerate/gonium/actin.fasta, exonerate/gonium/beta_tubulin2.fasta
+    output: cd_hit/exonerate/gonium/actin.fasta
+    log: log/cd_hit/exonerate/gonium/actin.log
+    jobid: 4
+    wildcards: subject=gonium, query=actin
+
+[Wed Nov 20 11:36:02 2019]
+Finished job 4.
+1 of 6 steps (17%) done
+
+[Wed Nov 20 11:36:02 2019]
+rule cd_hit_exonerate:
+    input: exonerate/csp/actin.fasta, exonerate/csp/beta_tubulin2.fasta, exonerate/gonium/actin.fasta, exonerate/gonium/beta_tubulin2.fasta
+    output: cd_hit/exonerate/csp/actin.fasta
+    log: log/cd_hit/exonerate/csp/actin.log
+    jobid: 2
+    wildcards: subject=csp, query=actin
+
+[Wed Nov 20 11:36:02 2019]
+Finished job 2.
+2 of 6 steps (33%) done
+
+[Wed Nov 20 11:36:02 2019]
+rule cd_hit_exonerate:
+    input: exonerate/csp/actin.fasta, exonerate/csp/beta_tubulin2.fasta, exonerate/gonium/actin.fasta, exonerate/gonium/beta_tubulin2.fasta
+    output: cd_hit/exonerate/csp/beta_tubulin2.fasta
+    log: log/cd_hit/exonerate/csp/beta_tubulin2.log
+    jobid: 3
+    wildcards: subject=csp, query=beta_tubulin2
+
+[Wed Nov 20 11:36:03 2019]
+Finished job 3.
+3 of 6 steps (50%) done
+
+[Wed Nov 20 11:36:03 2019]
+rule cd_hit_exonerate:
+    input: exonerate/csp/actin.fasta, exonerate/csp/beta_tubulin2.fasta, exonerate/gonium/actin.fasta, exonerate/gonium/beta_tubulin2.fasta
+    output: cd_hit/exonerate/gonium/beta_tubulin2.fasta
+    log: log/cd_hit/exonerate/gonium/beta_tubulin2.log
+    jobid: 5
+    wildcards: subject=gonium, query=beta_tubulin2
+
+[Wed Nov 20 11:36:03 2019]
+Finished job 5.
+4 of 6 steps (67%) done
+
+[Wed Nov 20 11:36:03 2019]
+rule test:
+    input: cd_hit/exonerate/csp/actin.fasta, cd_hit/exonerate/csp/beta_tubulin2.fasta, cd_hit/exonerate/gonium/actin.fasta, cd_hit/exonerate/gonium/beta_tubulin2.fasta
+    output: temp/end.txt
+    jobid: 1
+
+touch temp/end.txt
+[Wed Nov 20 11:36:03 2019]
+Finished job 1.
+5 of 6 steps (83%) done
+
+[Wed Nov 20 11:36:03 2019]
+localrule all:
+    input: temp/end.txt
+    jobid: 0
+
+[Wed Nov 20 11:36:03 2019]
+Finished job 0.
+6 of 6 steps (100%) done
+Complete log: /home/valentin/git/ProDA/.snakemake/log/2019-11-20T113601.446728.snakemake.log

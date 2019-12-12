@@ -1,0 +1,588 @@
+Building DAG of jobs...
+Using shell: /bin/bash
+Provided cores: 10
+Rules claiming more threads will be scaled down.
+Job counts:
+	count	jobs
+	55	alignment
+	1	all
+	55	blast
+	55	cd_hit
+	55	exonerate
+	55	get_best_hit
+	1	join_results
+	5	makeblastdb
+	55	matcher
+	55	spaln
+	1	visualize_results
+	393
+
+[Mon Nov 25 12:43:29 2019]
+rule makeblastdb:
+    input: data/subjects/egr.fna
+    output: blast_dbs/egr/temp.db
+    log: log/blast_dbs/egr.log
+    jobid: 391
+    wildcards: subject=egr
+
+(makeblastdb -in data/subjects/egr.fna -dbtype nucl -out blast_dbs/egr/egr) 2> log/blast_dbs/egr.log && touch blast_dbs/egr/temp.db
+
+[Mon Nov 25 12:43:29 2019]
+rule makeblastdb:
+    input: data/subjects/gpe.fna
+    output: blast_dbs/gpe/temp.db
+    log: log/blast_dbs/gpe.log
+    jobid: 389
+    wildcards: subject=gpe
+
+(makeblastdb -in data/subjects/gpe.fna -dbtype nucl -out blast_dbs/gpe/gpe) 2> log/blast_dbs/gpe.log && touch blast_dbs/gpe/temp.db
+
+[Mon Nov 25 12:43:29 2019]
+rule makeblastdb:
+    input: data/subjects/hpl.fna
+    output: blast_dbs/hpl/temp.db
+    log: log/blast_dbs/hpl.log
+    jobid: 390
+    wildcards: subject=hpl
+
+(makeblastdb -in data/subjects/hpl.fna -dbtype nucl -out blast_dbs/hpl/hpl) 2> log/blast_dbs/hpl.log && touch blast_dbs/hpl/temp.db
+
+[Mon Nov 25 12:43:29 2019]
+rule makeblastdb:
+    input: data/subjects/csp.fna
+    output: blast_dbs/csp/temp.db
+    log: log/blast_dbs/csp.log
+    jobid: 388
+    wildcards: subject=csp
+
+(makeblastdb -in data/subjects/csp.fna -dbtype nucl -out blast_dbs/csp/csp) 2> log/blast_dbs/csp.log && touch blast_dbs/csp/temp.db
+
+[Mon Nov 25 12:43:29 2019]
+rule makeblastdb:
+    input: data/subjects/ppr.fna
+    output: blast_dbs/ppr/temp.db
+    log: log/blast_dbs/ppr.log
+    jobid: 392
+    wildcards: subject=ppr
+
+(makeblastdb -in data/subjects/ppr.fna -dbtype nucl -out blast_dbs/ppr/ppr) 2> log/blast_dbs/ppr.log && touch blast_dbs/ppr/temp.db
+[Mon Nov 25 12:43:30 2019]
+Finished job 392.
+1 of 393 steps (0.25%) done
+
+[Mon Nov 25 12:43:30 2019]
+rule blast:
+    input: blast_dbs/ppr/temp.db, data/queries/cng_channels.faa
+    output: blast_results/ppr/cng_channels.hit
+    log: log/blast_results/ppr/cng_channels.log
+    jobid: 381
+    wildcards: subject=ppr, query=cng_channels
+
+(tblastn -query data/queries/cng_channels.faa -db blast_dbs/ppr/ppr -outfmt '6 qseqid sseqid sstart send' -evalue 1e-4 > blast_results/ppr/cng_channels.hit) 2> log/blast_results/ppr/cng_channels.log
+
+[Mon Nov 25 12:43:30 2019]
+rule blast:
+    input: blast_dbs/ppr/temp.db, data/queries/photoreceptors.faa
+    output: blast_results/ppr/photoreceptors.hit
+    log: log/blast_results/ppr/photoreceptors.log
+    jobid: 386
+    wildcards: subject=ppr, query=photoreceptors
+
+(tblastn -query data/queries/photoreceptors.faa -db blast_dbs/ppr/ppr -outfmt '6 qseqid sseqid sstart send' -evalue 1e-4 > blast_results/ppr/photoreceptors.hit) 2> log/blast_results/ppr/photoreceptors.log
+
+[Mon Nov 25 12:43:30 2019]
+rule blast:
+    input: blast_dbs/ppr/temp.db, data/queries/mscs_channels.faa
+    output: blast_results/ppr/mscs_channels.hit
+    log: log/blast_results/ppr/mscs_channels.log
+    jobid: 385
+    wildcards: subject=ppr, query=mscs_channels
+
+(tblastn -query data/queries/mscs_channels.faa -db blast_dbs/ppr/ppr -outfmt '6 qseqid sseqid sstart send' -evalue 1e-4 > blast_results/ppr/mscs_channels.hit) 2> log/blast_results/ppr/mscs_channels.log
+
+[Mon Nov 25 12:43:30 2019]
+rule blast:
+    input: blast_dbs/ppr/temp.db, data/queries/trp_channels.faa
+    output: blast_results/ppr/trp_channels.hit
+    log: log/blast_results/ppr/trp_channels.log
+    jobid: 387
+    wildcards: subject=ppr, query=trp_channels
+
+(tblastn -query data/queries/trp_channels.faa -db blast_dbs/ppr/ppr -outfmt '6 qseqid sseqid sstart send' -evalue 1e-4 > blast_results/ppr/trp_channels.hit) 2> log/blast_results/ppr/trp_channels.log
+
+[Mon Nov 25 12:43:30 2019]
+rule blast:
+    input: blast_dbs/ppr/temp.db, data/queries/ip3r_channels.faa
+    output: blast_results/ppr/ip3r_channels.hit
+    log: log/blast_results/ppr/ip3r_channels.log
+    jobid: 384
+    wildcards: subject=ppr, query=ip3r_channels
+
+(tblastn -query data/queries/ip3r_channels.faa -db blast_dbs/ppr/ppr -outfmt '6 qseqid sseqid sstart send' -evalue 1e-4 > blast_results/ppr/ip3r_channels.hit) 2> log/blast_results/ppr/ip3r_channels.log
+
+[Mon Nov 25 12:43:30 2019]
+rule blast:
+    input: blast_dbs/ppr/temp.db, data/queries/cav_channels.faa
+    output: blast_results/ppr/cav_channels.hit
+    log: log/blast_results/ppr/cav_channels.log
+    jobid: 379
+    wildcards: subject=ppr, query=cav_channels
+
+(tblastn -query data/queries/cav_channels.faa -db blast_dbs/ppr/ppr -outfmt '6 qseqid sseqid sstart send' -evalue 1e-4 > blast_results/ppr/cav_channels.hit) 2> log/blast_results/ppr/cav_channels.log
+[Mon Nov 25 12:43:32 2019]
+Finished job 384.
+2 of 393 steps (0.51%) done
+
+[Mon Nov 25 12:43:32 2019]
+rule matcher:
+    input: data/subjects/ppr.fna, blast_results/ppr/ip3r_channels.hit
+    output: matches/ppr/ip3r_channels.fna
+    log: log/matches/ppr/ip3r_channels.log
+    jobid: 329
+    wildcards: subject=ppr, query=ip3r_channels
+
+[Mon Nov 25 12:43:32 2019]
+Finished job 381.
+3 of 393 steps (0.76%) done
+
+[Mon Nov 25 12:43:32 2019]
+rule matcher:
+    input: data/subjects/ppr.fna, blast_results/ppr/cng_channels.hit
+    output: matches/ppr/cng_channels.fna
+    log: log/matches/ppr/cng_channels.log
+    jobid: 326
+    wildcards: subject=ppr, query=cng_channels
+
+[Mon Nov 25 12:43:33 2019]
+Finished job 388.
+4 of 393 steps (1%) done
+
+[Mon Nov 25 12:43:33 2019]
+rule blast:
+    input: blast_dbs/csp/temp.db, data/queries/cav_channels.faa
+    output: blast_results/csp/cav_channels.hit
+    log: log/blast_results/csp/cav_channels.log
+    jobid: 335
+    wildcards: subject=csp, query=cav_channels
+
+(tblastn -query data/queries/cav_channels.faa -db blast_dbs/csp/csp -outfmt '6 qseqid sseqid sstart send' -evalue 1e-4 > blast_results/csp/cav_channels.hit) 2> log/blast_results/csp/cav_channels.log
+[Mon Nov 25 12:43:33 2019]
+Finished job 385.
+5 of 393 steps (1%) done
+
+[Mon Nov 25 12:43:33 2019]
+rule matcher:
+    input: data/subjects/ppr.fna, blast_results/ppr/mscs_channels.hit
+    output: matches/ppr/mscs_channels.fna
+    log: log/matches/ppr/mscs_channels.log
+    jobid: 330
+    wildcards: subject=ppr, query=mscs_channels
+
+[Mon Nov 25 12:43:33 2019]
+Finished job 329.
+6 of 393 steps (2%) done
+
+[Mon Nov 25 12:43:33 2019]
+rule blast:
+    input: blast_dbs/csp/temp.db, data/queries/trp_channels.faa
+    output: blast_results/csp/trp_channels.hit
+    log: log/blast_results/csp/trp_channels.log
+    jobid: 343
+    wildcards: subject=csp, query=trp_channels
+
+(tblastn -query data/queries/trp_channels.faa -db blast_dbs/csp/csp -outfmt '6 qseqid sseqid sstart send' -evalue 1e-4 > blast_results/csp/trp_channels.hit) 2> log/blast_results/csp/trp_channels.log
+[Mon Nov 25 12:43:34 2019]
+Finished job 326.
+7 of 393 steps (2%) done
+
+[Mon Nov 25 12:43:34 2019]
+rule spaln:
+    input: data/queries/cng_channels.faa, matches/ppr/cng_channels.fna
+    output: spaln/ppr/cng_channels.sp, spaln/ppr/cng_channels.faa, spaln/ppr/cng_channels_temp.sp, spaln/ppr/cng_channels.fna
+    log: log/spaln/ppr/cng_channels.log
+    jobid: 265
+    wildcards: subject=ppr, query=cng_channels
+
+[Mon Nov 25 12:43:34 2019]
+Finished job 330.
+8 of 393 steps (2%) done
+
+[Mon Nov 25 12:43:34 2019]
+rule exonerate:
+    input: data/queries/cng_channels.faa, matches/ppr/cng_channels.fna
+    output: exonerate/ppr/cng_channels.ryo, exonerate/ppr/cng_channels.faa, exonerate/ppr/cng_channels.fna
+    log: log/exonerate/ppr/cng_channels.log
+    jobid: 264
+    wildcards: subject=ppr, query=cng_channels
+
+[Mon Nov 25 12:43:35 2019]
+Finished job 386.
+9 of 393 steps (2%) done
+
+[Mon Nov 25 12:43:35 2019]
+rule matcher:
+    input: data/subjects/ppr.fna, blast_results/ppr/photoreceptors.hit
+    output: matches/ppr/photoreceptors.fna
+    log: log/matches/ppr/photoreceptors.log
+    jobid: 331
+    wildcards: subject=ppr, query=photoreceptors
+
+[Mon Nov 25 12:43:37 2019]
+Finished job 331.
+10 of 393 steps (3%) done
+
+[Mon Nov 25 12:43:37 2019]
+rule spaln:
+    input: data/queries/photoreceptors.faa, matches/ppr/photoreceptors.fna
+    output: spaln/ppr/photoreceptors.sp, spaln/ppr/photoreceptors.faa, spaln/ppr/photoreceptors_temp.sp, spaln/ppr/photoreceptors.fna
+    log: log/spaln/ppr/photoreceptors.log
+    jobid: 275
+    wildcards: subject=ppr, query=photoreceptors
+
+[Mon Nov 25 12:43:37 2019]
+Finished job 389.
+11 of 393 steps (3%) done
+
+[Mon Nov 25 12:43:37 2019]
+rule exonerate:
+    input: data/queries/photoreceptors.faa, matches/ppr/photoreceptors.fna
+    output: exonerate/ppr/photoreceptors.ryo, exonerate/ppr/photoreceptors.faa, exonerate/ppr/photoreceptors.fna
+    log: log/exonerate/ppr/photoreceptors.log
+    jobid: 274
+    wildcards: subject=ppr, query=photoreceptors
+
+[Mon Nov 25 12:43:42 2019]
+Finished job 387.
+12 of 393 steps (3%) done
+
+[Mon Nov 25 12:43:42 2019]
+rule matcher:
+    input: data/subjects/ppr.fna, blast_results/ppr/trp_channels.hit
+    output: matches/ppr/trp_channels.fna
+    log: log/matches/ppr/trp_channels.log
+    jobid: 332
+    wildcards: subject=ppr, query=trp_channels
+
+[Mon Nov 25 12:43:44 2019]
+Finished job 332.
+13 of 393 steps (3%) done
+
+[Mon Nov 25 12:43:44 2019]
+rule exonerate:
+    input: data/queries/trp_channels.faa, matches/ppr/trp_channels.fna
+    output: exonerate/ppr/trp_channels.ryo, exonerate/ppr/trp_channels.faa, exonerate/ppr/trp_channels.fna
+    log: log/exonerate/ppr/trp_channels.log
+    jobid: 276
+    wildcards: subject=ppr, query=trp_channels
+
+Removing temporary output file exonerate/ppr/cng_channels.fna.
+[Mon Nov 25 12:43:51 2019]
+Finished job 264.
+14 of 393 steps (4%) done
+
+[Mon Nov 25 12:43:51 2019]
+rule spaln:
+    input: data/queries/trp_channels.faa, matches/ppr/trp_channels.fna
+    output: spaln/ppr/trp_channels.sp, spaln/ppr/trp_channels.faa, spaln/ppr/trp_channels_temp.sp, spaln/ppr/trp_channels.fna
+    log: log/spaln/ppr/trp_channels.log
+    jobid: 277
+    wildcards: subject=ppr, query=trp_channels
+
+[Mon Nov 25 12:43:53 2019]
+Finished job 390.
+15 of 393 steps (4%) done
+
+[Mon Nov 25 12:43:53 2019]
+rule exonerate:
+    input: data/queries/mscs_channels.faa, matches/ppr/mscs_channels.fna
+    output: exonerate/ppr/mscs_channels.ryo, exonerate/ppr/mscs_channels.faa, exonerate/ppr/mscs_channels.fna
+    log: log/exonerate/ppr/mscs_channels.log
+    jobid: 272
+    wildcards: subject=ppr, query=mscs_channels
+
+Removing temporary output file spaln/ppr/cng_channels_temp.sp.
+Removing temporary output file spaln/ppr/cng_channels.fna.
+[Mon Nov 25 12:43:54 2019]
+Finished job 265.
+16 of 393 steps (4%) done
+
+[Mon Nov 25 12:43:54 2019]
+rule spaln:
+    input: data/queries/mscs_channels.faa, matches/ppr/mscs_channels.fna
+    output: spaln/ppr/mscs_channels.sp, spaln/ppr/mscs_channels.faa, spaln/ppr/mscs_channels_temp.sp, spaln/ppr/mscs_channels.fna
+    log: log/spaln/ppr/mscs_channels.log
+    jobid: 273
+    wildcards: subject=ppr, query=mscs_channels
+
+[Mon Nov 25 12:44:02 2019]
+Finished job 379.
+17 of 393 steps (4%) done
+
+[Mon Nov 25 12:44:02 2019]
+rule matcher:
+    input: data/subjects/ppr.fna, blast_results/ppr/cav_channels.hit
+    output: matches/ppr/cav_channels.fna
+    log: log/matches/ppr/cav_channels.log
+    jobid: 324
+    wildcards: subject=ppr, query=cav_channels
+
+[Mon Nov 25 12:44:03 2019]
+Finished job 324.
+18 of 393 steps (5%) done
+
+[Mon Nov 25 12:44:03 2019]
+rule exonerate:
+    input: data/queries/cav_channels.faa, matches/ppr/cav_channels.fna
+    output: exonerate/ppr/cav_channels.ryo, exonerate/ppr/cav_channels.faa, exonerate/ppr/cav_channels.fna
+    log: log/exonerate/ppr/cav_channels.log
+    jobid: 260
+    wildcards: subject=ppr, query=cav_channels
+
+Removing temporary output file exonerate/ppr/cav_channels.fna.
+[Mon Nov 25 12:44:23 2019]
+Finished job 260.
+19 of 393 steps (5%) done
+
+[Mon Nov 25 12:44:23 2019]
+rule spaln:
+    input: data/queries/cav_channels.faa, matches/ppr/cav_channels.fna
+    output: spaln/ppr/cav_channels.sp, spaln/ppr/cav_channels.faa, spaln/ppr/cav_channels_temp.sp, spaln/ppr/cav_channels.fna
+    log: log/spaln/ppr/cav_channels.log
+    jobid: 261
+    wildcards: subject=ppr, query=cav_channels
+
+[Mon Nov 25 12:44:24 2019]
+Finished job 391.
+20 of 393 steps (5%) done
+
+[Mon Nov 25 12:44:24 2019]
+rule blast:
+    input: blast_dbs/egr/temp.db, data/queries/cav_channels.faa
+    output: blast_results/egr/cav_channels.hit
+    log: log/blast_results/egr/cav_channels.log
+    jobid: 368
+    wildcards: subject=egr, query=cav_channels
+
+(tblastn -query data/queries/cav_channels.faa -db blast_dbs/egr/egr -outfmt '6 qseqid sseqid sstart send' -evalue 1e-4 > blast_results/egr/cav_channels.hit) 2> log/blast_results/egr/cav_channels.log
+Removing temporary output file spaln/ppr/mscs_channels_temp.sp.
+Removing temporary output file spaln/ppr/mscs_channels.fna.
+[Mon Nov 25 12:44:35 2019]
+Finished job 273.
+21 of 393 steps (5%) done
+
+[Mon Nov 25 12:44:35 2019]
+rule blast:
+    input: blast_dbs/hpl/temp.db, data/queries/cav_channels.faa
+    output: blast_results/hpl/cav_channels.hit
+    log: log/blast_results/hpl/cav_channels.log
+    jobid: 357
+    wildcards: subject=hpl, query=cav_channels
+
+(tblastn -query data/queries/cav_channels.faa -db blast_dbs/hpl/hpl -outfmt '6 qseqid sseqid sstart send' -evalue 1e-4 > blast_results/hpl/cav_channels.hit) 2> log/blast_results/hpl/cav_channels.log
+Removing temporary output file spaln/ppr/cav_channels_temp.sp.
+Removing temporary output file spaln/ppr/cav_channels.fna.
+[Mon Nov 25 12:44:50 2019]
+Finished job 261.
+22 of 393 steps (6%) done
+
+[Mon Nov 25 12:44:50 2019]
+rule blast:
+    input: blast_dbs/gpe/temp.db, data/queries/cav_channels.faa
+    output: blast_results/gpe/cav_channels.hit
+    log: log/blast_results/gpe/cav_channels.log
+    jobid: 346
+    wildcards: subject=gpe, query=cav_channels
+
+(tblastn -query data/queries/cav_channels.faa -db blast_dbs/gpe/gpe -outfmt '6 qseqid sseqid sstart send' -evalue 1e-4 > blast_results/gpe/cav_channels.hit) 2> log/blast_results/gpe/cav_channels.log
+Removing temporary output file exonerate/ppr/mscs_channels.fna.
+[Mon Nov 25 12:44:54 2019]
+Finished job 272.
+23 of 393 steps (6%) done
+
+[Mon Nov 25 12:44:54 2019]
+rule blast:
+    input: blast_dbs/egr/temp.db, data/queries/trp_channels.faa
+    output: blast_results/egr/trp_channels.hit
+    log: log/blast_results/egr/trp_channels.log
+    jobid: 376
+    wildcards: subject=egr, query=trp_channels
+
+(tblastn -query data/queries/trp_channels.faa -db blast_dbs/egr/egr -outfmt '6 qseqid sseqid sstart send' -evalue 1e-4 > blast_results/egr/trp_channels.hit) 2> log/blast_results/egr/trp_channels.log
+Removing temporary output file exonerate/ppr/trp_channels.fna.
+[Mon Nov 25 12:44:55 2019]
+Finished job 276.
+24 of 393 steps (6%) done
+
+[Mon Nov 25 12:44:55 2019]
+rule blast:
+    input: blast_dbs/gpe/temp.db, data/queries/trp_channels.faa
+    output: blast_results/gpe/trp_channels.hit
+    log: log/blast_results/gpe/trp_channels.log
+    jobid: 354
+    wildcards: subject=gpe, query=trp_channels
+
+(tblastn -query data/queries/trp_channels.faa -db blast_dbs/gpe/gpe -outfmt '6 qseqid sseqid sstart send' -evalue 1e-4 > blast_results/gpe/trp_channels.hit) 2> log/blast_results/gpe/trp_channels.log
+[Mon Nov 25 12:45:58 2019]
+Finished job 343.
+25 of 393 steps (6%) done
+
+[Mon Nov 25 12:45:58 2019]
+rule matcher:
+    input: data/subjects/csp.fna, blast_results/csp/trp_channels.hit
+    output: matches/csp/trp_channels.fna
+    log: log/matches/csp/trp_channels.log
+    jobid: 288
+    wildcards: subject=csp, query=trp_channels
+
+[Mon Nov 25 12:46:02 2019]
+Finished job 288.
+26 of 393 steps (7%) done
+
+[Mon Nov 25 12:46:02 2019]
+rule spaln:
+    input: data/queries/trp_channels.faa, matches/csp/trp_channels.fna
+    output: spaln/csp/trp_channels.sp, spaln/csp/trp_channels.faa, spaln/csp/trp_channels_temp.sp, spaln/csp/trp_channels.fna
+    log: log/spaln/csp/trp_channels.log
+    jobid: 189
+    wildcards: subject=csp, query=trp_channels
+
+[Mon Nov 25 12:46:43 2019]
+Finished job 335.
+27 of 393 steps (7%) done
+
+[Mon Nov 25 12:46:43 2019]
+rule matcher:
+    input: data/subjects/csp.fna, blast_results/csp/cav_channels.hit
+    output: matches/csp/cav_channels.fna
+    log: log/matches/csp/cav_channels.log
+    jobid: 280
+    wildcards: subject=csp, query=cav_channels
+
+[Mon Nov 25 12:46:47 2019]
+Finished job 280.
+28 of 393 steps (7%) done
+
+[Mon Nov 25 12:46:47 2019]
+rule spaln:
+    input: data/queries/cav_channels.faa, matches/csp/cav_channels.fna
+    output: spaln/csp/cav_channels.sp, spaln/csp/cav_channels.faa, spaln/csp/cav_channels_temp.sp, spaln/csp/cav_channels.fna
+    log: log/spaln/csp/cav_channels.log
+    jobid: 173
+    wildcards: subject=csp, query=cav_channels
+
+[Mon Nov 25 12:48:36 2019]
+Finished job 354.
+29 of 393 steps (7%) done
+
+[Mon Nov 25 12:48:36 2019]
+rule matcher:
+    input: data/subjects/gpe.fna, blast_results/gpe/trp_channels.hit
+    output: matches/gpe/trp_channels.fna
+    log: log/matches/gpe/trp_channels.log
+    jobid: 299
+    wildcards: subject=gpe, query=trp_channels
+
+[Mon Nov 25 12:48:46 2019]
+Finished job 299.
+30 of 393 steps (8%) done
+
+[Mon Nov 25 12:48:46 2019]
+rule exonerate:
+    input: data/queries/trp_channels.faa, matches/gpe/trp_channels.fna
+    output: exonerate/gpe/trp_channels.ryo, exonerate/gpe/trp_channels.faa, exonerate/gpe/trp_channels.fna
+    log: log/exonerate/gpe/trp_channels.log
+    jobid: 210
+    wildcards: subject=gpe, query=trp_channels
+
+Removing temporary output file exonerate/ppr/photoreceptors.fna.
+[Mon Nov 25 12:49:27 2019]
+Finished job 274.
+31 of 393 steps (8%) done
+
+[Mon Nov 25 12:49:27 2019]
+rule spaln:
+    input: data/queries/trp_channels.faa, matches/gpe/trp_channels.fna
+    output: spaln/gpe/trp_channels.sp, spaln/gpe/trp_channels.faa, spaln/gpe/trp_channels_temp.sp, spaln/gpe/trp_channels.fna
+    log: log/spaln/gpe/trp_channels.log
+    jobid: 211
+    wildcards: subject=gpe, query=trp_channels
+
+Removing temporary output file spaln/ppr/trp_channels_temp.sp.
+Removing temporary output file spaln/ppr/trp_channels.fna.
+[Mon Nov 25 12:49:44 2019]
+Finished job 277.
+32 of 393 steps (8%) done
+
+[Mon Nov 25 12:49:44 2019]
+rule exonerate:
+    input: data/queries/cav_channels.faa, matches/csp/cav_channels.fna
+    output: exonerate/csp/cav_channels.ryo, exonerate/csp/cav_channels.faa, exonerate/csp/cav_channels.fna
+    log: log/exonerate/csp/cav_channels.log
+    jobid: 172
+    wildcards: subject=csp, query=cav_channels
+
+[Mon Nov 25 12:51:04 2019]
+Finished job 346.
+33 of 393 steps (8%) done
+
+[Mon Nov 25 12:51:04 2019]
+rule matcher:
+    input: data/subjects/gpe.fna, blast_results/gpe/cav_channels.hit
+    output: matches/gpe/cav_channels.fna
+    log: log/matches/gpe/cav_channels.log
+    jobid: 291
+    wildcards: subject=gpe, query=cav_channels
+
+[Mon Nov 25 12:51:11 2019]
+Finished job 291.
+34 of 393 steps (9%) done
+
+[Mon Nov 25 12:51:11 2019]
+rule exonerate:
+    input: data/queries/cav_channels.faa, matches/gpe/cav_channels.fna
+    output: exonerate/gpe/cav_channels.ryo, exonerate/gpe/cav_channels.faa, exonerate/gpe/cav_channels.fna
+    log: log/exonerate/gpe/cav_channels.log
+    jobid: 194
+    wildcards: subject=gpe, query=cav_channels
+
+Terminating processes on user request, this might take some time.
+[Mon Nov 25 12:52:11 2019]
+Error in rule blast:
+    jobid: 357
+    output: blast_results/hpl/cav_channels.hit
+    log: log/blast_results/hpl/cav_channels.log (check log file(s) for error message)
+    shell:
+        (tblastn -query data/queries/cav_channels.faa -db blast_dbs/hpl/hpl -outfmt '6 qseqid sseqid sstart send' -evalue 1e-4 > blast_results/hpl/cav_channels.hit) 2> log/blast_results/hpl/cav_channels.log
+        (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
+
+Removing output files of failed job blast since they might be corrupted:
+blast_results/hpl/cav_channels.hit
+[Mon Nov 25 12:52:11 2019]
+Error in rule blast:
+    jobid: 368
+    output: blast_results/egr/cav_channels.hit
+    log: log/blast_results/egr/cav_channels.log (check log file(s) for error message)
+    shell:
+        (tblastn -query data/queries/cav_channels.faa -db blast_dbs/egr/egr -outfmt '6 qseqid sseqid sstart send' -evalue 1e-4 > blast_results/egr/cav_channels.hit) 2> log/blast_results/egr/cav_channels.log
+        (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
+
+Removing output files of failed job blast since they might be corrupted:
+blast_results/egr/cav_channels.hit
+[Mon Nov 25 12:52:11 2019]
+Error in rule blast:
+    jobid: 376
+    output: blast_results/egr/trp_channels.hit
+    log: log/blast_results/egr/trp_channels.log (check log file(s) for error message)
+    shell:
+        (tblastn -query data/queries/trp_channels.faa -db blast_dbs/egr/egr -outfmt '6 qseqid sseqid sstart send' -evalue 1e-4 > blast_results/egr/trp_channels.hit) 2> log/blast_results/egr/trp_channels.log
+        (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
+
+Removing output files of failed job blast since they might be corrupted:
+blast_results/egr/trp_channels.hit
+Removing output files of failed job exonerate since they might be corrupted:
+exonerate/gpe/trp_channels.ryo, exonerate/gpe/trp_channels.faa, exonerate/gpe/trp_channels.fna
+Removing output files of failed job exonerate since they might be corrupted:
+exonerate/csp/cav_channels.ryo, exonerate/csp/cav_channels.faa, exonerate/csp/cav_channels.fna
+Removing output files of failed job exonerate since they might be corrupted:
+exonerate/gpe/cav_channels.ryo, exonerate/gpe/cav_channels.faa, exonerate/gpe/cav_channels.fna
+Cancelling snakemake on user request.

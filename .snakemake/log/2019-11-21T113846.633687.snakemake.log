@@ -1,0 +1,4 @@
+ImportError in line 2 of /home/valentin/git/ProDA/snakefiles/CLUSTALW.snakefile:
+cannot import name 'format_alignment'
+  File "/home/valentin/git/ProDA/Snakefile", line 31, in <module>
+  File "/home/valentin/git/ProDA/snakefiles/CLUSTALW.snakefile", line 2, in <module>

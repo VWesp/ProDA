@@ -1,0 +1,73 @@
+Building DAG of jobs...
+Using shell: /bin/bash
+Provided cores: 1
+Rules claiming more threads will be scaled down.
+Job counts:
+	count	jobs
+	4	alignment
+	1	all
+	4	blast
+	4	cd_hit
+	4	exonerate
+	2	makeblastdb
+	4	matcher
+	4	spaln
+	1	test
+	28
+
+[Thu Nov 21 14:03:49 2019]
+rule makeblastdb:
+    input: data/subjects/gonium.fna
+    output: blast_dbs/gonium/temp.db
+    log: log/blast_dbs/gonium.log
+    jobid: 27
+    wildcards: subject=gonium
+
+(makeblastdb -in data/subjects/gonium.fna -dbtype nucl -out blast_dbs/gonium/gonium) 2> log/blast_dbs/gonium.log && touch blast_dbs/gonium/temp.db
+[Thu Nov 21 14:03:51 2019]
+Finished job 27.
+1 of 28 steps (4%) done
+
+[Thu Nov 21 14:03:51 2019]
+rule makeblastdb:
+    input: data/subjects/csp.fna
+    output: blast_dbs/csp/temp.db
+    log: log/blast_dbs/csp.log
+    jobid: 26
+    wildcards: subject=csp
+
+(makeblastdb -in data/subjects/csp.fna -dbtype nucl -out blast_dbs/csp/csp) 2> log/blast_dbs/csp.log && touch blast_dbs/csp/temp.db
+[Thu Nov 21 14:03:52 2019]
+Finished job 26.
+2 of 28 steps (7%) done
+
+[Thu Nov 21 14:03:52 2019]
+rule blast:
+    input: blast_dbs/gonium/temp.db, data/queries/beta_tubulin2.faa
+    output: blast_results/gonium/beta_tubulin2.hit
+    log: log/blast_results/gonium/beta_tubulin2.log
+    jobid: 25
+    wildcards: subject=gonium, query=beta_tubulin2
+
+(tblastn -query blast_dbs/gonium/temp.db -db blast_dbs/gonium/gonium -outfmt '6 qseqid sseqid sstart send' -evalue 1e-4 > blast_results/gonium/beta_tubulin2.hit) 2> log/blast_results/gonium/beta_tubulin2.log
+[Thu Nov 21 14:03:52 2019]
+Finished job 25.
+3 of 28 steps (11%) done
+
+[Thu Nov 21 14:03:52 2019]
+rule matcher:
+    input: data/subjects/gonium.fna, blast_results/gonium/beta_tubulin2.hit
+    output: matches/gonium/beta_tubulin2.fna
+    log: log/matches/gonium/beta_tubulin2.log
+    jobid: 21
+    wildcards: subject=gonium, query=beta_tubulin2
+
+/home/valentin/anaconda3/bin/python3.6 /home/valentin/git/ProDA/.snakemake/scripts/tmp9g1h1eow.contig_query_matcher.py
+Waiting at most 5 seconds for missing files.
+MissingOutputException in line 11 of /home/valentin/git/ProDA/Snakefile:
+Missing files after 5 seconds:
+matches/gonium/beta_tubulin2.fna
+This might be due to filesystem latency. If that is the case, consider to increase the wait time with --latency-wait.
+Shutting down, this might take some time.
+Exiting because a job execution failed. Look above for error message
+Complete log: /home/valentin/git/ProDA/.snakemake/log/2019-11-21T140349.751606.snakemake.log

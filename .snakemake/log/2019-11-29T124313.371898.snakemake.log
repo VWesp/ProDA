@@ -1,0 +1,24 @@
+Building DAG of jobs...
+Using shell: /bin/bash
+Provided cores: 1
+Rules claiming more threads will be scaled down.
+Job counts:
+	count	jobs
+	1	Join_Mapping_Results
+	2	Map_Discarded_Results
+	2	Map_Retained_Results
+	1	Visualize_Discarded_Results
+	1	Visualize_Retained_Results
+	1	finish
+	8
+
+[Fri Nov 29 12:43:13 2019]
+rule Map_Retained_Results:
+    input: data/subjects/gpe.fna, results/retained/proda_temp.tsv
+    output: results/retained/proda_gpe.tsv
+    jobid: 5
+    wildcards: subject=gpe
+
+Shutting down, this might take some time.
+Exiting because a job execution failed. Look above for error message
+Complete log: /home/valentin/git/ProDA/.snakemake/log/2019-11-29T124313.371898.snakemake.log

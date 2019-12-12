@@ -1,0 +1,3 @@
+SyntaxError in line 11 of /home/valentin/git/ProDA/snakefiles/VISUALIZE_RESULTS.snakefile:
+EOF in multi-line statement (VISUALIZE_RESULTS.snakefile, line 11)
+  File "/home/valentin/git/ProDA/Snakefile", line 23, in <module>

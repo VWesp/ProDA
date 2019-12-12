@@ -1,0 +1,3 @@
+SyntaxError in line 16 of /home/valentin/git/ProDA/snakefiles/CD_HIT.snakefile:
+invalid syntax
+  File "/home/valentin/git/ProDA/Snakefile", line 29, in <module>

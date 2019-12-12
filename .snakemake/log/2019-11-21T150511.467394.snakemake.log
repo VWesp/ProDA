@@ -1,0 +1,3 @@
+IndentationError in line 22 of /home/valentin/git/ProDA/snakefiles/ALIGNMENT.snakefile:
+unexpected indent
+  File "/home/valentin/git/ProDA/Snakefile", line 31, in <module>

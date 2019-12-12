@@ -1,0 +1,136 @@
+Building DAG of jobs...
+Using shell: /bin/bash
+Provided cores: 10
+Rules claiming more threads will be scaled down.
+Job counts:
+	count	jobs
+	2	Build_DNA_Databases
+	6	Build_Exonerate_Alignment
+	6	Filter_Out_Useless_Regions
+	6	Find_Candidates
+	1	Join_ProDA_Results
+	6	Merge_Results
+	6	Retrieve_Sequence_Similarities
+	6	Retrieve_Sequence_With_Highest_Similarity
+	1	Visualize_Results
+	1	all
+	6	spaln
+	47
+
+[Wed Nov 27 11:37:14 2019]
+rule Build_DNA_Databases:
+    input: data/subjects/gpe.fna
+    output: blast_dbs/gpe/temp.db
+    log: log/blast_dbs/gpe.log
+    jobid: 46
+    wildcards: subject=gpe
+
+(makeblastdb -in data/subjects/gpe.fna -dbtype nucl -out blast_dbs/gpe/gpe) 2> log/blast_dbs/gpe.log && touch blast_dbs/gpe/temp.db
+
+[Wed Nov 27 11:37:14 2019]
+rule Build_DNA_Databases:
+    input: data/subjects/csp.fna
+    output: blast_dbs/csp/temp.db
+    log: log/blast_dbs/csp.log
+    jobid: 45
+    wildcards: subject=csp
+
+(makeblastdb -in data/subjects/csp.fna -dbtype nucl -out blast_dbs/csp/csp) 2> log/blast_dbs/csp.log && touch blast_dbs/csp/temp.db
+[Wed Nov 27 11:37:16 2019]
+Finished job 45.
+1 of 47 steps (2%) done
+
+[Wed Nov 27 11:37:16 2019]
+rule Find_Candidates:
+    input: blast_dbs/csp/temp.db, data/queries/beta_tubulin2.faa
+    output: blast_results/csp/beta_tubulin2.hit
+    log: log/blast_results/csp/beta_tubulin2.log
+    jobid: 40
+    wildcards: subject=csp, query=beta_tubulin2
+    threads: 4
+
+(tblastn -query data/queries/beta_tubulin2.faa -db blast_dbs/csp/csp -outfmt '6 qseqid sseqid sstart send' -evalue 1e-4 -num_threads 4 > blast_results/csp/beta_tubulin2.hit) 2> log/blast_results/csp/beta_tubulin2.log
+
+[Wed Nov 27 11:37:16 2019]
+rule Find_Candidates:
+    input: blast_dbs/csp/temp.db, data/queries/trp_channels.faa
+    output: blast_results/csp/trp_channels.hit
+    log: log/blast_results/csp/trp_channels.log
+    jobid: 41
+    wildcards: subject=csp, query=trp_channels
+    threads: 4
+
+(tblastn -query data/queries/trp_channels.faa -db blast_dbs/csp/csp -outfmt '6 qseqid sseqid sstart send' -evalue 1e-4 -num_threads 4 > blast_results/csp/trp_channels.hit) 2> log/blast_results/csp/trp_channels.log
+[Wed Nov 27 11:37:18 2019]
+Finished job 40.
+2 of 47 steps (4%) done
+
+[Wed Nov 27 11:37:18 2019]
+rule Find_Candidates:
+    input: blast_dbs/csp/temp.db, data/queries/actin.faa
+    output: blast_results/csp/actin.hit
+    log: log/blast_results/csp/actin.log
+    jobid: 39
+    wildcards: subject=csp, query=actin
+    threads: 4
+
+(tblastn -query data/queries/actin.faa -db blast_dbs/csp/csp -outfmt '6 qseqid sseqid sstart send' -evalue 1e-4 -num_threads 4 > blast_results/csp/actin.hit) 2> log/blast_results/csp/actin.log
+
+[Wed Nov 27 11:37:18 2019]
+rule Filter_Out_Useless_Regions:
+    input: data/subjects/csp.fna, blast_results/csp/beta_tubulin2.hit
+    output: matches/csp/beta_tubulin2.fna
+    log: log/matches/csp/beta_tubulin2.log
+    jobid: 34
+    wildcards: subject=csp, query=beta_tubulin2
+
+[Wed Nov 27 11:37:19 2019]
+Finished job 39.
+3 of 47 steps (6%) done
+
+[Wed Nov 27 11:37:19 2019]
+rule Filter_Out_Useless_Regions:
+    input: data/subjects/csp.fna, blast_results/csp/actin.hit
+    output: matches/csp/actin.fna
+    log: log/matches/csp/actin.log
+    jobid: 33
+    wildcards: subject=csp, query=actin
+
+[Wed Nov 27 11:37:21 2019]
+Finished job 46.
+4 of 47 steps (9%) done
+
+[Wed Nov 27 11:37:21 2019]
+rule Find_Candidates:
+    input: blast_dbs/gpe/temp.db, data/queries/trp_channels.faa
+    output: blast_results/gpe/trp_channels.hit
+    log: log/blast_results/gpe/trp_channels.log
+    jobid: 44
+    wildcards: subject=gpe, query=trp_channels
+    threads: 4
+
+(tblastn -query data/queries/trp_channels.faa -db blast_dbs/gpe/gpe -outfmt '6 qseqid sseqid sstart send' -evalue 1e-4 -num_threads 4 > blast_results/gpe/trp_channels.hit) 2> log/blast_results/gpe/trp_channels.log
+Terminating processes on user request, this might take some time.
+[Wed Nov 27 11:37:32 2019]
+[Wed Nov 27 11:37:32 2019]
+Error in rule Find_Candidates:
+Error in rule Find_Candidates:
+    jobid: 44
+    jobid: 41
+    output: blast_results/gpe/trp_channels.hit
+    output: blast_results/csp/trp_channels.hit
+    log: log/blast_results/gpe/trp_channels.log (check log file(s) for error message)
+    log: log/blast_results/csp/trp_channels.log (check log file(s) for error message)
+    shell:
+        (tblastn -query data/queries/trp_channels.faa -db blast_dbs/gpe/gpe -outfmt '6 qseqid sseqid sstart send' -evalue 1e-4 -num_threads 4 > blast_results/gpe/trp_channels.hit) 2> log/blast_results/gpe/trp_channels.log
+        (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
+    shell:
+        (tblastn -query data/queries/trp_channels.faa -db blast_dbs/csp/csp -outfmt '6 qseqid sseqid sstart send' -evalue 1e-4 -num_threads 4 > blast_results/csp/trp_channels.hit) 2> log/blast_results/csp/trp_channels.log
+        (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
+
+
+Removing output files of failed job Find_Candidates since they might be corrupted:
+blast_results/gpe/trp_channels.hit
+Removing output files of failed job Find_Candidates since they might be corrupted:
+blast_results/csp/trp_channels.hit
+Complete log: /home/valentin/git/ProDA/.snakemake/log/2019-11-27T113714.030075.snakemake.log

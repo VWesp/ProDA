@@ -1,0 +1,4 @@
+SyntaxError:
+Not all output, log and benchmark files of rule exonerate contain the same wildcards. This is crucial though, in order to avoid that two or more jobs write to the same file.
+  File "/home/valentin/git/ProDA/Snakefile", line 21, in <module>
+  File "/home/valentin/git/ProDA/snakefiles/EXONERATE.snakefile", line 17, in <module>

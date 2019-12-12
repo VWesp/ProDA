@@ -1,0 +1,3 @@
+SyntaxError in line 4 of /home/valentin/git/ProDA/snakefiles/CD_HIT.snakefile:
+Expected name or colon after rule keyword. (CD_HIT.snakefile, line 4)
+  File "/home/valentin/git/ProDA/Snakefile", line 15, in <module>

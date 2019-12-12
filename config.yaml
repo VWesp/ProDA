@@ -1,6 +1,5 @@
 subjects:
-  genome1: data/subjects/genome1.fna
-  genome2: data/subjects/genome2.fna
+  genome: data/subjects/genome.fna
 queries:
   proteins1: data/queries/proteins1.faa
   proteins2: data/queries/proteins2.faa

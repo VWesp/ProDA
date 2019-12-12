@@ -1,0 +1,39 @@
+Building DAG of jobs...
+Using shell: /bin/bash
+Provided cores: 1
+Rules claiming more threads will be scaled down.
+Job counts:
+	count	jobs
+	55	alignment
+	1	all
+	55	blast
+	55	cd_hit
+	55	exonerate
+	55	get_best_hit
+	1	join_results
+	5	makeblastdb
+	55	matcher
+	55	spaln
+	1	visualize_results
+	393
+
+[Mon Nov 25 10:07:51 2019]
+rule makeblastdb:
+    input: data/subjects/egr.fna
+    output: blast_dbs/egr/temp.db
+    log: log/blast_dbs/egr.log
+    jobid: 391
+    wildcards: subject=egr
+
+(makeblastdb -in data/subjects/egr.fna -dbtype nucl -out blast_dbs/egr/egr) 2> log/blast_dbs/egr.log && touch blast_dbs/egr/temp.db
+Terminating processes on user request, this might take some time.
+[Mon Nov 25 10:07:59 2019]
+Error in rule makeblastdb:
+    jobid: 391
+    output: blast_dbs/egr/temp.db
+    log: log/blast_dbs/egr.log (check log file(s) for error message)
+    shell:
+        (makeblastdb -in data/subjects/egr.fna -dbtype nucl -out blast_dbs/egr/egr) 2> log/blast_dbs/egr.log && touch blast_dbs/egr/temp.db
+        (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
+
+Complete log: /home/valentin/git/ProDA/.snakemake/log/2019-11-25T100751.197675.snakemake.log

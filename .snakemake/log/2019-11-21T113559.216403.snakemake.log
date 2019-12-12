@@ -1,0 +1,22 @@
+Building DAG of jobs...
+Using shell: /bin/bash
+Provided cores: 1
+Rules claiming more threads will be scaled down.
+Job counts:
+	count	jobs
+	1	all
+	4	clustalw
+	1	test
+	6
+
+[Thu Nov 21 11:35:59 2019]
+rule clustalw:
+    input: cd_hit/csp/actin_merged.faa, cd_hit/csp/beta_tubulin2_merged.faa, cd_hit/gonium/actin_merged.faa, cd_hit/gonium/beta_tubulin2_merged.faa
+    output: clustalw/csp/beta_tubulin2.clustal
+    log: log/clustalw/csp/beta_tubulin2.clustal
+    jobid: 3
+    wildcards: subject=csp, query=beta_tubulin2
+
+Shutting down, this might take some time.
+Exiting because a job execution failed. Look above for error message
+Complete log: /home/valentin/git/ProDA/.snakemake/log/2019-11-21T113559.216403.snakemake.log

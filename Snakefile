@@ -2,7 +2,8 @@ configfile: "config.yaml"
 
 rule finish:
     input:
-        "finished.txt"
+        expand("temp/above/{subject}/{query}.txt", subject=config["subjects"], query=config["queries"]),
+        expand("temp/below/{subject}/{query}.txt", subject=config["subjects"], query=config["queries"])
 
 include: "snakefiles/BLAST.snakefile"
 
@@ -27,12 +28,3 @@ include: "snakefiles/THRESHOLD_FILTER.snakefile"
 include: "snakefiles/VISUALIZE_RETAINED_RESULTS.snakefile"
 
 include: "snakefiles/VISUALIZE_DISCARDED_RESULTS.snakefile"
-
-rule finished:
-    input:
-        expand("temp/above/{subject}/{query}.txt", subject=config["subjects"], query=config["queries"]),
-        expand("temp/below/{subject}/{query}.txt", subject=config["subjects"], query=config["queries"]),
-    output:
-        temp("finished.txt")
-    shell:
-        "touch {output} && rm -r temp"

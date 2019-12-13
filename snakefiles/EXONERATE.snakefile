@@ -26,8 +26,8 @@ def exonerateSearchMultiprocessing(match, input, blosum, percent, output, log):
         query_writer.write(">" + queries[query].id + "\n" + str(queries[query].seq))
 
     temp_output_gff = output[0].replace(".gff", "_" + str(local_index) + "_output.gff")
-    os.system("(exonerate --model protein2genome:bestfit --targettype dna --querytype protein "
-              "--exhaustive --showtargetgff --showalignment no --showvulgar no "
+    os.system("(exonerate --model protein2genome --targettype dna --querytype protein "
+              "--showtargetgff --showalignment no --showvulgar no "
               "--refine region --proteinsubmat blosum/" + str(blosum) + ".txt --percent " + str(percent) +
               " --query " + temp_query + " --target " + temp_target +
               " > " + temp_output_gff + ") 2> " + log)

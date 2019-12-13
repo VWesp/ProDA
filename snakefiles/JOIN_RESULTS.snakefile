@@ -53,7 +53,7 @@ rule Merge_Results:
                                 infos["cds"] = line.split(">cds:")[-1].strip()
                             elif(line.startswith(">pep")):
                                 infos["pep"] = line.split(">pep:")[-1].strip()
-                                if(not "*" in infos["pep"][:-1]):
+                                if(not "*" in infos["pep"]):
                                     if(not contig in ex_gff):
                                         ex_gff[contig] = {}
 
@@ -113,7 +113,7 @@ rule Merge_Results:
                                 infos["cds"] = line.split(">cds:")[-1].strip()
                             elif(line.startswith(">pep")):
                                 infos["pep"] = line.split(">pep:")[-1].strip()
-                                if(not "*" in infos["pep"][:-1]):
+                                if(not "*" in infos["pep"]):
                                     if(not contig in sp_gff):
                                         sp_gff[contig] = {}
 

@@ -1,6 +1,6 @@
 from Bio import Seq
 
-rule Retrieve_Spaln_Sequences:
+rule Retrieve_Sp_Sequences:
     input:
         "data/subjects/{subject}.fna",
         "alignment/spaln/{subject}/{query}.gff"

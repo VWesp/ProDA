@@ -8,7 +8,7 @@ from functools import partial
 def visualizeRetainedResultsMultiprocessing(hit, subject, input, properties):
     queries = SeqIO.index(input, "fasta")
     query = hit.id.split("|")[1]
-    index = hit.id.split("|")[-1]
+    index = hit.id.split("|")[2]
     hit_output =  "results/above_threshold/" + subject + "/alignments/" + query + "_index_" + index + "_hit.faa"
     with open(hit_output, "w") as hit_writer:
         hit_writer.write(">" + hit.id + "\n" + str(hit.seq))

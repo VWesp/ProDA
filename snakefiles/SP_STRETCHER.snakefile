@@ -20,7 +20,7 @@ def spStretcherAlignmentMultiprocessing(target, input, output, log):
     if(len(gff_result)):
         temp_target = output[0].replace(".sc_gff", "_" + str(local_index) + "_target.fna")
         with open(temp_target, "w") as target_writer:
-            target_writer.write(">" + gff_result[0].split("\t")[0] + "\n" + gff_result[-1].split(">pep:")[-1])
+            target_writer.write(">" + gff_result[0].split("\t")[0] + "\n" + gff_result[-1].split(">pep:")[1])
 
         query = gff_result[0].split("\t")[1]
         temp_query = output[0].replace(".sc_gff", "_" + str(local_index) + "_query.faa")
@@ -37,9 +37,9 @@ def spStretcherAlignmentMultiprocessing(target, input, output, log):
             similarity = None
             for line in content:
                 if(line.startswith("# Identity")):
-                    identity = line.split("(")[-1][:-3]
+                    identity = line.split("(")[1][:-3]
                 if(line.startswith("# Similarity")):
-                    similarity = line.split("(")[-1][:-3]
+                    similarity = line.split("(")[1][:-3]
                     break
 
             gff_result[0] = "#" + gff_result[0] + "\t" + identity + "\t" + similarity
@@ -51,7 +51,7 @@ def spStretcherAlignmentMultiprocessing(target, input, output, log):
     return gff_result
 
 
-rule Retrieve_Spaln_Sequence_Similarities:
+rule Calculate_Sp_Sequence_Similarities:
     input:
         "data/queries/{query}.faa",
         "alignment/spaln/{subject}/{query}.pr_gff"

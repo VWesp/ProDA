@@ -1,6 +1,6 @@
 from Bio import Seq
 
-rule Retrieve_Exonerate_Sequences:
+rule Retrieve_Ex_Sequences:
     input:
         "data/subjects/{subject}.fna",
         "alignment/exonerate/{subject}/{query}.gff"

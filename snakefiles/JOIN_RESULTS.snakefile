@@ -30,13 +30,12 @@ rule Merge_Results:
             if(os.stat(input[0]).st_size != 0):
                 with open(input[0], "r") as ex_reader:
                     content = ex_reader.readlines()
-                    #infos = {}
+                    infos = {}
                     contig = None
                     query = None
                     for line in content:
                         if(line):
                             if(line.startswith("#")):
-                                #infos.clear()
                                 infos = {}
                                 splitted_line = line.split("\t")
                                 contig = splitted_line[0][1:].strip()
@@ -48,11 +47,11 @@ rule Merge_Results:
                                 infos["identity"] = float(splitted_line[5].strip())
                                 infos["similarity"] = float(splitted_line[6].strip())
                             elif(line.startswith(">nuc")):
-                                infos["nuc"] = line.split(">nuc:")[-1].strip()
+                                infos["nuc"] = line.split(">nuc:")[1].strip()
                             elif(line.startswith(">cds")):
-                                infos["cds"] = line.split(">cds:")[-1].strip()
+                                infos["cds"] = line.split(">cds:")[1].strip()
                             elif(line.startswith(">pep")):
-                                infos["pep"] = line.split(">pep:")[-1].strip()
+                                infos["pep"] = line.split(">pep:")[1].strip()
                                 if(not "*" in infos["pep"]):
                                     if(not contig in ex_gff):
                                         ex_gff[contig] = {}
@@ -90,13 +89,12 @@ rule Merge_Results:
             if(os.stat(input[1]).st_size != 0):
                 with open(input[1], "r") as ex_reader:
                     content = ex_reader.readlines()
-                    #infos = {}
+                    infos = {}
                     contig = None
                     query = None
                     for line in content:
                         if(line):
                             if(line.startswith("#")):
-                                #infos.clear()
                                 infos = {}
                                 splitted_line = line.split("\t")
                                 contig = splitted_line[0][1:].strip()
@@ -108,11 +106,11 @@ rule Merge_Results:
                                 infos["identity"] = float(splitted_line[5].strip())
                                 infos["similarity"] = float(splitted_line[6].strip())
                             elif(line.startswith(">nuc")):
-                                infos["nuc"] = line.split(">nuc:")[-1].strip()
+                                infos["nuc"] = line.split(">nuc:")[1].strip()
                             elif(line.startswith(">cds")):
-                                infos["cds"] = line.split(">cds:")[-1].strip()
+                                infos["cds"] = line.split(">cds:")[1].strip()
                             elif(line.startswith(">pep")):
-                                infos["pep"] = line.split(">pep:")[-1].strip()
+                                infos["pep"] = line.split(">pep:")[1].strip()
                                 if(not "*" in infos["pep"]):
                                     if(not contig in sp_gff):
                                         sp_gff[contig] = {}
@@ -149,12 +147,9 @@ rule Merge_Results:
             joined_results = []
             inner_joined_results = []
             for contig in ex_gff:
-                #joined_results.append("#" + contig)
                 if(contig in sp_gff):
                     for query in ex_gff[contig]:
-                        #joined_results.append("##" + query)
                         if(query in sp_gff[contig]):
-                            del inner_joined_results[:]
                             for ex_info in ex_gff[contig][query]:
                                 no_overlap = True
                                 for sp_info in sp_gff[contig][query]:
@@ -199,6 +194,8 @@ rule Merge_Results:
                                                       "\t" + info["orientation"] + "\t" + "|".join(info["pos"]) + "\t" + str(info["identity"]) +
                                                       "\t" + str(info["similarity"]) + "\t" + info["nuc"] + "\t" + info["cds"] +
                                                       "\t" + info["pep"])
+
+                            del inner_joined_results[:]
                         else:
                             for info in ex_gff[contig][query]:
                                 joined_results.append(contig + "\t" + query + "\t" + str(info["start"]) + "\t" + str(info["end"]) + "\t" +
@@ -206,14 +203,12 @@ rule Merge_Results:
                                                       "\t" + str(info["similarity"]) + "\t" + info["nuc"] + "\t" + info["cds"] + "\t" + info["pep"])
                     for query in sp_gff[contig]:
                         if(not query in ex_gff[contig]):
-                            #joined_results.append("##" + query)
                             for info in sp_gff[contig][query]:
                                 joined_results.append(contig + "\t" + query + "\t" + str(info["start"]) + "\t" + str(info["end"]) + "\t" +
                                                       info["orientation"] + "\t" + "|".join(info["pos"]) + "\t" + str(info["identity"]) +
                                                       "\t" + str(info["similarity"]) + "\t" + info["nuc"] + "\t" + info["cds"] + "\t" + info["pep"])
                 else:
                     for query in ex_gff[contig]:
-                        #joined_results.append("##" + query)
                         for info in ex_gff[contig][query]:
                             joined_results.append(contig + "\t" + query + "\t" + str(info["start"]) + "\t" + str(info["end"]) + "\t" +
                                                   info["orientation"] + "\t" + "|".join(info["pos"]) + "\t" + str(info["identity"]) +
@@ -221,9 +216,7 @@ rule Merge_Results:
 
             for contig in sp_gff:
                 if(not contig in ex_gff):
-                    #joined_results.append("#" + contig)
                     for query in sp_gff[contig]:
-                        #joined_results.append("##" + query)
                         for info in sp_gff[contig][query]:
                             joined_results.append(contig + "\t" + query + "\t" + str(info["start"]) + "\t" + str(info["end"]) + "\t" +
                                                   info["orientation"]+ "\t" + "|".join(info["pos"]) + "\t" + str(info["identity"]) +

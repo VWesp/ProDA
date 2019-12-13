@@ -42,7 +42,7 @@ rule Retrieve_Sp_Sequences:
                                     gff_list.append(">nuc:" + str(subjects[contig].seq[start:end]).upper())
                             elif(line.startswith(";C")):
                                 if("join" in line):
-                                    cds_pos.append(list(filter(None, line.strip().split("join(")[1].split(","))))
+                                    cds_pos.append(list(filter(None, line.strip().split("join(")[1].replace(")", "").split(","))))
                                 else:
                                     cds_pos.append(list(filter(None, line.strip().split(";C ")[1].replace(")", "").split(","))))
                             elif(line.startswith("//")):

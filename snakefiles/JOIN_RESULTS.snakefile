@@ -201,21 +201,21 @@ rule Merge_Results:
                                 joined_results.append(contig + "\t" + query + "\t" + str(info["start"]) + "\t" + str(info["end"]) + "\t" +
                                                       info["orientation"] + "\t" + "|".join(info["pos"]) + "\t" + str(info["identity"]) +
                                                       "\t" + str(info["similarity"]) + "\t" + info["nuc"] + "\t" + info["cds"] + "\t" + info["pep"]
-                                                       + "\t" + "|".join(info["stop"])
+                                                       + "\t" + "|".join(info["stop"]))
                     for query in sp_gff[contig]:
                         if(not query in ex_gff[contig]):
                             for info in sp_gff[contig][query]:
                                 joined_results.append(contig + "\t" + query + "\t" + str(info["start"]) + "\t" + str(info["end"]) + "\t" +
                                                       info["orientation"] + "\t" + "|".join(info["pos"]) + "\t" + str(info["identity"]) +
                                                       "\t" + str(info["similarity"]) + "\t" + info["nuc"] + "\t" + info["cds"] + "\t" + info["pep"]
-                                                       + "\t" + "|".join(info["stop"])
+                                                       + "\t" + "|".join(info["stop"]))
                 else:
                     for query in ex_gff[contig]:
                         for info in ex_gff[contig][query]:
                             joined_results.append(contig + "\t" + query + "\t" + str(info["start"]) + "\t" + str(info["end"]) + "\t" +
                                                   info["orientation"] + "\t" + "|".join(info["pos"]) + "\t" + str(info["identity"]) +
                                                   "\t" + str(info["similarity"]) + "\t" + info["nuc"] + "\t" + info["cds"] + "\t" + info["pep"]
-                                                   + "\t" + "|".join(info["stop"])
+                                                   + "\t" + "|".join(info["stop"]))
 
             for contig in sp_gff:
                 if(not contig in ex_gff):
@@ -223,7 +223,8 @@ rule Merge_Results:
                         for info in sp_gff[contig][query]:
                             joined_results.append(contig + "\t" + query + "\t" + str(info["start"]) + "\t" + str(info["end"]) + "\t" +
                                                   info["orientation"]+ "\t" + "|".join(info["pos"]) + "\t" + str(info["identity"]) +
-                                                  "\t" + str(info["similarity"]) + "\t" + info["nuc"] + "\t" + info["cds"] + "\t" + info["pep"])
+                                                  "\t" + str(info["similarity"]) + "\t" + info["nuc"] + "\t" + info["cds"] + "\t" + info["pep"]
+                                                  + "\t" + "|".join(info["stop"]))
 
             with open(output[0], "w") as merged_writer:
                 merged_writer.write("\n".join(joined_results))

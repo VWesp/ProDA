@@ -52,33 +52,33 @@ rule Merge_Results:
                                 infos["cds"] = line.split(">cds:")[1].strip()
                             elif(line.startswith(">pep")):
                                 infos["pep"] = line.split(">pep:")[1].strip()
-                                if(not "*" in infos["pep"]):
-                                    if(not contig in ex_gff):
-                                        ex_gff[contig] = {}
+                                infos["stop"] = [i for i, ltr in enumerate(infos["pep"]) if ltr == "*"]
+                                if(not contig in ex_gff):
+                                    ex_gff[contig] = {}
 
-                                    if(not query in ex_gff[contig]):
-                                        ex_gff[contig][query] = [infos]
-                                    else:
-                                        no_overlap = True
-                                        index_remove_list = []
-                                        for hit in ex_gff[contig][query]:
-                                            if(overlap(start, end, infos["orientation"], hit["start"], hit["end"], hit["orientation"]) >= params[0]):
-                                                no_overlap = False
-                                                if((infos["pep"].startswith("M") and hit["pep"].startswith("M")) or
-                                                   not (infos["pep"].startswith("M") and not hit["pep"].startswith("M"))):
-                                                    if(infos["identity"] > hit["identity"] or
-                                                       (infos["identity"] == hit["identity"] and infos["similarity"] > hit["similarity"])):
-                                                        index_remove_list.append(ex_gff[contig][query].index(hit))
-                                                elif(infos["pep"].startswith("M")):
+                                if(not query in ex_gff[contig]):
+                                    ex_gff[contig][query] = [infos]
+                                else:
+                                    no_overlap = True
+                                    index_remove_list = []
+                                    for hit in ex_gff[contig][query]:
+                                        if(overlap(start, end, infos["orientation"], hit["start"], hit["end"], hit["orientation"]) >= params[0]):
+                                            no_overlap = False
+                                            if((infos["pep"].startswith("M") and hit["pep"].startswith("M")) or
+                                               not (infos["pep"].startswith("M") and not hit["pep"].startswith("M"))):
+                                                if(infos["identity"] > hit["identity"] or
+                                                   (infos["identity"] == hit["identity"] and infos["similarity"] > hit["similarity"])):
                                                     index_remove_list.append(ex_gff[contig][query].index(hit))
+                                            elif(infos["pep"].startswith("M")):
+                                                index_remove_list.append(ex_gff[contig][query].index(hit))
 
-                                        if(no_overlap):
-                                            ex_gff[contig][query].append(infos)
-                                        elif(len(index_remove_list)):
-                                            for index in index_remove_list:
-                                                del ex_gff[contig][query][index]
+                                    if(no_overlap):
+                                        ex_gff[contig][query].append(infos)
+                                    elif(len(index_remove_list)):
+                                        for index in index_remove_list:
+                                            del ex_gff[contig][query][index]
 
-                                            ex_gff[contig][query].append(infos)
+                                        ex_gff[contig][query].append(infos)
                             else:
                                 splitted_line = line.split("\t")
                                 start = int(splitted_line[2].strip())
@@ -111,33 +111,33 @@ rule Merge_Results:
                                 infos["cds"] = line.split(">cds:")[1].strip()
                             elif(line.startswith(">pep")):
                                 infos["pep"] = line.split(">pep:")[1].strip()
-                                if(not "*" in infos["pep"]):
-                                    if(not contig in sp_gff):
-                                        sp_gff[contig] = {}
+                                infos["stop"] = [i for i, ltr in enumerate(infos["pep"]) if ltr == "*"]
+                                if(not contig in sp_gff):
+                                    sp_gff[contig] = {}
 
-                                    if(not query in sp_gff[contig]):
-                                        sp_gff[contig][query] = [infos]
-                                    else:
-                                        no_overlap = True
-                                        index_remove_list = []
-                                        for hit in sp_gff[contig][query]:
-                                            if(overlap(start, end, infos["orientation"], hit["start"], hit["end"], hit["orientation"]) >= params[0]):
-                                                no_overlap = False
-                                                if((infos["pep"].startswith("M") and hit["pep"].startswith("M")) or
-                                                   not (infos["pep"].startswith("M") or hit["pep"].startswith("M"))):
-                                                    if(infos["identity"] > hit["identity"] or
-                                                       (infos["identity"] == hit["identity"] and infos["similarity"] > hit["similarity"])):
-                                                        index_remove_list.append(sp_gff[contig][query].index(hit))
-                                                elif(infos["pep"].startswith("M")):
+                                if(not query in sp_gff[contig]):
+                                    sp_gff[contig][query] = [infos]
+                                else:
+                                    no_overlap = True
+                                    index_remove_list = []
+                                    for hit in sp_gff[contig][query]:
+                                        if(overlap(start, end, infos["orientation"], hit["start"], hit["end"], hit["orientation"]) >= params[0]):
+                                            no_overlap = False
+                                            if((infos["pep"].startswith("M") and hit["pep"].startswith("M")) or
+                                               not (infos["pep"].startswith("M") or hit["pep"].startswith("M"))):
+                                                if(infos["identity"] > hit["identity"] or
+                                                   (infos["identity"] == hit["identity"] and infos["similarity"] > hit["similarity"])):
                                                     index_remove_list.append(sp_gff[contig][query].index(hit))
+                                            elif(infos["pep"].startswith("M")):
+                                                index_remove_list.append(sp_gff[contig][query].index(hit))
 
-                                        if(no_overlap):
-                                            sp_gff[contig][query].append(infos)
-                                        elif(len(index_remove_list)):
-                                            for index in index_remove_list:
-                                                del sp_gff[contig][query][index]
+                                    if(no_overlap):
+                                        sp_gff[contig][query].append(infos)
+                                    elif(len(index_remove_list)):
+                                        for index in index_remove_list:
+                                            del sp_gff[contig][query][index]
 
-                                            sp_gff[contig][query].append(infos)
+                                        sp_gff[contig][query].append(infos)
                             else:
                                 splitted_line = line.split("\t")
                                 start = int(splitted_line[2].strip())
@@ -193,26 +193,29 @@ rule Merge_Results:
                                 joined_results.append(contig + "\t" + query + "\t" + str(info["start"]) + "\t" + str(info["end"]) +
                                                       "\t" + info["orientation"] + "\t" + "|".join(info["pos"]) + "\t" + str(info["identity"]) +
                                                       "\t" + str(info["similarity"]) + "\t" + info["nuc"] + "\t" + info["cds"] +
-                                                      "\t" + info["pep"])
+                                                      "\t" + info["pep"] + "\t" + "|".join(info["stop"]))
 
                             del inner_joined_results[:]
                         else:
                             for info in ex_gff[contig][query]:
                                 joined_results.append(contig + "\t" + query + "\t" + str(info["start"]) + "\t" + str(info["end"]) + "\t" +
                                                       info["orientation"] + "\t" + "|".join(info["pos"]) + "\t" + str(info["identity"]) +
-                                                      "\t" + str(info["similarity"]) + "\t" + info["nuc"] + "\t" + info["cds"] + "\t" + info["pep"])
+                                                      "\t" + str(info["similarity"]) + "\t" + info["nuc"] + "\t" + info["cds"] + "\t" + info["pep"]
+                                                       + "\t" + "|".join(info["stop"])
                     for query in sp_gff[contig]:
                         if(not query in ex_gff[contig]):
                             for info in sp_gff[contig][query]:
                                 joined_results.append(contig + "\t" + query + "\t" + str(info["start"]) + "\t" + str(info["end"]) + "\t" +
                                                       info["orientation"] + "\t" + "|".join(info["pos"]) + "\t" + str(info["identity"]) +
-                                                      "\t" + str(info["similarity"]) + "\t" + info["nuc"] + "\t" + info["cds"] + "\t" + info["pep"])
+                                                      "\t" + str(info["similarity"]) + "\t" + info["nuc"] + "\t" + info["cds"] + "\t" + info["pep"]
+                                                       + "\t" + "|".join(info["stop"])
                 else:
                     for query in ex_gff[contig]:
                         for info in ex_gff[contig][query]:
                             joined_results.append(contig + "\t" + query + "\t" + str(info["start"]) + "\t" + str(info["end"]) + "\t" +
                                                   info["orientation"] + "\t" + "|".join(info["pos"]) + "\t" + str(info["identity"]) +
-                                                  "\t" + str(info["similarity"]) + "\t" + info["nuc"] + "\t" + info["cds"] + "\t" + info["pep"])
+                                                  "\t" + str(info["similarity"]) + "\t" + info["nuc"] + "\t" + info["cds"] + "\t" + info["pep"]
+                                                   + "\t" + "|".join(info["stop"])
 
             for contig in sp_gff:
                 if(not contig in ex_gff):

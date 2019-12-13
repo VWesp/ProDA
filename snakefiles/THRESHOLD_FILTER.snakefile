@@ -45,10 +45,12 @@ rule Filter_Sequences:
                             nuc_seq = stripped_line[8]
                             cds_seq = stripped_line[9]
                             pep_seq = stripped_line[10]
+                            stop_codons = stripped_line[11]
                             if(float(identity) >= params[0] and float(similarity) >= params[1]):
-                                above_gff_list.append("##target\tquery\ttype\tstart\tend\torientation\tidentity\tsimilarity\tindex")
+                                above_gff_list.append("##target\tquery\ttype\tstart\tend\torientation\tidentity\tsimilarity\tinfo\tindex")
                                 above_gff_list.append(contig + "\t" + query + "\t" + "gene" + "\t" + start + "\t" + end + "\t"
-                                                      "\t" + orientation + "\t" + identity + "\t" + similarity + "\t" + str(above_index))
+                                                      + orientation + "\t" + identity + "\t" + similarity
+                                                      + "\tin_sequence_stop_codons:" + stop_codons + "\t" + str(above_index))
                                 for pos in positions:
                                     cds_start = pos.split(";")[0]
                                     cds_end = pos.split(";")[1]
@@ -60,9 +62,10 @@ rule Filter_Sequences:
                                 above_pep_list.append(">" + contig + "|" + query + "|" + str(above_index) + "\n" + pep_seq)
                                 above_index += 1
                             else:
-                                below_gff_list.append("##target\tquery\ttype\tstart\tend\torientation\tidentity\tsimilarity\tindex")
+                                below_gff_list.append("##target\tquery\ttype\tstart\tend\torientation\tidentity\tsimilarity\tinfo\tindex")
                                 below_gff_list.append(contig + "\t" + query + "\t" + "gene" + "\t" + start + "\t" + end + "\t"
-                                                      + "\t" + orientation + "\t" + identity + "\t" + similarity + "\t" + str(below_index))
+                                                      + "\t" + orientation + "\t" + identity + "\t" + similarity +
+                                                      + "\tin_sequence_stop_codons:" + stop_codons + "\t" + str(below_index))
                                 for pos in positions:
                                     cds_start = pos.split(";")[0]
                                     cds_end = pos.split(";")[1]

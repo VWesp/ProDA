@@ -154,38 +154,58 @@ rule Merge_Results:
                     for query in ex_gff[contig]:
                         #joined_results.append("##" + query)
                         if(query in sp_gff[contig]):
+                            del inner_joined_results[:]
                             for ex_info in ex_gff[contig][query]:
-                                del inner_joined_results[:]
+                                no_overlap = True
                                 for sp_info in sp_gff[contig][query]:
                                     if(overlap(ex_info["start"], ex_info["end"], ex_info["orientation"], sp_info["start"], sp_info["end"], sp_info["orientation"]) >= params[0]):
+                                        no_overlap = False
                                         if((ex_info["pep"].startswith("M") and sp_info["pep"].startswith("M")) or
                                            not (ex_info["pep"].startswith("M") or sp_info["pep"].startswith("M"))):
                                             if(ex_info["identity"] > sp_info["identity"] or
                                                (ex_info["identity"] == sp_info["identity"] and ex_info["similarity"] > sp_info["similarity"])):
                                                 if(not ex_info in inner_joined_results):
                                                     inner_joined_results.append(ex_info)
-                                            else:
-                                                if(not sp_info in inner_joined_results):
-                                                    inner_joined_results.append(sp_info)
                                         elif(ex_info["pep"].startswith("M")):
                                             if(not ex_info in inner_joined_results):
                                                 inner_joined_results.append(ex_info)
-                                        else:
-                                            if(not sp_info in inner_joined_results):
-                                                inner_joined_results.append(sp_info)
 
-                                for info in inner_joined_results:
-                                    joined_results.append(contig + "\t" + query + "\t" + str(info["start"]) + "\t" + str(info["end"]) +
-                                                          "\t" + info["orientation"] + "\t" + "|".join(info["pos"]) + "\t" + str(info["identity"]) +
-                                                          "\t" + str(info["similarity"]) + "\t" + info["nuc"] + "\t" + info["cds"] +
-                                                          "\t" + info["pep"])
+                                if(no_overlap):
+                                    if(not ex_info in inner_joined_results):
+                                        inner_joined_results.append(ex_info)
+
+                            for sp_info in sp_gff[contig][query]:
+                                no_overlap = True
+                                for ex_info in ex_gff[contig][query]:
+                                    if(overlap(sp_info["start"], sp_info["end"], sp_info["orientation"], ex_info["start"], ex_info["end"], ex_info["orientation"]) >= params[0]):
+                                        no_overlap = False
+                                        if(not ex_info in inner_joined_results):
+                                            if((sp_info["pep"].startswith("M") and ex_info["pep"].startswith("M")) or
+                                               not (sp_info["pep"].startswith("M") or ex_info["pep"].startswith("M"))):
+                                                if(sp_info["identity"] > ex_info["identity"] or
+                                                   (sp_info["identity"] == ex_info["identity"] and sp_info["similarity"] > ex_info["similarity"])):
+                                                    if(not sp_info in inner_joined_results):
+                                                        inner_joined_results.append(sp_info)
+                                            elif(sp_info["pep"].startswith("M")):
+                                                if(not sp_info in inner_joined_results):
+                                                    inner_joined_results.append(sp_info)
+
+                                if(no_overlap):
+                                    if(not sp_info in inner_joined_results):
+                                        inner_joined_results.append(sp_info)
+
+                            for info in inner_joined_results:
+                                joined_results.append(contig + "\t" + query + "\t" + str(info["start"]) + "\t" + str(info["end"]) +
+                                                      "\t" + info["orientation"] + "\t" + "|".join(info["pos"]) + "\t" + str(info["identity"]) +
+                                                      "\t" + str(info["similarity"]) + "\t" + info["nuc"] + "\t" + info["cds"] +
+                                                      "\t" + info["pep"])
                         else:
                             for info in ex_gff[contig][query]:
                                 joined_results.append(contig + "\t" + query + "\t" + str(info["start"]) + "\t" + str(info["end"]) + "\t" +
                                                       info["orientation"] + "\t" + "|".join(info["pos"]) + "\t" + str(info["identity"]) +
                                                       "\t" + str(info["similarity"]) + "\t" + info["nuc"] + "\t" + info["cds"] + "\t" + info["pep"])
                     for query in sp_gff[contig]:
-                        if(not query in sp_gff[contig]):
+                        if(not query in ex_gff[contig]):
                             #joined_results.append("##" + query)
                             for info in sp_gff[contig][query]:
                                 joined_results.append(contig + "\t" + query + "\t" + str(info["start"]) + "\t" + str(info["end"]) + "\t" +
@@ -206,7 +226,7 @@ rule Merge_Results:
                         #joined_results.append("##" + query)
                         for info in sp_gff[contig][query]:
                             joined_results.append(contig + "\t" + query + "\t" + str(info["start"]) + "\t" + str(info["end"]) + "\t" +
-                                                  info["orientation"] + "\t" + "|".join(info["pos"]) + "\t" + str(info["identity"]) +
+                                                  info["orientation"]+ "\t" + "|".join(info["pos"]) + "\t" + str(info["identity"]) +
                                                   "\t" + str(info["similarity"]) + "\t" + info["nuc"] + "\t" + info["cds"] + "\t" + info["pep"])
 
             with open(output[0], "w") as merged_writer:

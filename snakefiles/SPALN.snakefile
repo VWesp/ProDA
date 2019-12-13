@@ -16,19 +16,18 @@ def spalnSearchMultiprocessing(match, input, pam, output, log):
         index.value += 1
         local_index = index.value
 
-    temp_target = output[0].replace(".pr_gff", "_" + str(local_index) + "_target.fna")
+    temp_target = output[0].replace(".gff", "_" + str(local_index) + "_target.fna")
     with open(temp_target, "w") as target_writer:
         target_writer.write(">" + match.id + "\n" + str(match.seq))
 
     query = match.id.split("_query:")[-1]
-    temp_query = output[0].replace(".pr_gff", "_" + str(local_index) + "_query.faa")
+    temp_query = output[0].replace(".gff", "_" + str(local_index) + "_query.faa")
     with open(temp_query, "w") as query_writer:
         query_writer.write(">" + queries[query].id + "\n" + str(queries[query].seq))
 
-    temp_output = output[0].replace(".pr_gff", "_" + str(local_index) + "_output.gff")
+    temp_output = output[0].replace(".gff", "_" + str(local_index) + "_output.gff")
     os.system("(spaln -M -Q3 -O0 -S3 -yp" + str(pam) + " -yq" + str(pam) +
               " -o" + temp_output + " " + temp_target + " " + temp_query + ") 2> " + log)
-
     sp_results = None
     with open(temp_output, "r") as output_reader:
         sp_results = output_reader.readlines()
@@ -41,11 +40,10 @@ def spalnSearchMultiprocessing(match, input, pam, output, log):
 
 rule Build_Spaln_Alignment:
     input:
-        "data/subjects/{subject}.fna",
         "data/queries/{query}.faa",
         "matches/{subject}/{query}.fna"
     output:
-        "alignment/spaln/{subject}/{query}.pr_gff"
+        "alignment/spaln/{subject}/{query}.gff"
     params:
         config["pam"]
     threads: config["threads"]
@@ -53,23 +51,21 @@ rule Build_Spaln_Alignment:
         "log/alignment/spaln/{subject}/{query}.log"
     run:
         try:
-            if(os.stat(input[2]).st_size != 0):
+            if(os.stat(input[1]).st_size != 0):
                 subjects = SeqIO.index(input[0], "fasta")
-                matches = list(SeqIO.parse(input[2], "fasta"))
+                matches = list(SeqIO.parse(input[1], "fasta"))
                 pool = mp.Pool(processes=threads)
-                pool_map = partial(spalnSearchMultiprocessing, input=input[1], pam=params[0],
+                pool_map = partial(spalnSearchMultiprocessing, input=input[0], pam=params[0],
                                    output=output, log=log[0])
                 sp_mp_results = pool.map_async(pool_map, matches)
                 pool.close()
                 pool.join()
                 sp_joined_results = [r.strip() for result in sp_mp_results.get() for r in result]
-                gff_results = readGFF(sp_joined_results, subjects)
-                with open(output[0], "w") as ryo_writer:
-                    ryo_writer.write("\n".join(gff_results))
+                with open(output[0], "w") as sp_writer:
+                    sp_writer.write("\n".join(sp_joined_results))
 
                 del sp_joined_results[:]
                 del sp_mp_results.get()[:]
-                del gff_results[:]
 
             if(not os.path.exists(output[0])):
                 os.system("touch " + output[0])

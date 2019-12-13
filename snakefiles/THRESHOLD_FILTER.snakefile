@@ -48,12 +48,12 @@ rule Filter_Sequences:
                             if(float(identity) >= params[0] and float(similarity) >= params[1]):
                                 above_gff_list.append("##target\tquery\ttype\tstart\tend\torientation\tidentity\tsimilarity\tindex")
                                 above_gff_list.append(contig + "\t" + query + "\t" + "gene" + "\t" + start + "\t" + end + "\t"
-                                                      + orientation + "\t" + identity + "\t" + similarity + "\t" + str(above_index))
+                                                      "\t" + orientation + "\t" + identity + "\t" + similarity + "\t" + str(above_index))
                                 for pos in positions:
                                     cds_start = pos.split(";")[0]
                                     cds_end = pos.split(";")[1]
                                     above_gff_list.append(contig + "\t" + query + "\t" + "cds" + "\t" + cds_start + "\t" + cds_end + "\t"
-                                                          + orientation)
+                                                          + "\t" + orientation)
 
                                 above_nuc_list.append(">" + contig + "|" + query + "|" + str(above_index)+ "\n" + nuc_seq)
                                 above_cds_list.append(">" + contig + "|" + query + "|" + str(above_index) + "\n" + cds_seq)
@@ -62,12 +62,12 @@ rule Filter_Sequences:
                             else:
                                 below_gff_list.append("##target\tquery\ttype\tstart\tend\torientation\tidentity\tsimilarity\tindex")
                                 below_gff_list.append(contig + "\t" + query + "\t" + "gene" + "\t" + start + "\t" + end + "\t"
-                                                      + orientation + "\t" + identity + "\t" + similarity + "\t" + str(below_index))
+                                                      + "\t" + orientation + "\t" + identity + "\t" + similarity + "\t" + str(below_index))
                                 for pos in positions:
                                     cds_start = pos.split(";")[0]
                                     cds_end = pos.split(";")[1]
                                     below_gff_list.append(contig + "\t" + query + "\t" + "cds" + "\t" + cds_start + "\t" + cds_end + "\t"
-                                                          + orientation)
+                                                          + "\t" + orientation)
 
                                 below_nuc_list.append(">" + contig + "|" + query + "|" + str(below_index) + "\n" + nuc_seq)
                                 below_cds_list.append(">" + contig + "|" + query + "|" + str(below_index) + "\n" + cds_seq)

@@ -16,22 +16,22 @@ def exonerateSearchMultiprocessing(match, input, blosum, percent, output, log):
         index.value += 1
         local_index = index.value
 
-    temp_target = output[0].replace(".gff", "_" + str(local_index) + "_target.fna")
+    temp_target = output[0].replace(".ryo", "_" + str(local_index) + "_target.fna")
     with open(temp_target, "w") as target_writer:
         target_writer.write(">" + match.id + "\n" + str(match.seq))
 
     query = match.id.split("_query:")[-1]
-    temp_query = output[0].replace(".gff", "_" + str(local_index) + "_query.faa")
+    temp_query = output[0].replace(".ryo", "_" + str(local_index) + "_query.faa")
     with open(temp_query, "w") as query_writer:
         query_writer.write(">" + queries[query].id + "\n" + str(queries[query].seq))
 
-    temp_output_gff = output[0].replace(".gff", "_" + str(local_index) + "_output.gff")
+    temp_output_gff = output[0].replace(".ryo", "_" + str(local_index) + "_output.ryo")
     os.system("(exonerate --model protein2genome --targettype dna --querytype protein "
-              "--showtargetgff --showalignment no --showvulgar no "
+              "--showtargetgff --showalignment no --showvulgar no  --ryo '>%ti\n%tcs' "
               "--refine region --proteinsubmat blosum/" + str(blosum) + ".txt --percent " + str(percent) +
               " --query " + temp_query + " --target " + temp_target +
               " > " + temp_output_gff + ") 2> " + log)
-    temp_output_pgff = output[0].replace(".gff", "_" + str(local_index) + "_output.pgff")
+    temp_output_pgff = output[0].replace(".ryo", "_" + str(local_index) + "_output.pryo")
     os.system("(tail -n +4 " + temp_output_gff + " | head -n -1) > " + temp_output_pgff)
     ryo_results = None
     with open(temp_output_pgff, "r") as output_reader:
@@ -49,7 +49,7 @@ rule Build_Exonerate_Alignment:
         "data/queries/{query}.faa",
         "matches/{subject}/{query}.fna"
     output:
-        "alignment/exonerate/{subject}/{query}.gff"
+        "alignment/exonerate/{subject}/{query}.ryo"
     params:
         config["blosum"],
         config["exonerate_percentage"]

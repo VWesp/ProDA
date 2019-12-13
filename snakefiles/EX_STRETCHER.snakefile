@@ -54,7 +54,7 @@ def exStretcherAlignmentMultiprocessing(target, input, output, log):
 rule Calculate_Ex_Sequence_Similarities:
     input:
         "data/queries/{query}.faa",
-        "alignment/exonerate/{subject}/{query}.pr_gff"
+        "alignment/exonerate/{subject}/{query}.seq_gff"
     output:
         "scores/exonerate/{subject}/{query}.sc_gff"
     threads: config["threads"]

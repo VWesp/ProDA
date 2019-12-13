@@ -16,18 +16,18 @@ def spalnSearchMultiprocessing(match, input, pam, output, log):
         index.value += 1
         local_index = index.value
 
-    temp_target = output[0].replace(".gff", "_" + str(local_index) + "_target.fna")
+    temp_target = output[0].replace(".sp", "_" + str(local_index) + "_target.fna")
     with open(temp_target, "w") as target_writer:
         target_writer.write(">" + match.id + "\n" + str(match.seq))
 
     query = match.id.split("_query:")[-1]
-    temp_query = output[0].replace(".gff", "_" + str(local_index) + "_query.faa")
+    temp_query = output[0].replace(".sp", "_" + str(local_index) + "_query.faa")
     with open(temp_query, "w") as query_writer:
         query_writer.write(">" + queries[query].id + "\n" + str(queries[query].seq))
 
-    temp_output = output[0].replace(".gff", "_" + str(local_index) + "_output.gff")
-    os.system("(spaln -M -Q3 -O0 -S3 -yp" + str(pam) + " -yq" + str(pam) +
-              " -o" + temp_output + " " + temp_target + " " + temp_query + ") 2> " + log)
+    temp_output = output[0].replace(".sp", "_" + str(local_index) + "_output.sp")
+    os.system("(spaln -M -Q3 -S3 -yp" + str(pam) + " -yq" + str(pam) + " -O6 -o" + temp_output +
+              " " + temp_target + " " + temp_query + ") 2> " + log)
     sp_results = None
     with open(temp_output, "r") as output_reader:
         sp_results = output_reader.readlines()
@@ -43,7 +43,7 @@ rule Build_Spaln_Alignment:
         "data/queries/{query}.faa",
         "matches/{subject}/{query}.fna"
     output:
-        "alignment/spaln/{subject}/{query}.gff"
+        "alignment/spaln/{subject}/{query}.sp"
     params:
         config["pam"]
     threads: config["threads"]

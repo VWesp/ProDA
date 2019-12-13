@@ -54,7 +54,7 @@ def spStretcherAlignmentMultiprocessing(target, input, output, log):
 rule Calculate_Sp_Sequence_Similarities:
     input:
         "data/queries/{query}.faa",
-        "alignment/spaln/{subject}/{query}.pr_gff"
+        "alignment/spaln/{subject}/{query}.seq_gff"
     output:
         "scores/spaln/{subject}/{query}.sc_gff"
     threads: config["threads"]

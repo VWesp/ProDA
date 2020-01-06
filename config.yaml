@@ -1,0 +1,16 @@
+subjects:
+  csp: data/subjects/csp.fna
+queries:
+  cre_photoreceptors: data/queries/cre_photoreceptors.faa
+
+evalue: 1e-4
+left_addendum: 100000
+right_addendum: 100000
+exonerate_percentage: 20
+blosum: 45
+pam: 200
+id_threshold: 35
+sim_threshold: 55
+overlap_percentage: 80
+properties: $HOME/.jalview_properties
+threads: 4

@@ -14,17 +14,6 @@ def readConfigFile(config_path):
 
     return config_data
 
-def transcribeSubjects(config):
-    subjects = config["subjects"]
-    for subject in subjects:
-        fastas = []
-        fasta = SeqIO.parse(subjects[subject], "fasta")
-        for contig in fasta:
-            fastas.append(">" + contig.id + "\n" + str(contig.seq.transcribe()))
-
-        with open(subjects[subject].replace(".fna", ".frna"), "w") as rna_writer:
-            rna_writer.write("\n".join(fastas))
-
 def buildBLASTDatabase(config):
     for subject in config["subjects"]:
         db_path = "blast_dbs/" + subject + "/"
@@ -259,8 +248,8 @@ def parseExonerateResults(ryo_results):
 
                         query = line_splitted[0].split("::")[0]
                         target = line_splitted[0].split("::")[1]
-                        start = int(line_splitted[0].split("::")[2].split("-")[0]) + int(line_splitted[3])
-                        end = int(line_splitted[0].split("::")[2].split("-")[1]) + int(line_splitted[4])
+                        start = int(line_splitted[3]) + int(line_splitted[0].split("::")[2].split("-")[0]) - 1
+                        end = int(line_splitted[4]) + int(line_splitted[0].split("::")[2].split("-")[0])
                         gff.append(target + "\t" + query + "\t" + line_splitted[1] + "\t" + line_splitted[2] + "\t" + str(start) + "\t" + str(end) + "\t" + "\t".join(line_splitted[5:]))
                     elif(seq_found):
                         cds.append(line.strip())
@@ -408,13 +397,78 @@ def parseSpalnResults(sp_results):
         del gff[:]
         del cds[:]
 
+def evaluateStretcher(config, algorithm):
+    for subject in config["subjects"]:
+        for query in config["queries"]:
+            print("Stretcher evaluation: subject: " + subject + "\tquery: " + query)
+            hits_path = "alignment/" + algorithm + "/" + subject + "/" + query + ".fna"
+            gff = "alignment/" + algorithm + "/" + subject + "/" + query + ".gff"
+            if(os.path.exists(hits_path) and os.path.exists(gff)):
+                if(os.stat(hits_path).st_size != 0):
+                    output = "evaluation/stretcher/" + subject + "/"
+                    log_path = "log/evaluation/stretcher/" + subject + "/"
+                    if(not os.path.exists(output)):
+                        os.makedirs(output)
+                    if(not os.path.exists(log_path)):
+                        os.makedirs(log_path)
+
+                    hits = list(SeqIO.parse(hits_path, "fasta"))
+                    pool = mp.Pool(process=config["threads"])
+                    pool_map = partial(runStretcherMultiprocessing, queries=config["queries"][query],
+                                       id_threshold=config["identity"], output=output, log=log_path)
+                    stretcher_results = pool.map_async(pool_map, hits)
+                    pool.close()
+                    pool.join()
+                    stretcher_joined_results =
+
+def runStretcherMultiprocessing(hit, queries, id_threshold, output, log):
+    print("\tTarget: " + hit.id + "\tthreshold: " + str(id_threshold))
+    local_index = None
+    with lock:
+        index.value += 1
+        local_index = index.value
+
+    query_fasta = SeqIO.index(queries, "fasta")
+    query = match.id.split("::")[0]
+    contig = match.id.split("::")[1].strip()
+    temp_target = output + query + "_" + str(local_index) + "_target.fna"
+    with open(temp_target, "w") as target_writer:
+        target_writer.write(">" + hit.id + "\n" + str(hit.seq.translate()))
+
+    temp_query = output + query + "_" + str(local_index) + "_query.fna"
+    with open(temp_query, "w") as query_writer:
+        query_writer.write(">" + query_fasta[query].id + "\n" + str(query_fasta[query].seq))
+
+    temp_output = output + query + "_" + str(local_index) + ".stretcher"
+    stretcher_output = subprocess.Popen("(stretcher -asequence " + temp_query + " -sprotein1"
+                       " -bsequence " + temp_target + " -sprotein2 -auto -stdout > " + temp_output + ")"
+                       " 2> " + log + query + ".log")
+    identity = None
+    st_result = []
+    with open(temp_output, "r") as output_reader:
+            content = output_reader.readlines()
+            identity = None
+            similarity = None
+            for line in content:
+                if(line.startswith("# Identity")):
+                    identity = line.split("(")[1][:-3]
+                    if(identity >= id_threshold):
+                        st_result = [query, contig, identity]
+
+                    break
+
+    os.remove(temp_target)
+    os.remove(temp_output)
+    os.remove(temp_query)
+    print("\tTarget: " + hit.id + "\tfinished")
+    return st_result
+
+
 config = readConfigFile("config.yaml")
-#transcribeSubjects(config)
 buildBLASTDatabase(config)
 runBLASTCommand(config)
 manager = mp.Manager()
 index = manager.Value("i", -1)
 lock = manager.Lock()
 runExonerateCommand(config)
-index.value = -1
 runSpalnCommand(config)

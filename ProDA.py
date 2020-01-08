@@ -6,6 +6,7 @@ import csv
 import traceback
 import multiprocessing as mp
 from functools import partial
+import math
 
 def readConfigFile(config_path):
     config_data = None
@@ -233,24 +234,27 @@ def parseExonerateResults(ryo_results):
         seq_found = False
         with open(ryo_results, "r") as ryo_reader:
             lines = ryo_reader.readlines()
+            hit_id = 0
             for line in lines:
                 if(line):
                     if(line.startswith("#")):
                         seq_found = False
                     elif(line.startswith(">")):
-                        header = line.strip().split("::")[0] + "::" + line_splitted[0].split("::")[1]
+                        header = line.strip().split("::")[0] + "::" + line_splitted[0].split("::")[1] + "::" + str(hit_id)
                         cds.append(header)
+                        hit_id += 1
                         seq_found = True
                     elif(not seq_found):
                         line_splitted = line.strip().split("\t")
-                        if(line_splitted[2] == "gene"):
-                            gff.append("### " + line_splitted[0].split("::")[0] + " " + line_splitted[0].split("::")[1])
-
                         query = line_splitted[0].split("::")[0]
                         target = line_splitted[0].split("::")[1]
                         start = int(line_splitted[3]) + int(line_splitted[0].split("::")[2].split("-")[0]) - 1
                         end = int(line_splitted[4]) + int(line_splitted[0].split("::")[2].split("-")[0])
-                        gff.append(target + "\t" + query + "\t" + line_splitted[1] + "\t" + line_splitted[2] + "\t" + str(start) + "\t" + str(end) + "\t" + "\t".join(line_splitted[5:]))
+                        if(line_splitted[2] == "gene"):
+                            gff.append("#subject\tquery\talgorithm\ttype\tstart\tend\torientation\tscore\tid")
+                            gff.append(target + "\t" + query + "\texonerate:aln\t" + line_splitted[2] + "\t" + str(start) + "\t" + str(end) + "\t" + line_splitted[6] + "\t" + line_splitted[5] + "\t" + str(hit_id))
+                        elif(line_splitted[2] == "cds"):
+                            gff.append(target + "\t" + query + "\texonerate:aln\t" + line_splitted[2] + "\t" + str(start) + "\t" + str(end) + "\t" + line_splitted[6] + "\t" + line_splitted[5])
                     elif(seq_found):
                         cds.append(line.strip())
 
@@ -349,6 +353,7 @@ def parseSpalnResults(sp_results):
             orientation = None
             block_start = None
             pos = []
+            hit_id = 0
             for line in lines:
                 if(line and not line.startswith(";M")):
                     if(line.startswith(">")):
@@ -357,21 +362,22 @@ def parseSpalnResults(sp_results):
                                     for start_end_pos in position:
                                         start = int(start_end_pos.split("..")[0].strip()) + block_start - 1
                                         end = int(start_end_pos.split("..")[1].strip()) + block_start
-                                        gff.append(target + "\t" + query +"\tspaln:aln\tcds\t" + str(start) + "\t" + str(end) + "\t" + orientation)
+                                        gff.append(target + "\t" + query +"\tspaln:aln\tcds\t" + str(start) + "\t" + str(end) + "\t" + orientation + "\t.")
                             pos = []
 
                         line_splitted = line.strip().split(" ")
                         query = line_splitted[1].split("::")[0]
                         target = line_splitted[1].split("::")[1]
-                        header = ">" + query + "::" + target
+                        header = ">" + query + "::" + target + "::" + str(hit_id)
                         block_start = int(line_splitted[1].split("::")[2].split("-")[0])
                         start = int(line_splitted[6]) + block_start - 1
                         end = int(line_splitted[8]) + block_start
                         orientation = line_splitted[2]
                         score = line_splitted[-1]
-                        gff.append("### " + query + " " + target)
-                        gff.append(target + "\t" + query + "\tspaln:aln\tgene\t" + str(start) + "\t" + str(end) + "\t" + orientation + "\t" + score)
+                        gff.append("#subject\tquery\talgorithm\ttype\tstart\tend\torientation\tscore\tid")
+                        gff.append(target + "\t" + query + "\tspaln:aln\tgene\t" + str(start) + "\t" + str(end) + "\t" + orientation + "\t" + score + "\t" + str(hit_id))
                         cds.append(header)
+                        hit_id += 1
                     elif(line.startswith(";C")):
                         if("join" in line):
                             pos.append(list(filter(None, line.strip().split("join(")[1].replace(")", "").split(","))))
@@ -385,7 +391,7 @@ def parseSpalnResults(sp_results):
                         for start_end_pos in position:
                             start = int(start_end_pos.split("..")[0].strip()) + block_start - 1
                             end = int(start_end_pos.split("..")[1].strip()) + block_start
-                            gff.append(target + "\t" + query + "\t" + str(start) + "\t" + str(end) + "\t" + orientation)
+                            gff.append(target + "\t" + query + "\tspaln:aln\tcds\t" + str(start) + "\t" + str(end) + "\t" + orientation + "\t.")
                 del pos[:]
 
         with open(sp_results.replace(".sp", ".gff"), "w") as gff_writer:
@@ -397,11 +403,11 @@ def parseSpalnResults(sp_results):
         del gff[:]
         del cds[:]
 
-def evaluateStretcher(config, algorithm):
+def evaluateAlignment(config, algorithm):
     for subject in config["subjects"]:
         for query in config["queries"]:
             print("Stretcher evaluation: subject: " + subject + "\tquery: " + query)
-            hits_path = "alignment/" + algorithm + "/" + subject + "/" + query + ".fna"
+            hits_path = "alignment/" + algorithm + "/" + subject + "/" + query + ".cds"
             gff = "alignment/" + algorithm + "/" + subject + "/" + query + ".gff"
             if(os.path.exists(hits_path) and os.path.exists(gff)):
                 if(os.stat(hits_path).st_size != 0):
@@ -413,55 +419,80 @@ def evaluateStretcher(config, algorithm):
                         os.makedirs(log_path)
 
                     hits = list(SeqIO.parse(hits_path, "fasta"))
-                    pool = mp.Pool(process=config["threads"])
+                    pool = mp.Pool(processes=config["threads"])
                     pool_map = partial(runStretcherMultiprocessing, queries=config["queries"][query],
-                                       id_threshold=config["identity"], output=output, log=log_path)
+                                       use_id=config["identity"], output=output, log=log_path)
                     stretcher_results = pool.map_async(pool_map, hits)
                     pool.close()
                     pool.join()
-                    stretcher_joined_results =
+                    stretcher_joined_results = list(filter(None, stretcher_results.get()))
+                    for hit in stretcher_joined_results:
+                        id = hit[0]
+                        identity = hit[1]
+                        similarity = hit[2]
+                        length = hit[3]
+                        hsspIdentity = hit[4]
+                        hsspSimilarity = hit[5]
 
-def runStretcherMultiprocessing(hit, queries, id_threshold, output, log):
-    print("\tTarget: " + hit.id + "\tthreshold: " + str(id_threshold))
+def runStretcherMultiprocessing(hit, queries, use_id, output, log):
+    print("\tTarget: " + hit.id + "\tuse id: " + str(use_id))
     local_index = None
     with lock:
         index.value += 1
         local_index = index.value
 
     query_fasta = SeqIO.index(queries, "fasta")
-    query = match.id.split("::")[0]
-    contig = match.id.split("::")[1].strip()
-    temp_target = output + query + "_" + str(local_index) + "_target.fna"
+    query = hit.id.split("::")[0]
+    id = hit.id.split("::")[2].strip()
+    temp_target = output + query + "_" + str(local_index) + "_target.faa"
     with open(temp_target, "w") as target_writer:
         target_writer.write(">" + hit.id + "\n" + str(hit.seq.translate()))
 
-    temp_query = output + query + "_" + str(local_index) + "_query.fna"
+    temp_query = output + query + "_" + str(local_index) + "_query.faa"
     with open(temp_query, "w") as query_writer:
         query_writer.write(">" + query_fasta[query].id + "\n" + str(query_fasta[query].seq))
 
     temp_output = output + query + "_" + str(local_index) + ".stretcher"
-    stretcher_output = subprocess.Popen("(stretcher -asequence " + temp_query + " -sprotein1"
-                       " -bsequence " + temp_target + " -sprotein2 -auto -stdout > " + temp_output + ")"
-                       " 2> " + log + query + ".log")
+    os.system("(stretcher -asequence " + temp_query + " -sprotein1"
+              " -bsequence " + temp_target + " -sprotein2 -auto -stdout > " + temp_output + ")"
+              " 2> " + log + query + ".log")
     identity = None
     st_result = []
+    al_length = None
+    identity = None
+    similarity = None
     with open(temp_output, "r") as output_reader:
             content = output_reader.readlines()
-            identity = None
-            similarity = None
             for line in content:
-                if(line.startswith("# Identity")):
-                    identity = line.split("(")[1][:-3]
-                    if(identity >= id_threshold):
-                        st_result = [query, contig, identity]
-
-                    break
+                if(line):
+                    if(line.startswith("# Length")):
+                        length = int(line.split(" ")[2].strip())
+                    if(line.startswith("# Identity")):
+                        identity = float(line.split("(")[1][:-3].strip())
+                    if(line.startswith("# Similarity")):
+                        similarity = float(line.split("(")[1][:-3].strip())
+                        break
 
     os.remove(temp_target)
     os.remove(temp_output)
     os.remove(temp_query)
+    hsspIdentity = calculateHSSPIdentity(length)
+    hsspSimilarity = calculateHSSPSimilarity(length)
+    if(similarity > identity):
+        if(use_id > 0 and identity >= hsspIdentity):
+            st_result = [id, similarity, length, hsspIdentity, hsspSimilarity]
+        elif(similarity >= hsspSimilarity):
+            st_result = [id, identity, similarity, length, hsspIdentity, hsspSimilarity]
+
     print("\tTarget: " + hit.id + "\tfinished")
     return st_result
+
+
+def calculateHSSPIdentity(length, n=0):
+    return n + 480 * length**(-0.32 * (1 + math.exp(-length / 1000)))
+
+def calculateHSSPSimilarity(length, n=0):
+    return n + 420 * length**(-0.335 * (1 + math.exp(-length / 2000)))
 
 
 config = readConfigFile("config.yaml")
@@ -471,4 +502,9 @@ manager = mp.Manager()
 index = manager.Value("i", -1)
 lock = manager.Lock()
 runExonerateCommand(config)
+index.value = -1
 runSpalnCommand(config)
+index.value = -1
+evaluateAlignment(config, "exonerate")
+index.value = -1
+evaluateAlignment(config, "spaln")

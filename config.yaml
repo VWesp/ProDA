@@ -1,15 +1,16 @@
 subjects:
   csp: data/subjects/csp.fna
 queries:
+  actin: data/queries/actin.faa
+  beta_tubulin2: data/queries/beta_tubulin2.faa
   cre_photoreceptors: data/queries/cre_photoreceptors.faa
 
 evalue: 1e-4
-left_addendum: 100000
-right_addendum: 100000
-exonerate_percentage: 20
+left_addendum: 10000
+right_addendum: 10000
+exonerate_percentage: 10
 blosum: 45
 pam: 200
-identity: 20
-overlap_percentage: 80
+identity: 0
 properties: $HOME/.jalview_properties
 threads: 4

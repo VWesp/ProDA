@@ -11,6 +11,7 @@ right_addendum: 10000
 exonerate_percentage: 10
 blosum: 45
 pam: 200
-identity: 0
+identity: 1
+overlap_percentage: 80
 properties: $HOME/.jalview_properties
 threads: 4

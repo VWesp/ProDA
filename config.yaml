@@ -13,6 +13,6 @@ blosum: 45
 pam: 200
 hssp_distance: 5
 similarity: 0
-overlap_percentage: 80
+overlap_percentage: 50
 properties: $HOME/.jalview_properties
 threads: 4

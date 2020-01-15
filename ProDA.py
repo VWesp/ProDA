@@ -325,7 +325,7 @@ def runSpalnMultiprocessing(match, queries, pam, output, log):
         query_writer.write(">" + query_fasta[query].id + "\n" + str(query_fasta[query].seq))
 
     temp_output = output + query + "_" + str(local_index) + ".sp"
-    spaln_output = subprocess.Popen("(spaln -M -N1 -Q3 -S3 -yp" + str(pam) + " -yq" + str(pam) + ""
+    spaln_output = subprocess.Popen("($HOME/spaln2.4.0/bin/spaln -M -N1 -Q3 -S3 -yp" + str(pam) + " -yq" + str(pam) + ""
                    " -O6 -o" + temp_output + " " + temp_target + " " + temp_query + ")"
                    " 2> " + log + query + ".log",
                    stdout=subprocess.PIPE, shell=True)
@@ -507,6 +507,7 @@ def calculateHSSPSimilarity(length, distance):
 
 def mergeResults(config):
     for subject in config["subjects"]:
+        subject_fasta = SeqIO.index(config["subjects"][subject], "fasta")
         for query in config["queries"]:
             print("Merging: subject: " + subject + "\tquery: " + query + "\toverlap percent: " + str(config["overlap_percentage"]))
             try:
@@ -565,7 +566,7 @@ def mergeResults(config):
                                                            id_rows = ex_gff_df.loc[ex_gff_df["id"] == str(ex_row["#id"])]
                                                            id_rows["id"] = hit_id
                                                            header = "##" +  ex_row["target"] + "\t" + ex_row["query"] + "\t" + str(hit_id)
-                                                           gff_list.append(header + "\n" + id_rows.to_string(header=False, index=False))
+                                                           gff_list.append(header + "\n" + id_rows.to_string(header=False, index=False).strip())
                                                            cds_list.append(">" + ex_row["query"] + "::" + ex_row["target"] + "::" + str(hit_id) + "\n" + str(ex_sequences[ex_header].seq))
                                                            hit_id += 1
                                                     elif(str(sp_sequences[sp_header].seq).startswith("ATG")):
@@ -608,11 +609,39 @@ def mergeResults(config):
 
                     with open(output + query + ".gff", "w") as gff_writer:
                         gff_writer.write("\n".join(gff_list))
+
+                    nucl = []
+                    with open(output + query + ".gff", "r") as gff_reader:
+                        content = csv.reader(gff_reader, delimiter="\t")
+                        target = None
+                        protein = None
+                        id = None
+                        for row in content:
+                            if(row[0].startswith("##")):
+                                target = row[0][2:]
+                                protein = row[1]
+                                id = row[2]
+                            elif(len(row) == 1 and row[0].split(" ")[7] == "gene"):
+                                row_filter = list(filter(None, row[0].split(" ")))
+                                start = int(row_filter[4])
+                                end = int(row_filter[5])
+                                nucl.append(">" + protein + "::" + target + "::" + id + "\n" + str(subject_fasta[target].seq)[start:end])
+                    with open(output + query + ".fna", "w") as cds_writer:
+                        cds_writer.write("\n".join(nucl))
+
                     with open(output + query + ".cds", "w") as cds_writer:
                         cds_writer.write("\n".join(cds_list))
 
+                    translated_cds = []
+                    for fasta in SeqIO.parse(output + query + ".cds", "fasta"):
+                        translated_cds.append(">" + fasta.id + "\n" + str(fasta.seq.translate()))
+                    with open(output + query + ".pep", "w") as cds_writer:
+                        cds_writer.write("\n".join(translated_cds))
+
                     del gff_list[:]
+                    del nucl[:]
                     del cds_list[:]
+                    del translated_cds[:]
                     del ex_id_list[:]
                     del sp_id_list[:]
                     print("Merging: finished")
@@ -624,7 +653,7 @@ def mergeResults(config):
                     log_writer.write(str(traceback.format_exc()))
 
 def calculateOverlapPercentage(start1, end1, start2, end2):
-    if(end1 <= start2 or end2 < start1):
+    if(int(end1) < int(start2) or int(end2) < int(start1)):
         return 0
     else:
         return ((min(int(end1), int(end2)) - max(int(start1), int(start2))) / min(int(end1)-int(start1), int(end2)-int(start2))) * 100

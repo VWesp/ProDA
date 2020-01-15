@@ -428,7 +428,7 @@ def evaluateAlignment(config, algorithm):
                         hits = list(SeqIO.parse(hits_path, "fasta"))
                         pool = mp.Pool(processes=config["threads"])
                         pool_map = partial(runStretcherMultiprocessing, queries=config["queries"][query],
-                                           use_id=config["identity"], output=output, log=log_path)
+                                           distance=config["hssp_distance"], use_sim=config["similarity"], output=output, log=log_path)
                         stretcher_results = pool.map_async(pool_map, hits)
                         pool.close()
                         pool.join()
@@ -438,8 +438,8 @@ def evaluateAlignment(config, algorithm):
                 else:
                     print("Evaluation file found, skipping")
 
-def runStretcherMultiprocessing(hit, queries, use_id, output, log):
-    print("\tTarget: " + hit.id + "\tuse id: " + str(use_id))
+def runStretcherMultiprocessing(hit, queries, distance, use_sim, output, log):
+    print("\tTarget: " + hit.id + "\tuse id: " + str(use_sim))
     local_index = None
     with lock:
         index.value += 1
@@ -481,22 +481,29 @@ def runStretcherMultiprocessing(hit, queries, use_id, output, log):
     os.remove(temp_output)
     os.remove(temp_query)
     st_result = []
-    hssp_identity = calculateHSSPIdentity(length)
-    hssp_similarity = calculateHSSPSimilarity(length)
-    if(similarity > identity):
-        if(use_id > 0 and identity >= hssp_identity):
-            st_result = [id, subject, query, str(identity), str(similarity), str(length), str(hssp_identity), str(hssp_similarity)]
-        elif(similarity >= hssp_similarity):
-            st_result = [id, subject, query, str(identity), str(similarity), str(length), str(hssp_identity), str(hssp_similarity)]
+    hssp_identity = calculateHSSPIdentity(length, distance)
+    hssp_similarity = calculateHSSPSimilarity(length, distance)
+    if(similarity > identity and (identity >= hssp_identity or (use_sim > 0 and similarity >= hssp_similarity))):
+        st_result = [id, subject, query, str(identity), str(similarity), str(length), str(hssp_identity), str(hssp_similarity)]
     print("\tTarget: " + hit.id + "\tfinished")
     return "\t".join(list(filter(None, st_result)))
 
 
-def calculateHSSPIdentity(length, n=0):
-    return n + 480 * length**(-0.32 * (1 + math.exp(-length / 1000)))
+def calculateHSSPIdentity(length, distance):
+    if(length < 12):
+        return 100
+    elif(length < 418):
+        return distance + 480 * length**(-0.32 * (1 + math.exp(-length / 1000)))
+    else:
+        return distance + 19.5
 
-def calculateHSSPSimilarity(length, n=0):
-    return n + 420 * length**(-0.335 * (1 + math.exp(-length / 2000)))
+def calculateHSSPSimilarity(length, distance):
+    if(length < 9):
+        return 100
+    elif(length < 742):
+        return distance + 420 * length**(-0.335 * (1 + math.exp(-length / 2000)))
+    else:
+        return distance + 9.9
 
 def mergeResults(config):
     for subject in config["subjects"]:

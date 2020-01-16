@@ -11,7 +11,7 @@ right_addendum: 10000
 exonerate_percentage: 10
 blosum: 45
 pam: 200
-hssp_distance: 5
+hssp_distance: 10.5
 similarity: 0
 overlap_percentage: 50
 properties: $HOME/.jalview_properties

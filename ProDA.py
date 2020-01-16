@@ -9,6 +9,10 @@ from functools import partial
 import math
 import pandas as pd
 
+manager = mp.Manager()
+index = manager.Value("i", -1)
+lock = manager.Lock()
+
 def readConfigFile(config_path):
     config_data = None
     with open(config_path, "r") as config_reader:
@@ -56,7 +60,7 @@ def runBLASTCommand(config):
             if(not os.path.exists(blast_path + query + ".fna")):
                 print("Matcher: subject: " + subject + "\tquery: " + query)
                 if(not os.path.exists(blast_path + query + ".hit")):
-                    print("\tBLAST: evalue: " + str(config["evalue"] + "\tthreads: " + str(config["threads"])))
+                    print("\tBLAST: evalue: " + str(config["evalue"]) + "\tthreads: " + str(config["threads"]))
                     blast_output = subprocess.Popen("(tblastn -query " + config["queries"][query] + ""
                                    " -db "+ db_path + " -outfmt '6 qseqid sseqid sstart send evalue'"
                                    " -evalue " + str(config["evalue"]) + ""
@@ -141,11 +145,12 @@ def matchBLASTPositions(hit_path, subject, lad, rad, log):
                 fasta_writer.write("\n".join(fasta_results))
             del fasta_results[:]
         except:
-            print("Error while matching sequences, see log file '" + log_path + "'")
+            print("\tError while matching sequences, see log file '" + log_path + "'")
             with open(log_path, "w") as log_writer:
                 log_writer.write(str(traceback.format_exc()))
 
 def runExonerateCommand(config):
+    index.value = -1
     for subject in config["subjects"]:
         ex_output = "alignment/exonerate/" + subject + "/"
         log_path = "log/alignment/exonerate/" + subject + "/"
@@ -175,15 +180,21 @@ def runExonerateCommand(config):
 
                             del ryo_joined_results[:]
                             del ryo_results.get()[:]
-                            print("Exonerate: finished")
+                            print("\tExonerate: finished")
                         else:
-                            print("Exonerate file found, skipping")
+                            print("\tExonerate file found, skipping")
 
-                        print("Exonerate processing")
+                        print("\tExonerate processing")
                         parseExonerateResults(ex_output + query + ".ryo")
-                        print("Exonerate processing finished")
+                        print("\tExonerate processing finished")
+                        print("Exonerate: subject: " + subject + "\tquery: " + query + "\tfinished")
                     else:
-                        print("Processed Exeronate files found, skipping")
+                        print("\tProcessed Exonerate files found, skipping")
+            else:
+                print("\tRequired files for Exonerate not found, starting BLAST")
+                runBLASTCommand(config)
+                runExonerateCommand(config)
+                break
 
 def runExonerateMultiprocessing(match, queries, percent, blosum, output, log):
     print("\tTarget: " + match.id + "\tpercentage: " + str(percent) + "\tblosum: " + str(blosum))
@@ -213,7 +224,7 @@ def runExonerateMultiprocessing(match, queries, percent, blosum, output, log):
                 stdout=subprocess.PIPE, shell=True)
     res,err = ex_output.communicate()
     if(err != None):
-        print("Error while running Exonerate, see log file '" + log + query + ".log" + "'")
+        print("\tError while running Exonerate, see log file '" + log + query + ".log" + "'")
 
     temp_output_ryo2 = output + query + "_" + str(local_index) + ".ryo2"
     os.system("(tail -n +4 " + temp_output_ryo + " | head -n -1) > " + temp_output_ryo2)
@@ -269,6 +280,7 @@ def parseExonerateResults(ryo_results):
         del cds[:]
 
 def runSpalnCommand(config):
+    index.value = -1
     for subject in config["subjects"]:
         sp_output = "alignment/spaln/" + subject + "/"
         log_path = "log/alignment/spaln/" + subject + "/"
@@ -297,15 +309,21 @@ def runSpalnCommand(config):
 
                             del sp_joined_results[:]
                             del sp_results.get()[:]
-                            print("Spaln: finished")
+                            print("\tSpaln: finished")
                         else:
-                            print("Spaln file found, skipping")
+                            print("\tSpaln file found, skipping")
 
-                        print("Spaln processing")
+                        print("\tSpaln processing")
                         parseSpalnResults(sp_output + query + ".sp")
-                        print("Spaln processing finished")
+                        print("\tSpaln processing finished")
+                        print("Spaln: subject: " + subject + "\tquery: " + query + "\tfinished")
                     else:
-                        print("Processed Spaln files found, skipping")
+                        print("\tProcessed Spaln files found, skipping")
+            else:
+                print("\tRequired files for Spaln not found, starting BLAST")
+                runBLASTCommand(config)
+                runSpalnCommand(config)
+                break
 
 def runSpalnMultiprocessing(match, queries, pam, output, log):
     print("\tTarget: " + match.id + "\tpam: " + str(pam))
@@ -331,7 +349,7 @@ def runSpalnMultiprocessing(match, queries, pam, output, log):
                    stdout=subprocess.PIPE, shell=True)
     res,err = spaln_output.communicate()
     if(err != None):
-        print("Error while running Spaln, see log file '" + log + query + ".log" + "'")
+        print("\tError while running Spaln, see log file '" + log + query + ".log'")
 
     sp_results = None
     with open(temp_output, "r") as output_reader:
@@ -410,6 +428,7 @@ def parseSpalnResults(sp_results):
         del cds[:]
 
 def evaluateAlignment(config, algorithm):
+    index.value = -1
     for subject in config["subjects"]:
         output = "evaluation/" + algorithm + "/" + subject + "/"
         log_path = "log/evaluation/" + algorithm + "/" + subject + "/"
@@ -433,13 +452,22 @@ def evaluateAlignment(config, algorithm):
                         pool.close()
                         pool.join()
                         with open(output + query + ".stretcher", "w") as eval_writer:
-                            eval_writer.write("#id\ttarget\tquery\tidentity\tsimilarity\taln_length\thssp_identity\thssp_similarity\n" + "\n".join(stretcher_results.get()))
-                        print("Evaluation: finished")
+                            eval_writer.write("#id\ttarget\tquery\tidentity\tsimilarity\taln_length\thssp_identity\thssp_similarity\n" + "\n".join(filter(None, stretcher_results.get())))
+                        print("Evaluation: subject: " + subject + "\tquery: " + query + "\tfinished")
                 else:
-                    print("Evaluation file found, skipping")
+                    print("\tEvaluation file found, skipping")
+            else:
+                if(algorithm == "exonerate"):
+                    print("\tRequired files for evaluation not found, starting Exonerate")
+                    runExonerateCommand(config)
+                else:
+                    print("\tRequired files for evaluation not found, starting Spaln")
+                    runSpalnCommand(config)
+                evaluateAlignment(config, algorithm)
+                break
 
 def runStretcherMultiprocessing(hit, queries, distance, use_sim, output, log):
-    print("\tTarget: " + hit.id + "\tuse id: " + str(use_sim))
+    print("\tTarget: " + hit.id + "\tuse sim: " + str(use_sim))
     local_index = None
     with lock:
         index.value += 1
@@ -447,46 +475,51 @@ def runStretcherMultiprocessing(hit, queries, distance, use_sim, output, log):
 
     query_fasta = SeqIO.index(queries, "fasta")
     query = hit.id.split("::")[0]
-    subject = hit.id.split("::")[1]
-    id = hit.id.split("::")[2].strip()
-    temp_target = output + query + "_" + str(local_index) + "_target.faa"
-    with open(temp_target, "w") as target_writer:
-        target_writer.write(">" + hit.id + "\n" + str(hit.seq.translate()))
+    try:
+        subject = hit.id.split("::")[1]
+        id = hit.id.split("::")[2].strip()
+        temp_target = output + query + "_" + str(local_index) + "_target.faa"
+        with open(temp_target, "w") as target_writer:
+            target_writer.write(">" + hit.id + "\n" + str(hit.seq.translate()))
 
-    temp_query = output + query + "_" + str(local_index) + "_query.faa"
-    with open(temp_query, "w") as query_writer:
-        query_writer.write(">" + query_fasta[query].id + "\n" + str(query_fasta[query].seq))
+        temp_query = output + query + "_" + str(local_index) + "_query.faa"
+        with open(temp_query, "w") as query_writer:
+            query_writer.write(">" + query_fasta[query].id + "\n" + str(query_fasta[query].seq))
 
-    temp_output = output + query + "_" + str(local_index) + ".stretcher"
-    os.system("(stretcher -asequence " + temp_query + " -sprotein1"
-              " -bsequence " + temp_target + " -sprotein2 -auto -stdout > " + temp_output + ")"
-              " 2> " + log + query + ".log")
-    identity = None
-    al_length = None
-    identity = None
-    similarity = None
-    with open(temp_output, "r") as output_reader:
-            content = output_reader.readlines()
-            for line in content:
-                if(line):
-                    if(line.startswith("# Length")):
-                        length = int(line.split(" ")[2].strip())
-                    if(line.startswith("# Identity")):
-                        identity = float(line.split("(")[1][:-3].strip())
-                    if(line.startswith("# Similarity")):
-                        similarity = float(line.split("(")[1][:-3].strip())
-                        break
+        temp_output = output + query + "_" + str(local_index) + ".stretcher"
+        os.system("(stretcher -asequence " + temp_query + " -sprotein1"
+                  " -bsequence " + temp_target + " -sprotein2 -auto -stdout > " + temp_output + ")"
+                  " 2> " + log + query + ".log")
+        identity = None
+        al_length = None
+        identity = None
+        similarity = None
+        with open(temp_output, "r") as output_reader:
+                content = output_reader.readlines()
+                for line in content:
+                    if(line):
+                        if(line.startswith("# Length")):
+                            al_length = int(line.split(" ")[2].strip())
+                        if(line.startswith("# Identity")):
+                            identity = float(line.split("(")[1][:-3].strip())
+                        if(line.startswith("# Similarity")):
+                            similarity = float(line.split("(")[1][:-3].strip())
+                            break
 
-    os.remove(temp_target)
-    os.remove(temp_output)
-    os.remove(temp_query)
-    st_result = []
-    hssp_identity = calculateHSSPIdentity(length, distance)
-    hssp_similarity = calculateHSSPSimilarity(length, distance)
-    if(similarity > identity and (identity >= hssp_identity or (use_sim > 0 and similarity >= hssp_similarity))):
-        st_result = [id, subject, query, str(identity), str(similarity), str(length), str(hssp_identity), str(hssp_similarity)]
-    print("\tTarget: " + hit.id + "\tfinished")
-    return "\t".join(list(filter(None, st_result)))
+        os.remove(temp_target)
+        os.remove(temp_output)
+        os.remove(temp_query)
+        st_result = []
+        hssp_identity = calculateHSSPIdentity(al_length, distance)
+        hssp_similarity = calculateHSSPSimilarity(al_length, distance)
+        if(similarity > identity and (identity >= hssp_identity or (use_sim > 0 and similarity >= hssp_similarity))):
+            st_result = [id, subject, query, str(identity), str(similarity), str(al_length), str(hssp_identity), str(hssp_similarity)]
+        print("\tTarget: " + hit.id + "\tfinished")
+    except:
+        print("\tError while evaluating, see log file '" + log + query + ".log" + "'")
+        with open(log + query + ".log", "w") as log_writer:
+            log_writer.write(str(traceback.format_exc()))
+    return "\t".join(st_result)
 
 
 def calculateHSSPIdentity(length, distance):
@@ -517,160 +550,217 @@ def mergeResults(config):
                     os.makedirs(output)
                 if(not os.path.exists(log_path)):
                     os.makedirs(log_path)
-
                 gff_list = ["#subject\tquery\talgorithm\ttype\tstart\tend\torientation\tscore\tid"]
                 cds_list = []
                 ex_gff = "alignment/exonerate/" + subject + "/" + query + ".gff"
-                ex_fasta = "alignment/exonerate/" + subject + "/" + query + ".cds"
                 ex_stretcher = "evaluation/exonerate/" + subject + "/" + query + ".stretcher"
                 ex_id_list = []
                 sp_gff = "alignment/spaln/" + subject + "/" + query + ".gff"
-                sp_fasta = "alignment/spaln/" + subject + "/" + query + ".cds"
                 sp_stretcher = "evaluation/spaln/" + subject + "/" + query + ".stretcher"
                 sp_id_list = []
                 hit_id = 0
-                if(not (os.path.exists(output + query + ".gff") or os.path.exists(output + query + ".cds"))):
+                if(not (os.path.exists(output + query + ".gff") or os.path.exists(output + query + ".nuc") or os.path.exists(output + query + ".cds") or os.path.exists(output + query + ".pep"))):
                     if(os.path.exists(ex_gff) and os.path.exists(ex_stretcher) and os.path.exists(sp_gff) and os.path.exists(sp_stretcher)):
-                        sp_gff_df = pd.read_csv(sp_gff, sep="\t", header=0)
-                        sp_eval_df = pd.read_csv(sp_stretcher, sep="\t", header=0)
-                        ex_gff_df = pd.read_csv(ex_gff, sep="\t", header=0)
-                        ex_eval_df = pd.read_csv(ex_stretcher, sep="\t", header=0)
+                        sp_sequences = SeqIO.index("alignment/spaln/" + subject + "/" + query + ".cds", "fasta")
+                        sp_gff_df = pd.read_csv(sp_gff, sep="\t", header=0).astype(str)
+                        sp_eval_df = pd.read_csv(sp_stretcher, sep="\t", header=0).astype(str)
+                        ex_sequences = SeqIO.index("alignment/exonerate/" + subject + "/" + query + ".cds", "fasta")
+                        ex_gff_df = pd.read_csv(ex_gff, sep="\t", header=0).astype(str)
+                        ex_eval_df = pd.read_csv(ex_stretcher, sep="\t", header=0).astype(str)
                         for sp_index,sp_row in sp_eval_df.iterrows():
-                            if(not sp_row.empty):
-                                ex_gene_rows = ex_gff_df.loc[(ex_gff_df["type"] == "gene") & (ex_gff_df["#subject"] == sp_row["target"]) & (ex_gff_df["query"] == sp_row["query"])]
-                                ex_eval_rows = ex_eval_df.loc[(ex_eval_df["target"] == sp_row["target"]) & (ex_eval_df["query"] == sp_row["query"])]
-                                ex_sequences = SeqIO.index(ex_fasta, "fasta")
-                                sp_gene_rows = sp_gff_df.loc[(sp_gff_df["type"] == "gene") & (sp_gff_df["#subject"] == sp_row["target"]) & (sp_gff_df["query"] == sp_row["query"])]
-                                sp_sequences = SeqIO.index(sp_fasta, "fasta")
-                                sp_id_row = sp_gene_rows.loc[sp_gene_rows["id"] == str(sp_row["#id"])].iloc[0]
-                                sp_header = sp_row["query"] + "::" + sp_row["target"] + "::" + str(sp_row["#id"])
-                                for ex_index,ex_row in ex_eval_rows.iterrows():
-                                    if(not ex_row.empty):
-                                        if(not str(ex_row["#id"]) in ex_id_list):
-                                            ex_id_row = ex_gene_rows.loc[ex_gene_rows["id"] == str(ex_row["#id"])].iloc[0]
-                                            ex_header = ex_row["query"] + "::" + ex_row["target"] + "::" + str(ex_row["#id"])
-                                            if(sp_row["target"] == ex_row["target"] and sp_row["query"] == ex_row["query"] and sp_id_row["orientation"] == ex_id_row["orientation"]):
-                                                if(calculateOverlapPercentage(sp_id_row["start"], sp_id_row["end"], ex_id_row["start"], ex_id_row["end"]) >= config["overlap_percentage"]):
-                                                    sp_id_list.append(str(sp_row["#id"]))
-                                                    ex_id_list.append(str(ex_row["#id"]))
-                                                    if((str(sp_sequences[sp_header].seq).startswith("ATG") and str(ex_sequences[ex_header].seq).startswith("ATG"))
-                                                       or not (str(sp_sequences[sp_header].seq).startswith("ATG") or str(ex_sequences[ex_header].seq).startswith("ATG"))):
-                                                       if(sp_id_row["score"] >= ex_id_row["score"]):
-                                                           id_rows = sp_gff_df.loc[sp_gff_df["id"] == str(sp_row["#id"])]
-                                                           id_rows["id"] = hit_id
-                                                           header = "##" +  sp_row["target"] + "\t" + sp_row["query"] + "\t" + str(hit_id)
-                                                           gff_list.append(header + "\n" + id_rows.to_string(header=False, index=False))
-                                                           cds_list.append(">" + sp_row["query"] + "::" + sp_row["target"] + "::" + str(hit_id) + "\n" + str(sp_sequences[sp_header].seq))
-                                                           hit_id += 1
-                                                       else:
-                                                           id_rows = ex_gff_df.loc[ex_gff_df["id"] == str(ex_row["#id"])]
-                                                           id_rows["id"] = hit_id
-                                                           header = "##" +  ex_row["target"] + "\t" + ex_row["query"] + "\t" + str(hit_id)
-                                                           gff_list.append(header + "\n" + id_rows.to_string(header=False, index=False).strip())
-                                                           cds_list.append(">" + ex_row["query"] + "::" + ex_row["target"] + "::" + str(hit_id) + "\n" + str(ex_sequences[ex_header].seq))
-                                                           hit_id += 1
-                                                    elif(str(sp_sequences[sp_header].seq).startswith("ATG")):
-                                                        id_rows = sp_gff_df.loc[sp_gff_df["id"] == str(sp_row["#id"])]
-                                                        id_rows["id"] = hit_id
-                                                        header = "##" +  sp_row["target"] + "\t" + sp_row["query"] + "\t" + str(hit_id)
-                                                        gff_list.append(header + "\n" + id_rows.to_string(header=False, index=False))
-                                                        cds_list.append(">" + sp_row["query"] + "::" + sp_row["target"] + "::" + str(hit_id) + "\n" + str(sp_sequences[sp_header].seq))
-                                                        hit_id += 1
-                                                    else:
-                                                        id_rows = ex_gff_df.loc[ex_gff_df["id"] == str(ex_row["#id"])]
-                                                        id_rows["id"] = hit_id
-                                                        header = "##" +  ex_row["target"] + "\t" + ex_row["query"] + "\t" + str(hit_id)
-                                                        gff_list.append(header + "\n" + id_rows.to_string(header=False, index=False))
-                                                        cds_list.append(">" + ex_row["query"] + "::" + ex_row["target"] + "::" + str(hit_id) + "\n" + str(ex_sequences[ex_header].seq))
-                                                        hit_id += 1
-                                                    break
+                            ex_gene_rows = ex_gff_df.loc[(ex_gff_df["type"] == "gene") & (ex_gff_df["#subject"] == sp_row["target"]) & (ex_gff_df["query"] == sp_row["query"])]
+                            ex_eval_rows = ex_eval_df.loc[(ex_eval_df["target"] == sp_row["target"]) & (ex_eval_df["query"] == sp_row["query"])]
+                            sp_gene_rows = sp_gff_df.loc[(sp_gff_df["type"] == "gene") & (sp_gff_df["#subject"] == sp_row["target"]) & (sp_gff_df["query"] == sp_row["query"])]
+                            sp_id_row = sp_gene_rows.loc[sp_gene_rows["id"] == sp_row["#id"]].iloc[0]
+                            sp_header = sp_row["query"] + "::" + sp_row["target"] + "::" + sp_row["#id"]
+                            for ex_index,ex_row in ex_eval_rows.iterrows():
+                                if(not ex_row["#id"] in ex_id_list):
+                                    ex_id_row = ex_gene_rows.loc[ex_gene_rows["id"] == ex_row["#id"]].iloc[0]
+                                    ex_header = ex_row["query"] + "::" + ex_row["target"] + "::" + ex_row["#id"]
+                                    if(calculateOverlapPercentage(int(sp_id_row["start"]), int(sp_id_row["end"]), int(ex_id_row["start"]), int(ex_id_row["end"])) >= config["overlap_percentage"]):
+                                        sp_id_list.append(sp_row["#id"])
+                                        ex_id_list.append(ex_row["#id"])
+                                        if((str(sp_sequences[sp_header].seq).startswith("ATG") and str(ex_sequences[ex_header].seq).startswith("ATG"))
+                                           or not (str(sp_sequences[sp_header].seq).startswith("ATG") or str(ex_sequences[ex_header].seq).startswith("ATG"))):
+                                           if(float(sp_id_row["score"]) >= float(ex_id_row["score"])):
+                                               id_rows = sp_gff_df.loc[sp_gff_df["id"] == str(sp_row["#id"])]
+                                               id_rows["id"] = str(hit_id)
+                                               header = "##" +  sp_row["target"] + "\t" + sp_row["query"] + "\t" + str(hit_id)
+                                               gff_list.append(header + "\n" + id_rows.to_string(header=False, index=False))
+                                               cds_list.append(">" + sp_row["query"] + "::" + sp_row["target"] + "::" + str(hit_id) + "\n" + str(sp_sequences[sp_header].seq))
+                                               hit_id += 1
+                                           else:
+                                               id_rows = ex_gff_df.loc[ex_gff_df["id"] == ex_row["#id"]]
+                                               id_rows["id"] = str(hit_id)
+                                               header = "##" +  ex_row["target"] + "\t" + ex_row["query"] + "\t" + str(hit_id)
+                                               gff_list.append(header + "\n" + id_rows.to_string(header=False, index=False).strip())
+                                               cds_list.append(">" + ex_row["query"] + "::" + ex_row["target"] + "::" + str(hit_id) + "\n" + str(ex_sequences[ex_header].seq))
+                                               hit_id += 1
+                                        elif(str(sp_sequences[sp_header].seq).startswith("ATG")):
+                                            id_rows = sp_gff_df.loc[sp_gff_df["id"] == sp_row["#id"]]
+                                            id_rows["id"] = hit_id
+                                            header = "##" +  sp_row["target"] + "\t" + sp_row["query"] + "\t" + str(hit_id)
+                                            gff_list.append(header + "\n" + id_rows.to_string(header=False, index=False))
+                                            cds_list.append(">" + sp_row["query"] + "::" + sp_row["target"] + "::" + str(hit_id) + "\n" + str(sp_sequences[sp_header].seq))
+                                            hit_id += 1
+                                        else:
+                                            id_rows = ex_gff_df.loc[ex_gff_df["id"] == ex_row["#id"]]
+                                            id_rows["id"] = str(hit_id)
+                                            header = "##" +  ex_row["target"] + "\t" + ex_row["query"] + "\t" + str(hit_id)
+                                            gff_list.append(header + "\n" + id_rows.to_string(header=False, index=False))
+                                            cds_list.append(">" + ex_row["query"] + "::" + ex_row["target"] + "::" + str(hit_id) + "\n" + str(ex_sequences[ex_header].seq))
+                                            hit_id += 1
+                                        break
 
-                        sp_ids = sp_eval_df.loc[sp_eval_df["#id"]]
-                        for sp_index,sp_row in sp_ids.iterrows():
-                            if(not (sp_row.empty or str(sp_row["#id"]) in sp_id_list)):
-                                id_rows = sp_gff_df.loc[sp_gff_df["id"] == str(sp_row["#id"])]
-                                id_rows["id"] = hit_id
-                                if(not id_rows.empty and str(sp_row["target"]) != "nan" and str(sp_row["query"]) != "nan"):
-                                    header = "##" +  sp_row["target"] + "\t" + sp_row["query"] + "\t" + str(hit_id)
-                                    gff_list.append(header + "\n" + id_rows.to_string(header=False, index=False))
-                                    cds_list.append(">" + sp_row["query"] + "::" + sp_row["target"] + "::" + str(hit_id) + "\n" + str(sp_sequences[sp_header].seq))
-                                    hit_id += 1
+                        for sp_index,sp_row in sp_eval_df.iterrows():
+                            if(not sp_row["#id"] in sp_id_list):
+                                id_rows = sp_gff_df.loc[sp_gff_df["id"] == sp_row["#id"]]
+                                id_rows["id"] = str(hit_id)
+                                header = "##" +  sp_row["target"] + "\t" + sp_row["query"] + "\t" + str(hit_id)
+                                sp_header = sp_row["query"] + "::" + sp_row["target"] + "::" + sp_row["#id"]
+                                gff_list.append(header + "\n" + id_rows.to_string(header=False, index=False))
+                                cds_list.append(">" + sp_row["query"] + "::" + sp_row["target"] + "::" + str(hit_id) + "\n" + str(sp_sequences[sp_header].seq))
+                                hit_id += 1
 
-                        ex_ids = ex_eval_df.loc[ex_eval_df["#id"]]
-                        for ex_index,ex_row in ex_ids.iterrows():
-                            if(not (ex_row.empty or str(ex_row["#id"]) in ex_id_list)):
-                                id_rows = ex_gff_df.loc[ex_gff_df["id"] == str(ex_row["#id"])]
-                                id_rows["id"] = hit_id
-                                if(not id_rows.empty and str(ex_row["target"]) != "nan" and str(ex_row["query"]) != "nan"):
-                                    header = "##" +  ex_row["target"] + "\t" + ex_row["query"] + "\t" + str(hit_id)
-                                    gff_list.append(header + "\n" + id_rows.to_string(header=False, index=False))
-                                    cds_list.append(">" + ex_row["query"] + "::" + ex_row["target"] + "::" + str(hit_id) + "\n" + str(ex_sequences[ex_header].seq))
-                                    hit_id += 1
+                        for ex_index,ex_row in ex_eval_df.iterrows():
+                            if(not ex_row["#id"] in ex_id_list):
+                                id_rows = ex_gff_df.loc[ex_gff_df["id"] == ex_row["#id"]]
+                                id_rows["id"] = str(hit_id)
+                                header = "##" +  ex_row["target"] + "\t" + ex_row["query"] + "\t" + str(hit_id)
+                                ex_header = ex_row["query"] + "::" + ex_row["target"] + "::" + ex_row["#id"]
+                                gff_list.append(header + "\n" + id_rows.to_string(header=False, index=False))
+                                cds_list.append(">" + ex_row["query"] + "::" + ex_row["target"] + "::" + str(hit_id) + "\n" + str(ex_sequences[ex_header].seq))
+                                hit_id += 1
 
-                    with open(output + query + ".gff", "w") as gff_writer:
-                        gff_writer.write("\n".join(gff_list))
+                        with open(output + query + ".gff", "w") as gff_writer:
+                            gff_writer.write("\n".join(gff_list))
 
-                    nucl = []
-                    with open(output + query + ".gff", "r") as gff_reader:
-                        content = csv.reader(gff_reader, delimiter="\t")
-                        target = None
-                        protein = None
-                        id = None
-                        for row in content:
-                            if(row[0].startswith("##")):
-                                target = row[0][2:]
-                                protein = row[1]
-                                id = row[2]
-                            elif(len(row) == 1 and row[0].split(" ")[7] == "gene"):
-                                row_filter = list(filter(None, row[0].split(" ")))
-                                start = int(row_filter[4])
-                                end = int(row_filter[5])
-                                nucl.append(">" + protein + "::" + target + "::" + id + "\n" + str(subject_fasta[target].seq)[start:end])
-                    with open(output + query + ".fna", "w") as cds_writer:
-                        cds_writer.write("\n".join(nucl))
+                        nucl = []
+                        with open(output + query + ".gff", "r") as gff_reader:
+                            content = csv.reader(gff_reader, delimiter="\t")
+                            target = None
+                            protein = None
+                            id = None
+                            for row in content:
+                                if(row[0].startswith("##")):
+                                    target = row[0][2:]
+                                    protein = row[1]
+                                    id = row[2]
+                                elif(len(row) == 1 and row[0].split(" ")[7] == "gene"):
+                                    row_filter = list(filter(None, row[0].split(" ")))
+                                    start = int(row_filter[4])
+                                    end = int(row_filter[5])
+                                    nucl.append(">" + protein + "::" + target + "::" + id + "\n" + str(subject_fasta[target].seq)[start:end])
+                        with open(output + query + ".fna", "w") as cds_writer:
+                            cds_writer.write("\n".join(nucl))
 
-                    with open(output + query + ".cds", "w") as cds_writer:
-                        cds_writer.write("\n".join(cds_list))
+                        with open(output + query + ".cds", "w") as cds_writer:
+                            cds_writer.write("\n".join(cds_list))
 
-                    translated_cds = []
-                    for fasta in SeqIO.parse(output + query + ".cds", "fasta"):
-                        translated_cds.append(">" + fasta.id + "\n" + str(fasta.seq.translate()))
-                    with open(output + query + ".pep", "w") as cds_writer:
-                        cds_writer.write("\n".join(translated_cds))
+                        translated_cds = []
+                        for fasta in SeqIO.parse(output + query + ".cds", "fasta"):
+                            translated_cds.append(">" + fasta.id + "\n" + str(fasta.seq.translate()))
+                        with open(output + query + ".pep", "w") as cds_writer:
+                            cds_writer.write("\n".join(translated_cds))
 
-                    del gff_list[:]
-                    del nucl[:]
-                    del cds_list[:]
-                    del translated_cds[:]
-                    del ex_id_list[:]
-                    del sp_id_list[:]
-                    print("Merging: finished")
+                        del gff_list[:]
+                        del nucl[:]
+                        del cds_list[:]
+                        del translated_cds[:]
+                        del ex_id_list[:]
+                        del sp_id_list[:]
+                        print("Merging: subject: " + subject + "\tquery: " + query + "\tfinished")
+                    else:
+                        if(not os.path.exists(ex_gff)):
+                            print("\tRequired files for merging not found, starting Exonerate")
+                            runExonerateCommand(config)
+                        if(not os.path.exists(sp_gff)):
+                            print("\tRequired files for merging not found, starting Spaln")
+                            runSpalnCommand(config)
+                        if(not os.path.exists(ex_stretcher)):
+                            print("\tRequired files for merging not found, starting Exonerate evaluation")
+                            evaluateAlignment(config, "exonerate")
+                        if(not os.path.exists(sp_stretcher)):
+                            print("\tRequired files for merging not found, starting Spaln evaluation")
+                            evaluateAlignment(config, "spaln")
+                        mergeResults(config)
+                        break
                 else:
-                    print("Result files found, skipping")
+                    print("\tResult files found, skipping")
             except:
-                print("Error while merging results, see log file '" + log_path + query + ".log'")
+                print("\tError while merging results, see log file '" + log_path + query + ".log'")
                 with open(log_path + query + ".log", "w") as log_writer:
                     log_writer.write(str(traceback.format_exc()))
 
 def calculateOverlapPercentage(start1, end1, start2, end2):
-    if(int(end1) < int(start2) or int(end2) < int(start1)):
+    if(end1 < start2 or end2 < start1):
         return 0
     else:
-        return ((min(int(end1), int(end2)) - max(int(start1), int(start2))) / min(int(end1)-int(start1), int(end2)-int(start2))) * 100
+        return ((min(end1, end2) - max(start1, start2)) / min(end1-start1, end2-start2)) * 100
 
+def visualizeResults(config):
+    index.value = -1
+    for subject in config["subjects"]:
+        for query in config["queries"]:
+            print("Visualizing results, subject: " + subject + "\tquery: " + query + "\tprop file: " + config["properties"])
+            protein = "results/" + subject + "/" + query + "/" + query + ".pep"
+            if(os.path.exists(protein)):
+                output = "results/" + subject + "/" + query + "/alignment/"
+                if(not os.path.exists(output)):
+                    os.makedirs(output)
+                    log_path = "log/results/" + subject + "/" + query + "/alignment/"
+                    if(not os.path.exists(log_path)):
+                        os.makedirs(log_path)
+                    protein_fasta = list(SeqIO.parse(protein, "fasta"))
+                    pool = mp.Pool(processes=config["threads"])
+                    pool_map = partial(runJalViewMultiprocessing, queries=config["queries"][query],
+                                       properties=config["properties"], output=output, log=log_path)
+                    pool.map_async(pool_map, protein_fasta)
+                    pool.close()
+                    pool.join()
+                    print("Visualizing: subject: " + subject + "\tquery: " + query + "\tfinished")
+                else:
+                    print("\tVisualizing folder found, skipping")
+            else:
+                print("\tRequired files for visualizing not found, starting merging")
+                mergeResults(config)
+                visualizeResults(config)
+                break
 
+def runJalViewMultiprocessing(hit, queries, properties, output, log):
+    print("\tTarget: " + hit.id)
+    local_index = None
+    with lock:
+        index.value += 1
+        local_index = index.value
+
+    query_fasta = SeqIO.index(queries, "fasta")
+    query = hit.id.split("::")[0]
+    id = hit.id.split("::")[2]
+    temp_target = output + query + "_" + str(local_index) + "_target.fna"
+    with open(temp_target, "w") as target_writer:
+        target_writer.write(">" + hit.id + "\n" + str(hit.seq))
+
+    temp_query = output + query + "_" + str(local_index) + "_query.fna"
+    with open(temp_query, "w") as query_writer:
+        query_writer.write(">" + query_fasta[query].id + "\n" + str(query_fasta[query].seq))
+
+    clustal = output + query + "_" + id + ".clustal"
+    os.system("(stretcher -asequence " + temp_query + " -sprotein1 -bsequence " + temp_target + ""
+              " -sprotein1 -auto -aformat clustal -stdout > " + clustal + ") 2> " + log + query + "_" + id + ".cl_log")
+    png = output + query + "_" + id + ".png"
+    jalview_output = subprocess.Popen("(jalview -nodisplay -props " + properties + " -colour clustal"
+                     " -open " + clustal + " -png " + png + ") 2> " + log + query + "_" + id + ".jv_log",
+                     stdout=subprocess.PIPE, shell=True)
+    res,err = jalview_output.communicate()
+    if(err != None):
+        print("\tError while visualizing results, see log file '" + log + query + "_" + id + ".jv_log'")
+
+    os.remove(temp_target)
+    os.remove(temp_query)
+    print("\tTarget: " + hit.id + "\tfinished")
 
 config = readConfigFile("config.yaml")
 buildBLASTDatabase(config)
-runBLASTCommand(config)
-manager = mp.Manager()
-index = manager.Value("i", -1)
-lock = manager.Lock()
-runExonerateCommand(config)
-index.value = -1
-runSpalnCommand(config)
-index.value = -1
-evaluateAlignment(config, "exonerate")
-index.value = -1
-evaluateAlignment(config, "spaln")
-mergeResults(config)
+visualizeResults(config)
+print("Finished ProDA")

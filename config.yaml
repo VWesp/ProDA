@@ -1,10 +1,10 @@
 subjects:
-  #csp: data/subjects/csp.fna
+  csp: data/subjects/csp.fna
   cre: data/subjects/cre.fna
 queries:
   actin: data/queries/actin.faa
   beta_tubulin2: data/queries/beta_tubulin2.faa
-  #cre_photoreceptors: data/queries/cre_photoreceptors.faa
+  cre_photoreceptors: data/queries/cre_photoreceptors.faa
 
 evalue: 1e-4
 left_addendum: 10000

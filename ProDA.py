@@ -41,8 +41,8 @@ def buildBLASTDatabase(config):
             if(res != None):
                 print("Building database for subject '" + subject + "'\tfinished")
             elif(err != None):
-                print("Error while building database for subject '" + subject + "',"
-                      " see log file '" + log_path + "'")
+                print("\033[91mError while building database for subject '" + subject + "',"
+                      " see log file '" + log_path + "'\033[0m")
         else:
             print("Found database files for subject '" + subject + "', skipping")
 
@@ -70,8 +70,8 @@ def runBLASTCommand(config, subject, query):
             if(res != None):
                 print("\tBLAST: finished")
             if(err != None):
-                print("\tError for BLAST: subject: " + subject + "\tquery: " + query + ","
-                      " see log file '" + log_path + "'")
+                print("\t\033[91mError for BLAST: subject: " + subject + "\tquery: " + query + ","
+                      " see log file '" + log_path + "'\033[0m")
         else:
             print("\tFound BLAST file, skipping")
 
@@ -143,9 +143,12 @@ def matchBLASTPositions(hit_path, subject, lad, rad, log):
                 fasta_writer.write("\n".join(fasta_results))
             del fasta_results[:]
         except:
-            print("\tError while matching sequences, see log file '" + log_path + "'")
+            print("\t\033[91mError while matching sequences, see log file '" + log_path + "'\033[0m")
             with open(log_path, "w") as log_writer:
                 log_writer.write(str(traceback.format_exc()))
+    else:
+        with open(hit_path.replace(".hit", ".fna"), "w") as fasta_writer:
+            fasta_writer.write("")
 
 def runExonerateCommand(config, subject, query):
     ex_output = "alignment/exonerate/" + subject + "/"
@@ -186,6 +189,13 @@ def runExonerateCommand(config, subject, query):
                 print("Exonerate: subject: " + subject + "\tquery: " + query + "\tfinished")
             else:
                 print("\tProcessed Exonerate files found, skipping")
+        else:
+            with open(ex_output + query + ".ryo", "w") as ryo_writer:
+                ryo_writer.write("")
+            with open(ex_output + query + ".gff", "w") as gff_writer:
+                gff_writer.write("#subject\tquery\talgorithm\ttype\tstart\tend\torientation\tscore\tid")
+            with open(ex_output + query + ".cds", "w") as cds_writer:
+                cds_writer.write("")
     else:
         print("\tRequired files for Exonerate not found, starting BLAST")
         runBLASTCommand(config, subject, query)
@@ -219,7 +229,7 @@ def runExonerateMultiprocessing(match, queries, percent, blosum, output, log):
                 stdout=subprocess.PIPE, shell=True)
     res,err = ex_output.communicate()
     if(err != None):
-        print("\tError while running Exonerate, see log file '" + log + query + ".log" + "'")
+        print("\t\033[91mError while running Exonerate, see log file '" + log + query + ".log" + "'\033[0m")
 
     temp_output_ryo2 = output + query + "_" + str(local_index) + ".ryo2"
     os.system("(tail -n +4 " + temp_output_ryo + " | head -n -1) > " + temp_output_ryo2)
@@ -235,10 +245,11 @@ def runExonerateMultiprocessing(match, queries, percent, blosum, output, log):
     return ryo_results
 
 def parseExonerateResults(ryo_results):
-    if(os.stat(ryo_results) != 0):
+    if(os.stat(ryo_results).st_size  != 0):
         gff = []
         cds = []
         seq_found = False
+        positions = []
         with open(ryo_results, "r") as ryo_reader:
             lines = ryo_reader.readlines()
             hit_id = 0
@@ -258,21 +269,37 @@ def parseExonerateResults(ryo_results):
                         start = int(line_splitted[3]) + int(line_splitted[0].split("::")[2].split("-")[0]) - 1
                         end = int(line_splitted[4]) + int(line_splitted[0].split("::")[2].split("-")[0])
                         if(line_splitted[2] == "gene"):
+                            if(len(positions)):
+                                if(int(positions[0].split("\t")[5]) > int(positions[-1].split("\t")[5])):
+                                    gff.append("\n".join(list(reversed(positions))))
+                                else:
+                                    gff.append("\n".join(positions))
+                            positions = []
                             gff.append("#subject\tquery\talgorithm\ttype\tstart\tend\torientation\tscore\tid")
                             gff.append(target + "\t" + query + "\texonerate:aln\t" + line_splitted[2] + "\t" + str(start) + "\t" + str(end) + "\t" + line_splitted[6] + "\t" + line_splitted[5] + "\t" + str(hit_id))
                         elif(line_splitted[2] == "cds"):
-                            gff.append(target + "\t" + query + "\texonerate:aln\t" + line_splitted[2] + "\t" + str(start) + "\t" + str(end) + "\t" + line_splitted[6] + "\t" + line_splitted[5] + "\t" + str(hit_id))
+                            positions.append(target + "\t" + query + "\texonerate:aln\t" + line_splitted[2] + "\t" + str(start) + "\t" + str(end) + "\t" + line_splitted[6] + "\t" + line_splitted[5] + "\t" + str(hit_id))
                     elif(seq_found):
                         cds.append(line.strip())
+            if(len(positions)):
+                if(int(positions[0].split("\t")[5]) > int(positions[-1].split("\t")[5])):
+                    gff.append("\n".join(list(reversed(positions))))
+                else:
+                    gff.append("\n".join(positions))
 
         with open(ryo_results.replace(".ryo", ".gff"), "w") as gff_writer:
             gff_writer.write("\n".join(gff))
-
         with open(ryo_results.replace(".ryo", ".cds"), "w") as cds_writer:
             cds_writer.write("\n".join(cds))
 
         del gff[:]
         del cds[:]
+        del positions[:]
+    else:
+        with open(ryo_results.replace(".ryo", ".gff"), "w") as gff_writer:
+            gff_writer.write("#subject\tquery\talgorithm\ttype\tstart\tend\torientation\tscore\tid")
+        with open(ryo_results.replace(".ryo", ".cds"), "w") as cds_writer:
+            cds_writer.write("")
 
 def runSpalnCommand(config, subject, query):
     sp_output = "alignment/spaln/" + subject + "/"
@@ -312,6 +339,13 @@ def runSpalnCommand(config, subject, query):
                 print("Spaln: subject: " + subject + "\tquery: " + query + "\tfinished")
             else:
                 print("\tProcessed Spaln files found, skipping")
+        else:
+            with open(sp_output + query + ".sp", "w") as sp_writer:
+                sp_writer.write("")
+            with open(sp_output + query + ".gff", "w") as sp_writer:
+                sp_writer.write("#subject\tquery\talgorithm\ttype\tstart\tend\torientation\tscore\tid")
+            with open(sp_output + query + ".cds", "w") as sp_writer:
+                sp_writer.write("")
     else:
         print("\tRequired files for Spaln not found, starting BLAST")
         runBLASTCommand(config, subject, query)
@@ -335,14 +369,13 @@ def runSpalnMultiprocessing(match, queries, pam, output, log):
         query_writer.write(">" + query_fasta[query].id + "\n" + str(query_fasta[query].seq))
 
     temp_output = output + query + "_" + str(local_index) + ".sp"
-    spaln_output = subprocess.Popen("($HOME/spaln2.4.0/bin/spaln -M -N1 -Q3 -S3 -yp" + str(pam) + " -yq" + str(pam) + ""
+    spaln_output = subprocess.Popen("($HOME/spaln2.4.0/bin/spaln -M4 -N1 -Q3 -S3 -yp" + str(pam) + " -yq" + str(pam) + ""
                    " -O6 -o" + temp_output + " " + temp_target + " " + temp_query + ")"
                    " 2> " + log + query + ".log",
                    stdout=subprocess.PIPE, shell=True)
     res,err = spaln_output.communicate()
     if(err != None):
-        print("\tError while running Spaln, see log file '" + log + query + ".log'")
-
+        print("\t\033[91mError while running Spaln, see log file '" + log + query + ".log'\033[0m")
     sp_results = None
     with open(temp_output, "r") as output_reader:
         sp_results = output_reader.readlines()
@@ -382,7 +415,7 @@ def parseSpalnResults(sp_results):
                         target = line_splitted[1].split("::")[1]
                         header = ">" + query + "::" + target + "::" + str(hit_id)
                         block_start = int(line_splitted[1].split("::")[2].split("-")[0])
-                        start = int(line_splitted[6]) + block_start - 1
+                        start = int(line_splitted[6]) + block_start
                         end = int(line_splitted[8]) + block_start
                         orientation = line_splitted[2]
                         score = line_splitted[-1]
@@ -391,6 +424,7 @@ def parseSpalnResults(sp_results):
                             temp_start = start
                             start = end
                             end = temp_start
+                        start -= 1
 
                         gff.append(target + "\t" + query + "\tspaln:aln\tgene\t" + str(start) + "\t" + str(end) + "\t" + orientation + "\t" + score + "\t" + str(hit_id))
                         cds.append(header)
@@ -412,12 +446,16 @@ def parseSpalnResults(sp_results):
 
         with open(sp_results.replace(".sp", ".gff"), "w") as gff_writer:
             gff_writer.write("\n".join(gff))
-
         with open(sp_results.replace(".sp", ".cds"), "w") as cds_writer:
             cds_writer.write("\n".join(cds))
 
         del gff[:]
         del cds[:]
+    else:
+        with open(sp_results.replace(".sp", ".gff"), "w") as gff_writer:
+            gff_writer.write("#subject\tquery\talgorithm\ttype\tstart\tend\torientation\tscore\tid")
+        with open(sp_results.replace(".sp", ".cds"), "w") as cds_writer:
+            cds_writer.write("")
 
 def evaluateAlignment(config, algorithm, subject, query):
     output = "evaluation/" + algorithm + "/" + subject + "/"
@@ -444,6 +482,9 @@ def evaluateAlignment(config, algorithm, subject, query):
                 with open(output + query + ".stretcher", "w") as eval_writer:
                     eval_writer.write("#id\ttarget\tquery\tidentity\tsimilarity\taln_length\thssp_identity\thssp_similarity\n" + "\n".join(filter(None, stretcher_results.get())))
                 print("Evaluation: subject: " + subject + "\tquery: " + query + "\tfinished")
+            else:
+                with open(output + query + ".stretcher", "w") as eval_writer:
+                    eval_writer.write("#id\ttarget\tquery\tidentity\tsimilarity\taln_length\thssp_identity\thssp_similarity\n")
         else:
             print("\tEvaluation file found, skipping")
     else:
@@ -501,14 +542,14 @@ def runStretcherMultiprocessing(hit, queries, distance, use_sim, output, log):
         st_result = []
         hssp_identity = calculateHSSPIdentity(al_length, distance)
         hssp_similarity = calculateHSSPSimilarity(al_length, distance)
-        if(similarity > identity and (identity >= hssp_identity or (use_sim > 0 and similarity >= hssp_similarity))):
+        if(similarity >= identity and (identity >= hssp_identity or (use_sim > 0 and similarity >= hssp_similarity))):
             st_result = [id, subject, query, str(identity), str(similarity), str(al_length), str(hssp_identity), str(hssp_similarity)]
         print("\tTarget: " + hit.id + "\tfinished")
     except:
-        print("\tError while evaluating, see log file '" + log + query + ".log" + "'")
+        print("\t\033[91mError while evaluating, see log file '" + log + query + ".log" + "'\033[0m")
         with open(log + query + ".log", "w") as log_writer:
             log_writer.write(str(traceback.format_exc()))
-    return "\t".join(st_result)
+    return("\t".join(st_result))
 
 
 def calculateHSSPIdentity(length, distance):
@@ -674,7 +715,7 @@ def mergeResults(config, subject, query):
             else:
                 print("\tResult files found, skipping")
         except:
-            print("\tError while merging results, see log file '" + log_path + query + ".log'")
+            print("\t\033[91mError while merging results, see log file '" + log_path + query + ".log'\033[0m")
             with open(log_path + query + ".log", "w") as log_writer:
                 log_writer.write(str(traceback.format_exc()))
 
@@ -737,7 +778,7 @@ def runJalViewMultiprocessing(hit, queries, properties, output, log):
                      stdout=subprocess.PIPE, shell=True)
     res,err = jalview_output.communicate()
     if(err != None):
-        print("\tError while visualizing results, see log file '" + log + query + "_" + id + ".jv_log'")
+        print("\t\033[91mError while visualizing results, see log file '" + log + query + "_" + id + ".jv_log'\033[0m")
 
     os.remove(temp_target)
     os.remove(temp_query)

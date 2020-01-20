@@ -12,8 +12,11 @@ right_addendum: 10000
 exonerate_percentage: 10
 blosum: 45
 pam: 200
+stop_at_stop: 1
+len_cutoff: 50
 hssp_distance: 5
 similarity: 0
+filter_met: 1
 overlap_percentage: 50
 properties: $HOME/.jalview_properties
 threads: 4

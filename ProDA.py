@@ -23,29 +23,28 @@ def readConfigFile(config_path):
 
     return config_data
 
-def buildBLASTDatabase(config):
-    for subject in config["subjects"]:
-        db_path = "blast_dbs/" + subject + "/"
-        log_path = "log/blast_dbs/" + subject + "/"
-        if(not os.path.exists(db_path)):
-            os.makedirs(db_path)
-        if(not os.path.exists(log_path)):
-            os.makedirs(log_path)
+def buildBLASTDatabase(config, subject):
+    db_path = "blast_dbs/" + subject + "/"
+    log_path = "log/blast_dbs/" + subject + "/"
+    if(not os.path.exists(db_path)):
+        os.makedirs(db_path)
+    if(not os.path.exists(log_path)):
+        os.makedirs(log_path)
 
-        files_process = subprocess.Popen("ls -p " + db_path + " | grep -v /$",
-                        stdout=subprocess.PIPE, shell=True)
-        db_files = list(filter(None, files_process.communicate()[0].decode("utf-8").split("\n")))
-        if(not (subject+".nhr" in db_files and subject+".nin" in db_files and subject+".nsq" in db_files)):
-            print("Building database for subject '" + subject + "'")
-            db_output = subprocess.Popen("(makeblastdb -in " + config["subjects"][subject] + ""
-                        " -dbtype nucl -out " + db_path + subject + ") 2> " + log_path + "makeblastdb.log",
-                        stdout=subprocess.PIPE, shell=True)
-            res,err = db_output.communicate()
-            if(res != None):
-                print("Building database for subject '" + subject + "'\tfinished")
-            elif(err != None):
-                print("\033[91mError while building database for subject '" + subject + "',"
-                      " see log file '" + log_path + "'\033[0m")
+    files_process = subprocess.Popen("ls -p " + db_path + " | grep -v /$",
+                    stdout=subprocess.PIPE, shell=True)
+    db_files = list(filter(None, files_process.communicate()[0].decode("utf-8").split("\n")))
+    if(not (subject+".nhr" in db_files and subject+".nin" in db_files and subject+".nsq" in db_files)):
+        print("Building database for subject '" + subject + "'")
+        db_output = subprocess.Popen("(makeblastdb -in " + config["subjects"][subject] + ""
+                    " -dbtype nucl -out " + db_path + subject + ") 2> " + log_path + "makeblastdb.log",
+                    stdout=subprocess.PIPE, shell=True)
+        res,err = db_output.communicate()
+        if(res != None):
+            print("Building database for subject '" + subject + "'\tfinished")
+        elif(err != None):
+            print("\033[91mError while building database for subject '" + subject + "',"
+                  " see log file '" + log_path + "'\033[0m")
         else:
             print("Found database files for subject '" + subject + "', skipping")
 
@@ -65,7 +64,7 @@ def runBLASTCommand(config, subject, query):
             blast_output = subprocess.Popen("(tblastn -query " + config["queries"][query] + ""
                            " -db "+ db_path + " -outfmt '6 qseqid sseqid sstart send evalue'"
                            " -evalue " + str(config["evalue"]) + ""
-                           " -num_threads " + str(config["threads"]) + ""
+                           " -num_threads 1"
                            " > " + blast_path + query + ".hit" + ")"
                            " 2> " + log_path + query + ".log",
                            stdout=subprocess.PIPE, shell=True)
@@ -480,16 +479,18 @@ def evaluateAlignment(config, algorithm, subject, query):
                 hits = list(SeqIO.parse(hits_path, "fasta"))
                 pool = mp.Pool(processes=config["threads"])
                 pool_map = partial(runStretcherMultiprocessing, queries=config["queries"][query],
-                                   distance=config["hssp_distance"], use_sim=config["similarity"], output=output, log=log_path)
+                                   distance=config["hssp_distance"], stop=config["stop_at_stop"],
+                                   len_cutoff=config["len_cutoff"], id_thres=config["identity_threshold"],
+                                   m_fil=config["filter_met"], output=output, log=log_path)
                 stretcher_results = pool.map_async(pool_map, hits)
                 pool.close()
                 pool.join()
                 with open(output + query + ".stretcher", "w") as eval_writer:
-                    eval_writer.write("#id\ttarget\tquery\tidentity\tsimilarity\taln_length\thssp_identity\thssp_similarity\n" + "\n".join(filter(None, stretcher_results.get())))
+                    eval_writer.write("#id\ttarget\tquery\tidentity\tsimilarity\taln_length\thssp_identity\n" + "\n".join(filter(None, stretcher_results.get())))
                 print("Evaluation: subject: " + subject + "\tquery: " + query + "\tfinished")
             else:
                 with open(output + query + ".stretcher", "w") as eval_writer:
-                    eval_writer.write("#id\ttarget\tquery\tidentity\tsimilarity\taln_length\thssp_identity\thssp_similarity\n")
+                    eval_writer.write("#id\ttarget\tquery\tidentity\tsimilarity\taln_length\thssp_identity\n")
         else:
             if(algorithm == "exonerate"):
                 print("\tRequired files for evaluation not found, starting Exonerate")
@@ -501,8 +502,10 @@ def evaluateAlignment(config, algorithm, subject, query):
     else:
         print("\tEvaluation file found, skipping")
 
-def runStretcherMultiprocessing(hit, queries, distance, use_sim, output, log):
-    print("\tTarget: " + hit.id + "\tuse sim: " + str(use_sim))
+def runStretcherMultiprocessing(hit, queries, distance, stop, len_cutoff, id_thres, m_fil, output, log):
+    print("\tTarget: " + hit.id + "\tstop_at_stop: " + str(stop) + ""
+          "\tlength_cutoff_percentage: " + str(len_cutoff) + "\tidentity_threshold: " + str(id_thres) + ""
+          "\tHSSP_distance: " + str(distance) + "\tmet_filter: " + str(m_fil))
     local_index = None
     with lock:
         index.value += 1
@@ -516,7 +519,7 @@ def runStretcherMultiprocessing(hit, queries, distance, use_sim, output, log):
         temp_target = output + query + "_" + str(local_index) + "_target.faa"
 
         translated_sequence = None
-        if(config["stop_at_stop"] > 0):
+        if(stop > 0):
             translated_sequence = str(trimSequence(hit.seq).translate(to_stop=True))
         else:
             translated_sequence = str(trimSequence(hit.seq).translate())
@@ -530,8 +533,8 @@ def runStretcherMultiprocessing(hit, queries, distance, use_sim, output, log):
             query_writer.write(">" + query_fasta[query].id + "\n" + query_seq)
 
         st_result = []
-        if(config["filter_met"] <= 0 or translated_sequence.startswith("M")):
-            if(len(translated_sequence) >= len(query_seq)*(float(config["len_cutoff"])/100)):
+        if(m_fil <= 0 or translated_sequence.startswith("M")):
+            if(len(translated_sequence) >= len(query_seq)*(float(len_cutoff)/100)):
                 temp_output = output + query + "_" + str(local_index) + ".stretcher"
                 os.system("(stretcher -asequence " + temp_query + " -sprotein1"
                           " -bsequence " + temp_target + " -sprotein2 -auto -stdout > " + temp_output + ")"
@@ -552,9 +555,8 @@ def runStretcherMultiprocessing(hit, queries, distance, use_sim, output, log):
                                     similarity = float(line.split("(")[1][:-3].strip())
                                     break
                 hssp_identity = calculateHSSPIdentity(al_length, distance)
-                hssp_similarity = calculateHSSPSimilarity(al_length, distance)
-                if(similarity >= identity and (identity >= hssp_identity or (use_sim > 0 and similarity >= hssp_similarity))):
-                    st_result = [id, subject, query, str(identity), str(similarity), str(al_length), str(hssp_identity), str(hssp_similarity)]
+                if(similarity >= identity and identity >= hssp_identity and identity >= id_thres):
+                    st_result = [id, subject, query, str(identity), str(similarity), str(al_length), str(hssp_identity)]
                 os.remove(temp_output)
 
         os.remove(temp_target)
@@ -576,14 +578,6 @@ def calculateHSSPIdentity(length, distance):
         return distance + 480 * length**(-0.32 * (1 + math.exp(-length / 1000)))
     else:
         return distance + 19.5
-
-def calculateHSSPSimilarity(length, distance):
-    if(length < 9):
-        return 100
-    elif(length < 742):
-        return distance + 420 * length**(-0.335 * (1 + math.exp(-length / 2000)))
-    else:
-        return distance + 9.9
 
 def mergeResults(config, subject, query):
         subject_fasta = SeqIO.index(config["subjects"][subject], "fasta")
@@ -698,7 +692,7 @@ def mergeResults(config, subject, query):
                                 start = int(row_filter[4])
                                 end = int(row_filter[5])
                                 nucl.append(">" + protein + "::" + target + "::" + id + "\n" + str(subject_fasta[target].seq)[start:end])
-                    with open(output + query + ".fna", "w") as cds_writer:
+                    with open(output + query + ".nuc", "w") as cds_writer:
                         cds_writer.write("\n".join(nucl))
 
                     with open(output + query + ".cds", "w") as cds_writer:
@@ -811,8 +805,8 @@ if(not os.path.exists(args.config)):
     print("\033[91mError: Unable to find/access config file named '" + args.config + "'\033[0m.")
 else:
     config = readConfigFile(args.config)
-    buildBLASTDatabase(config)
     for subject in config["subjects"]:
+        buildBLASTDatabase(config, subject)
         for query in config["queries"]:
             visualizeResults(config, subject, query)
     print("Finished ProDA")

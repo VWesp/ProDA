@@ -486,7 +486,8 @@ def evaluateAlignment(config, algorithm, subject, query):
                 pool.close()
                 pool.join()
                 with open(output + query + ".stretcher", "w") as eval_writer:
-                    eval_writer.write("#id\ttarget\tquery\tidentity\tsimilarity\taln_length\thssp_identity\n" + "\n".join(filter(None, stretcher_results.get())))
+                    eval_writer.write("#id\ttarget\tquery\tidentity\tsimilarity\taln_length\thssp_identity\n"
+                                      "" + "\n".join(filter(None, stretcher_results.get())))
                 print("Evaluation: subject: " + subject + "\tquery: " + query + "\tfinished")
             else:
                 with open(output + query + ".stretcher", "w") as eval_writer:
@@ -534,30 +535,29 @@ def runStretcherMultiprocessing(hit, queries, distance, stop, len_cutoff, id_thr
 
         st_result = []
         if(m_fil <= 0 or translated_sequence.startswith("M")):
-            if(len(translated_sequence) >= len(query_seq)*(float(len_cutoff)/100)):
-                temp_output = output + query + "_" + str(local_index) + ".stretcher"
-                os.system("(stretcher -asequence " + temp_query + " -sprotein1"
-                          " -bsequence " + temp_target + " -sprotein2 -auto -stdout > " + temp_output + ")"
-                          " 2> " + log + query + ".log")
-                identity = None
-                al_length = None
-                identity = None
-                similarity = None
-                with open(temp_output, "r") as output_reader:
-                        content = output_reader.readlines()
-                        for line in content:
-                            if(line):
-                                if(line.startswith("# Length")):
-                                    al_length = int(line.split(" ")[2].strip())
-                                if(line.startswith("# Identity")):
-                                    identity = float(line.split("(")[1][:-3].strip())
-                                if(line.startswith("# Similarity")):
-                                    similarity = float(line.split("(")[1][:-3].strip())
-                                    break
-                hssp_identity = calculateHSSPIdentity(al_length, distance)
-                if(similarity >= identity and identity >= hssp_identity and identity >= id_thres):
-                    st_result = [id, subject, query, str(identity), str(similarity), str(al_length), str(hssp_identity)]
-                os.remove(temp_output)
+            temp_output = output + query + "_" + str(local_index) + ".stretcher"
+            os.system("(stretcher -asequence " + temp_query + " -sprotein1"
+                      " -bsequence " + temp_target + " -sprotein2 -auto -stdout > " + temp_output + ")"
+                      " 2> " + log + query + ".log")
+            identity = None
+            al_length = None
+            identity = None
+            similarity = None
+            with open(temp_output, "r") as output_reader:
+                    content = output_reader.readlines()
+                    for line in content:
+                        if(line):
+                            if(line.startswith("# Length")):
+                                al_length = int(line.split(" ")[2].strip())
+                            if(line.startswith("# Identity")):
+                                identity = float(line.split("(")[1][:-3].strip())
+                            if(line.startswith("# Similarity")):
+                                similarity = float(line.split("(")[1][:-3].strip())
+                                break
+            hssp_identity = calculateHSSPIdentity(al_length, distance)
+            if(similarity >= identity and identity >= hssp_identity and identity >= id_thres):
+                st_result = [id, subject, query, str(identity), str(similarity), str(al_length), str(hssp_identity)]
+            os.remove(temp_output)
 
         os.remove(temp_target)
         os.remove(temp_query)

@@ -64,7 +64,7 @@ def runBLASTCommand(config, subject, query):
             blast_output = subprocess.Popen("(tblastn -query " + config["queries"][query] + ""
                            " -db "+ db_path + " -outfmt '6 qseqid sseqid sstart send evalue'"
                            " -evalue " + str(config["evalue"]) + ""
-                           " -num_threads 1"
+                           " -num_threads " + config["num_threads"] + ""
                            " > " + blast_path + query + ".hit" + ")"
                            " 2> " + log_path + query + ".log",
                            stdout=subprocess.PIPE, shell=True)
@@ -480,8 +480,8 @@ def evaluateAlignment(config, algorithm, subject, query):
                 pool = mp.Pool(processes=config["threads"])
                 pool_map = partial(runStretcherMultiprocessing, queries=config["queries"][query],
                                    distance=config["hssp_distance"], stop=config["stop_at_stop"],
-                                   len_cutoff=config["len_cutoff"], id_thres=config["identity_threshold"],
-                                   m_fil=config["filter_met"], output=output, log=log_path)
+                                   id_thres=config["identity_threshold"], m_fil=config["filter_met"],
+                                   output=output, log=log_path)
                 stretcher_results = pool.map_async(pool_map, hits)
                 pool.close()
                 pool.join()
@@ -503,9 +503,9 @@ def evaluateAlignment(config, algorithm, subject, query):
     else:
         print("\tEvaluation file found, skipping")
 
-def runStretcherMultiprocessing(hit, queries, distance, stop, len_cutoff, id_thres, m_fil, output, log):
+def runStretcherMultiprocessing(hit, queries, distance, stop, id_thres, m_fil, output, log):
     print("\tTarget: " + hit.id + "\tstop_at_stop: " + str(stop) + ""
-          "\tlength_cutoff_percentage: " + str(len_cutoff) + "\tidentity_threshold: " + str(id_thres) + ""
+          "\tidentity_threshold: " + str(id_thres) + ""
           "\tHSSP_distance: " + str(distance) + "\tmet_filter: " + str(m_fil))
     local_index = None
     with lock:

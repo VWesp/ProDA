@@ -1,22 +1,40 @@
 subjects:
-  csp: data/subjects/csp.fna
   cre: data/subjects/cre.fna
+  ceury: data/subjects/ceury.fna
+  csp: data/subjects/csp.fna
+  ceustigma: data/subjects/ceustigma.fna
+  gpe: data/subjects/gpe.fna
+  hpl: data/subjects/hpl.fna
+  pmi: data/subjects/pmi.fna
+  ppr: data/subjects/ppr.fna
+  egr: data/subjects/egr.fna
 queries:
   actin: data/queries/actin.faa
   beta_tubulin2: data/queries/beta_tubulin2.faa
+  ath_phytochromes: data/queries/ath_phytochromes.faa
   cre_photoreceptors: data/queries/cre_photoreceptors.faa
+  lov_domains: data/queries/lov_domains.faa
+  cav_channels: data/queries/cav_channels.faa
+  cng_channels: data/queries/cng_channels.faa
+  cys-loop_channels: data/queries/cys-loop_channels.faa
+  glr_channels: data/queries/glr_channels.faa
+  ip3r_channels: data/queries/ip3r_channels.faa
+  mscs_channels: data/queries/mscs_channels.faa
+  trp_channels: data/queries/trp_channels.faa
+  citrate_synthases: data/queries/citrate_synthases.faa
+  nitrogen: data/queries/nitrogen.faa
+  acetate: data/queries/acetate_assimilation.faa
 
-evalue: 1e-4
+evalue: 1
 left_addendum: 10000
 right_addendum: 10000
 exonerate_percentage: 10
 blosum: 45
 pam: 200
 stop_at_stop: 1
-len_cutoff: 50
 hssp_distance: 5
 identity_threshold: 30
 filter_met: 1
 overlap_percentage: 50
 properties: $HOME/.jalview_properties
-threads: 4
+threads: 20

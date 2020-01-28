@@ -64,7 +64,7 @@ def runBLASTCommand(config, subject, query):
             blast_output = subprocess.Popen("(tblastn -query " + config["queries"][query] + ""
                            " -db "+ db_path + " -outfmt '6 qseqid sseqid sstart send evalue'"
                            " -evalue " + str(config["evalue"]) + ""
-                           " -num_threads " + config["num_threads"] + ""
+                           " -num_threads " + str(config["threads"]) + ""
                            " > " + blast_path + query + ".hit" + ")"
                            " 2> " + log_path + query + ".log",
                            stdout=subprocess.PIPE, shell=True)

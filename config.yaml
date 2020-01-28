@@ -1,13 +1,5 @@
 subjects:
   cre: data/subjects/cre.fna
-  ceury: data/subjects/ceury.fna
-  csp: data/subjects/csp.fna
-  ceustigma: data/subjects/ceustigma.fna
-  gpe: data/subjects/gpe.fna
-  hpl: data/subjects/hpl.fna
-  pmi: data/subjects/pmi.fna
-  ppr: data/subjects/ppr.fna
-  egr: data/subjects/egr.fna
 queries:
   actin: data/queries/actin.faa
   beta_tubulin2: data/queries/beta_tubulin2.faa
@@ -31,10 +23,10 @@ right_addendum: 10000
 exonerate_percentage: 10
 blosum: 45
 pam: 200
-stop_at_stop: 1
-hssp_distance: 5
-identity_threshold: 30
+stop_at_stop: 0
+hssp_distance: 0
+identity_threshold: 25
 filter_met: 1
-overlap_percentage: 50
+overlap_percentage: 70
 properties: $HOME/.jalview_properties
-threads: 20
+threads: 4

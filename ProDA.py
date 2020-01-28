@@ -572,12 +572,17 @@ def trimSequence(seq):
     return seq[:len(seq)-len(seq)%3]
 
 def calculateHSSPIdentity(length, distance):
-    if(length < 12):
-        return 100
-    elif(length < 418):
-        return distance + 480 * length**(-0.32 * (1 + math.exp(-length / 1000)))
+    if(length >= 418):
+        if(distance + 19.5 > 100):
+            return 100
+        else:
+            return distance + 19.5
     else:
-        return distance + 19.5
+        hssp_distance = distance + 480 * length**(-0.32 * (1 + math.exp(-length / 1000)))
+        if(hssp_distance > 100):
+            return 100
+        else:
+            return hssp_distance
 
 def mergeResults(config, subject, query):
         subject_fasta = SeqIO.index(config["subjects"][subject], "fasta")

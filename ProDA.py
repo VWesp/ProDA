@@ -812,12 +812,9 @@ if(not os.path.exists(args.config)):
 else:
     config = readConfigFile(args.config)
     for subject in config["subjects"]:
-        shutil.copyfile(config["subjects"][subject], config["subjects"][subject] + "_copy")
-        config["subjects"][subject] = config["subjects"][subject] + "_copy"
-        os.system("sed -i 's/ /_/g' " + config["subjects"][subject])
+        os.system("sed -i 's/[ |]/_/g' " + config["subjects"][subject])
         buildBLASTDatabase(config, subject)
         for query in config["queries"]:
             visualizeResults(config, subject, query)
-
-        os.remove(config["subjects"][subject])
+    shutil.rmtree("log")
     print("Finished ProDA")

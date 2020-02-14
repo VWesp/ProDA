@@ -17,15 +17,15 @@ queries:
   nitrogen: data/queries/nitrogen.faa
   acetate: data/queries/acetate_assimilation.faa
 
-evalue: 1
+evalue: 0.1
 left_addendum: 10000
 right_addendum: 10000
 exonerate_percentage: 10
 blosum: 45
 pam: 200
-stop_at_stop: 0
+stop_at_stop: 1
 hssp_distance: 0
-identity_threshold: 25
+identity_threshold: 30
 filter_met: 1
 overlap_percentage: 70
 properties: $HOME/.jalview_properties

@@ -632,6 +632,7 @@ def mergeResults(config, subject, query):
                                            id_rows = sp_gff_df.loc[sp_gff_df["id"] == str(sp_row["#id"])]
                                            id_rows["id"] = str(hit_id)
                                            header = "##" +  sp_row["target"] + "\t" + sp_row["query"] + "\t" + str(hit_id)
+                                           id_rows.set_option('display.max_colwidth', -1)
                                            gff_list.append(header + "\n" + id_rows.to_string(header=False, index=False))
                                            cds_list.append(">" + sp_row["query"] + "::" + sp_row["target"] + "::" + str(hit_id) + "\n" + sp_seq)
                                            hit_id += 1
@@ -639,6 +640,7 @@ def mergeResults(config, subject, query):
                                            id_rows = ex_gff_df.loc[ex_gff_df["id"] == ex_row["#id"]]
                                            id_rows["id"] = str(hit_id)
                                            header = "##" +  ex_row["target"] + "\t" + ex_row["query"] + "\t" + str(hit_id)
+                                           id_rows.set_option('display.max_colwidth', -1)
                                            gff_list.append(header + "\n" + id_rows.to_string(header=False, index=False).strip())
                                            cds_list.append(">" + ex_row["query"] + "::" + ex_row["target"] + "::" + str(hit_id) + "\n" + ex_seq)
                                            hit_id += 1
@@ -646,6 +648,7 @@ def mergeResults(config, subject, query):
                                         id_rows = sp_gff_df.loc[sp_gff_df["id"] == sp_row["#id"]]
                                         id_rows["id"] = hit_id
                                         header = "##" +  sp_row["target"] + "\t" + sp_row["query"] + "\t" + str(hit_id)
+                                        id_rows.set_option('display.max_colwidth', -1)
                                         gff_list.append(header + "\n" + id_rows.to_string(header=False, index=False))
                                         cds_list.append(">" + sp_row["query"] + "::" + sp_row["target"] + "::" + str(hit_id) + "\n" + sp_seq)
                                         hit_id += 1
@@ -653,6 +656,7 @@ def mergeResults(config, subject, query):
                                         id_rows = ex_gff_df.loc[ex_gff_df["id"] == ex_row["#id"]]
                                         id_rows["id"] = str(hit_id)
                                         header = "##" +  ex_row["target"] + "\t" + ex_row["query"] + "\t" + str(hit_id)
+                                        id_rows.set_option('display.max_colwidth', -1)
                                         gff_list.append(header + "\n" + id_rows.to_string(header=False, index=False))
                                         cds_list.append(">" + ex_row["query"] + "::" + ex_row["target"] + "::" + str(hit_id) + "\n" + ex_seq)
                                         hit_id += 1
@@ -664,6 +668,7 @@ def mergeResults(config, subject, query):
                             id_rows["id"] = str(hit_id)
                             header = "##" +  sp_row["target"] + "\t" + sp_row["query"] + "\t" + str(hit_id)
                             sp_header = sp_row["query"] + "::" + sp_row["target"] + "::" + sp_row["#id"]
+                            id_rows.set_option('display.max_colwidth', -1)
                             gff_list.append(header + "\n" + id_rows.to_string(header=False, index=False))
                             cds_list.append(">" + sp_row["query"] + "::" + sp_row["target"] + "::" + str(hit_id) + "\n" + str(sp_sequences[sp_header].seq))
                             hit_id += 1
@@ -674,6 +679,7 @@ def mergeResults(config, subject, query):
                             id_rows["id"] = str(hit_id)
                             header = "##" +  ex_row["target"] + "\t" + ex_row["query"] + "\t" + str(hit_id)
                             ex_header = ex_row["query"] + "::" + ex_row["target"] + "::" + ex_row["#id"]
+                            id_rows.set_option('display.max_colwidth', -1)
                             gff_list.append(header + "\n" + id_rows.to_string(header=False, index=False))
                             cds_list.append(">" + ex_row["query"] + "::" + ex_row["target"] + "::" + str(hit_id) + "\n" + str(ex_sequences[ex_header].seq))
                             hit_id += 1

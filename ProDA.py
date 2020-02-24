@@ -25,8 +25,8 @@ def readConfigFile(config_path):
     return config_data
 
 def buildBLASTDatabase(config, subject):
-    db_path = "blast_dbs/" + subject + "/"
-    log_path = "log/blast_dbs/" + subject + "/"
+    db_path = "ProDA/blast_dbs/" + subject + "/"
+    log_path = "ProDA/log/blast_dbs/" + subject + "/"
     if(not os.path.exists(db_path)):
         os.makedirs(db_path)
     if(not os.path.exists(log_path)):
@@ -50,14 +50,14 @@ def buildBLASTDatabase(config, subject):
             print("Found database files for subject '" + subject + "', skipping")
 
 def runBLASTCommand(config, subject, query):
-    blast_path = "blast_results/" + subject + "/"
-    log_path = "log/blast_results/" + subject + "/"
+    blast_path = "ProDA/blast_results/" + subject + "/"
+    log_path = "ProDA/log/blast_results/" + subject + "/"
     if(not os.path.exists(blast_path)):
         os.makedirs(blast_path)
     if(not os.path.exists(log_path)):
         os.makedirs(log_path)
 
-    db_path = "blast_dbs/" + subject + "/" + subject
+    db_path = "ProDA/blast_dbs/" + subject + "/" + subject
     if(not os.path.exists(blast_path + query + ".fna")):
         print("Matcher: subject: " + subject + "\tquery: " + query)
         if(not os.path.exists(blast_path + query + ".hit")):
@@ -154,15 +154,15 @@ def matchBLASTPositions(hit_path, subject, lad, rad, log):
             fasta_writer.write("")
 
 def runExonerateCommand(config, subject, query):
-    ex_output = "alignment/exonerate/" + subject + "/"
-    log_path = "log/alignment/exonerate/" + subject + "/"
+    ex_output = "ProDA/alignment/exonerate/" + subject + "/"
+    log_path = "ProDA/log/alignment/exonerate/" + subject + "/"
     if(not os.path.exists(ex_output)):
         os.makedirs(ex_output)
     if(not os.path.exists(log_path)):
         os.makedirs(log_path)
 
     print("Exonerate: subject: " + subject + "\tquery: " + query)
-    blast_seq = "blast_results/" + subject + "/" + query + ".fna"
+    blast_seq = "ProDA/blast_results/" + subject + "/" + query + ".fna"
     if(not (os.path.exists(ex_output + query + ".gff") and os.path.exists(ex_output + query + ".cds"))):
         if(not os.path.exists(ex_output + query + ".ryo")):
             if(os.path.exists(blast_seq)):
@@ -304,15 +304,15 @@ def parseExonerateResults(ryo_results):
             cds_writer.write("")
 
 def runSpalnCommand(config, subject, query):
-    sp_output = "alignment/spaln/" + subject + "/"
-    log_path = "log/alignment/spaln/" + subject + "/"
+    sp_output = "ProDA/alignment/spaln/" + subject + "/"
+    log_path = "ProDA/log/alignment/spaln/" + subject + "/"
     if(not os.path.exists(sp_output)):
         os.makedirs(sp_output)
     if(not os.path.exists(log_path)):
         os.makedirs(log_path)
 
     print("Spaln: subject: " + subject + "\tquery: " + query)
-    blast_seq = "blast_results/" + subject + "/" + query + ".fna"
+    blast_seq = "ProDA/blast_results/" + subject + "/" + query + ".fna"
     if(not (os.path.exists(sp_output + query + ".gff") and os.path.exists(sp_output + query + ".cds"))):
         if(not os.path.exists(sp_output + query + ".sp")):
             if(os.path.exists(blast_seq)):
@@ -374,7 +374,7 @@ def runSpalnMultiprocessing(match, queries, pam, output, log):
         query_writer.write(">" + query_fasta[query].id + "\n" + str(query_fasta[query].seq))
 
     temp_output = output + query + "_" + str(local_index) + ".sp"
-    spaln_output = subprocess.Popen("(spaln -M4 -N1 -Q3 -S3 -yp" + str(pam) + " -yq" + str(pam) + ""
+    spaln_output = subprocess.Popen("($HOME/spaln2.4.0/bin/spaln -M4 -N1 -Q3 -S3 -yp" + str(pam) + " -yq" + str(pam) + ""
                    " -O6 -o" + temp_output + " " + temp_target + " " + temp_query + ")"
                    " 2> " + log + query + ".log",
                    stdout=subprocess.PIPE, shell=True)
@@ -463,16 +463,16 @@ def parseSpalnResults(sp_results):
             cds_writer.write("")
 
 def evaluateAlignment(config, algorithm, subject, query):
-    output = "evaluation/" + algorithm + "/" + subject + "/"
-    log_path = "log/evaluation/" + algorithm + "/" + subject + "/"
+    output = "ProDA/evaluation/" + algorithm + "/" + subject + "/"
+    log_path = "ProDA/log/evaluation/" + algorithm + "/" + subject + "/"
     if(not os.path.exists(output)):
         os.makedirs(output)
     if(not os.path.exists(log_path)):
         os.makedirs(log_path)
 
     print("Evaluation: subject: " + subject + "\tquery: " + query)
-    hits_path = "alignment/" + algorithm + "/" + subject + "/" + query + ".cds"
-    gff = "alignment/" + algorithm + "/" + subject + "/" + query + ".gff"
+    hits_path = "ProDA/alignment/" + algorithm + "/" + subject + "/" + query + ".cds"
+    gff = "ProDA/alignment/" + algorithm + "/" + subject + "/" + query + ".gff"
     if(not os.path.exists(output + query + ".stretcher")):
         if(os.path.exists(hits_path) and os.path.exists(gff)):
             if(os.stat(hits_path).st_size != 0):
@@ -481,8 +481,8 @@ def evaluateAlignment(config, algorithm, subject, query):
                 pool = mp.Pool(processes=config["threads"])
                 pool_map = partial(runStretcherMultiprocessing, queries=config["queries"][query],
                                    distance=config["hssp_distance"], stop=config["stop_at_stop"],
-                                   id_thres=config["identity_threshold"], m_fil=config["filter_met"],
-                                   output=output, log=log_path)
+                                   id_thres=config["identity_threshold"], sim_thres=config["similarity_threshold"],
+                                   m_fil=config["filter_met"], output=output, log=log_path)
                 stretcher_results = pool.map_async(pool_map, hits)
                 pool.close()
                 pool.join()
@@ -504,9 +504,9 @@ def evaluateAlignment(config, algorithm, subject, query):
     else:
         print("\tEvaluation file found, skipping")
 
-def runStretcherMultiprocessing(hit, queries, distance, stop, id_thres, m_fil, output, log):
+def runStretcherMultiprocessing(hit, queries, distance, stop, id_thres, sim_thres, m_fil, output, log):
     print("\tTarget: " + hit.id + "\tstop_at_stop: " + str(stop) + ""
-          "\tidentity_threshold: " + str(id_thres) + ""
+          "\tidentity_threshold: " + str(id_thres) + "\tsimilarity_threshold: " + str(sim_thres) + ""
           "\tHSSP_distance: " + str(distance) + "\tmet_filter: " + str(m_fil))
     local_index = None
     with lock:
@@ -556,7 +556,8 @@ def runStretcherMultiprocessing(hit, queries, distance, stop, id_thres, m_fil, o
                                 similarity = float(line.split("(")[1][:-3].strip())
                                 break
             hssp_identity = calculateHSSPIdentity(al_length, distance)
-            if(similarity >= identity and identity >= hssp_identity and identity >= id_thres):
+            hssp_similarity = calculateHSSPSimilarity(al_length, distance)
+            if(identity >= hssp_identity and similarity >= hssp_similarity and identity >= id_thres and similarity >= sim_thres):
                 st_result = [id, subject, query, str(identity), str(similarity), str(al_length), str(hssp_identity)]
             os.remove(temp_output)
 
@@ -585,31 +586,44 @@ def calculateHSSPIdentity(length, distance):
         else:
             return hssp_distance
 
+def calculateHSSPSimilarity(length, distance):
+    if(length >= 742):
+        if(distance + 9.9 > 100):
+            return 100
+        else:
+            return distance + 9.9
+    else:
+        hssp_distance = distance + 420 * length**(-0.335 * (1 + math.exp(-length / 2000)))
+        if(hssp_distance > 100):
+            return 100
+        else:
+            return hssp_distance
+
 def mergeResults(config, subject, query):
         subject_fasta = SeqIO.index(config["subjects"][subject], "fasta")
         print("Merging: subject: " + subject + "\tquery: " + query + "\toverlap percent: " + str(config["overlap_percentage"]))
         try:
-            output = "results/" + subject + "/" + query + "/"
-            log_path = "log/results/" + subject + "/" + query + "/"
+            output = "ProDA/results/" + subject + "/" + query + "/"
+            log_path = "ProDA/log/results/" + subject + "/" + query + "/"
             if(not os.path.exists(output)):
                 os.makedirs(output)
             if(not os.path.exists(log_path)):
                 os.makedirs(log_path)
             gff_list = ["#subject\tquery\talgorithm\ttype\tstart\tend\torientation\tscore\tid"]
             cds_list = []
-            ex_gff = "alignment/exonerate/" + subject + "/" + query + ".gff"
-            ex_stretcher = "evaluation/exonerate/" + subject + "/" + query + ".stretcher"
+            ex_gff = "ProDA/alignment/exonerate/" + subject + "/" + query + ".gff"
+            ex_stretcher = "ProDA/evaluation/exonerate/" + subject + "/" + query + ".stretcher"
             ex_id_list = []
-            sp_gff = "alignment/spaln/" + subject + "/" + query + ".gff"
-            sp_stretcher = "evaluation/spaln/" + subject + "/" + query + ".stretcher"
+            sp_gff = "ProDA/alignment/spaln/" + subject + "/" + query + ".gff"
+            sp_stretcher = "ProDA/evaluation/spaln/" + subject + "/" + query + ".stretcher"
             sp_id_list = []
             hit_id = 0
             if(not (os.path.exists(output + query + ".gff") or os.path.exists(output + query + ".nuc") or os.path.exists(output + query + ".cds") or os.path.exists(output + query + ".pep"))):
                 if(os.path.exists(ex_gff) and os.path.exists(ex_stretcher) and os.path.exists(sp_gff) and os.path.exists(sp_stretcher)):
-                    sp_sequences = SeqIO.index("alignment/spaln/" + subject + "/" + query + ".cds", "fasta")
+                    sp_sequences = SeqIO.index("ProDA/alignment/spaln/" + subject + "/" + query + ".cds", "fasta")
                     sp_gff_df = pd.read_csv(sp_gff, sep="\t", header=0).astype(str)
                     sp_eval_df = pd.read_csv(sp_stretcher, sep="\t", header=0).astype(str)
-                    ex_sequences = SeqIO.index("alignment/exonerate/" + subject + "/" + query + ".cds", "fasta")
+                    ex_sequences = SeqIO.index("ProDA/alignment/exonerate/" + subject + "/" + query + ".cds", "fasta")
                     ex_gff_df = pd.read_csv(ex_gff, sep="\t", header=0).astype(str)
                     ex_eval_df = pd.read_csv(ex_stretcher, sep="\t", header=0).astype(str)
                     for sp_index,sp_row in sp_eval_df.iterrows():
@@ -632,28 +646,28 @@ def mergeResults(config, subject, query):
                                        if(float(sp_id_row["score"]) >= float(ex_id_row["score"])):
                                            id_rows = sp_gff_df.loc[sp_gff_df["id"] == str(sp_row["#id"])]
                                            id_rows["id"] = str(hit_id)
-                                           header = "##" +  sp_row["target"] + "\t" + sp_row["query"] + "\t" + str(hit_id)
+                                           header = "##" +  sp_row["target"] + "\t" + sp_row["query"] + "\tid:" + sp_row["identity"] + "%\tsim:" + sp_row["similarity"] + "%\t" + str(hit_id)
                                            gff_list.append(header + "\n" + id_rows.to_string(header=False, index=False))
                                            cds_list.append(">" + sp_row["query"] + "::" + sp_row["target"] + "::" + str(hit_id) + "\n" + sp_seq)
                                            hit_id += 1
                                        else:
                                            id_rows = ex_gff_df.loc[ex_gff_df["id"] == ex_row["#id"]]
                                            id_rows["id"] = str(hit_id)
-                                           header = "##" +  ex_row["target"] + "\t" + ex_row["query"] + "\t" + str(hit_id)
+                                           header = "##" +  ex_row["target"] + "\t" + ex_row["query"] + "\tid:" + ex_row["identity"] + "%\tsim:" + ex_row["similarity"] + "%\t" + str(hit_id)
                                            gff_list.append(header + "\n" + id_rows.to_string(header=False, index=False).strip())
                                            cds_list.append(">" + ex_row["query"] + "::" + ex_row["target"] + "::" + str(hit_id) + "\n" + ex_seq)
                                            hit_id += 1
                                     elif(sp_seq.startswith("ATG")):
                                         id_rows = sp_gff_df.loc[sp_gff_df["id"] == sp_row["#id"]]
                                         id_rows["id"] = hit_id
-                                        header = "##" +  sp_row["target"] + "\t" + sp_row["query"] + "\t" + str(hit_id)
+                                        header = "##" +  sp_row["target"] + "\t" + sp_row["query"] + "\tid:" + sp_row["identity"] + "%\tsim:" + sp_row["similarity"] + "%\t" + str(hit_id)
                                         gff_list.append(header + "\n" + id_rows.to_string(header=False, index=False))
                                         cds_list.append(">" + sp_row["query"] + "::" + sp_row["target"] + "::" + str(hit_id) + "\n" + sp_seq)
                                         hit_id += 1
                                     else:
                                         id_rows = ex_gff_df.loc[ex_gff_df["id"] == ex_row["#id"]]
                                         id_rows["id"] = str(hit_id)
-                                        header = "##" +  ex_row["target"] + "\t" + ex_row["query"] + "\t" + str(hit_id)
+                                        header = "##" +  ex_row["target"] + "\t" + ex_row["query"] + "\tid:" + ex_row["identity"] + "%\tsim:" + ex_row["similarity"] + "%\t" + str(hit_id)
                                         gff_list.append(header + "\n" + id_rows.to_string(header=False, index=False))
                                         cds_list.append(">" + ex_row["query"] + "::" + ex_row["target"] + "::" + str(hit_id) + "\n" + ex_seq)
                                         hit_id += 1
@@ -663,7 +677,7 @@ def mergeResults(config, subject, query):
                         if(not sp_row["#id"] in sp_id_list):
                             id_rows = sp_gff_df.loc[sp_gff_df["id"] == sp_row["#id"]]
                             id_rows["id"] = str(hit_id)
-                            header = "##" +  sp_row["target"] + "\t" + sp_row["query"] + "\t" + str(hit_id)
+                            header = "##" +  sp_row["target"] + "\t" + sp_row["query"] + "\tid:" + sp_row["identity"] + "%\tsim:" + sp_row["similarity"] + "%\t" + str(hit_id)
                             sp_header = sp_row["query"] + "::" + sp_row["target"] + "::" + sp_row["#id"]
                             gff_list.append(header + "\n" + id_rows.to_string(header=False, index=False))
                             cds_list.append(">" + sp_row["query"] + "::" + sp_row["target"] + "::" + str(hit_id) + "\n" + str(sp_sequences[sp_header].seq))
@@ -673,7 +687,7 @@ def mergeResults(config, subject, query):
                         if(not ex_row["#id"] in ex_id_list):
                             id_rows = ex_gff_df.loc[ex_gff_df["id"] == ex_row["#id"]]
                             id_rows["id"] = str(hit_id)
-                            header = "##" +  ex_row["target"] + "\t" + ex_row["query"] + "\t" + str(hit_id)
+                            header = "##" +  ex_row["target"] + "\t" + ex_row["query"] + "\tid:" + ex_row["identity"] + "%\tsim:" + ex_row["similarity"] + "%\t" + str(hit_id)
                             ex_header = ex_row["query"] + "::" + ex_row["target"] + "::" + ex_row["#id"]
                             gff_list.append(header + "\n" + id_rows.to_string(header=False, index=False))
                             cds_list.append(">" + ex_row["query"] + "::" + ex_row["target"] + "::" + str(hit_id) + "\n" + str(ex_sequences[ex_header].seq))
@@ -746,13 +760,13 @@ def calculateOverlapPercentage(start1, end1, start2, end2):
 
 def visualizeResults(config, subject, query):
     print("Visualizing results, subject: " + subject + "\tquery: " + query + "\tprop file: " + config["properties"])
-    protein = "results/" + subject + "/" + query + "/" + query + ".pep"
-    output = "results/" + subject + "/" + query + "/alignment/"
+    protein = "ProDA/results/" + subject + "/" + query + "/" + query + ".pep"
+    output = "ProDA/results/" + subject + "/" + query + "/alignment/"
     if(not os.path.exists(output)):
         if(os.path.exists(protein)):
             index.value = -1
             os.makedirs(output)
-            log_path = "log/results/" + subject + "/" + query + "/alignment/"
+            log_path = "ProDA/log/results/" + subject + "/" + query + "/alignment/"
             if(not os.path.exists(log_path)):
                 os.makedirs(log_path)
             protein_fasta = list(SeqIO.parse(protein, "fasta"))
@@ -806,15 +820,26 @@ def runJalViewMultiprocessing(hit, queries, properties, output, log):
 
 parser = argparse.ArgumentParser(description="ProDA (Protein-DNA-Aligner): Search for protein sequences in DNA sequences with the Exonerate and Spaln alignment tools and analyze the results.")
 parser.add_argument("-c", "--config", help="Path to config.yaml file", default="config.yaml")
+parser.add_argument("-f", "--force", help="Force a rerun of the procedure involving all steps", action="store_true")
 args = parser.parse_args()
 if(not os.path.exists(args.config)):
     print("\033[91mError: Unable to find/access config file named '" + args.config + "'\033[0m.")
 else:
+    if(args.force):
+        if(os.path.exists("ProDA")):
+            shutil.rmtree("ProDA")
+        if(os.path.exists("ProDA.zip")):
+            os.remove("ProDA.zip")
+    if(not os.path.exists("ProDA")):
+        os.makedirs("ProDA")
+
     config = readConfigFile(args.config)
     for subject in config["subjects"]:
         os.system("sed -i 's/[ |]/_/g' " + config["subjects"][subject])
         buildBLASTDatabase(config, subject)
         for query in config["queries"]:
             visualizeResults(config, subject, query)
-    shutil.rmtree("log")
+    print("Compressing results")
+    shutil.make_archive("ProDA", "zip", "ProDA")
+    shutil.rmtree("ProDA")
     print("Finished ProDA")

@@ -706,7 +706,7 @@ def mergeResults(config, subject, query):
                             if(row[0].startswith("##")):
                                 target = row[0][2:]
                                 protein = row[1]
-                                id = row[2]
+                                id = row[4]
                             elif(len(row) == 1 and row[0].split(" ")[7] == "gene"):
                                 row_filter = list(filter(None, row[0].split(" ")))
                                 start = int(row_filter[4])

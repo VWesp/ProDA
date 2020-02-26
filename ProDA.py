@@ -556,8 +556,7 @@ def runStretcherMultiprocessing(hit, queries, distance, stop, id_thres, sim_thre
                                 similarity = float(line.split("(")[1][:-3].strip())
                                 break
             hssp_identity = calculateHSSPIdentity(al_length, distance)
-            hssp_similarity = calculateHSSPSimilarity(al_length, distance)
-            if(identity >= hssp_identity and similarity >= hssp_similarity and identity >= id_thres and similarity >= sim_thres):
+            if(identity >= hssp_identity):
                 st_result = [id, subject, query, str(identity), str(similarity), str(al_length), str(hssp_identity)]
             os.remove(temp_output)
 
@@ -581,19 +580,6 @@ def calculateHSSPIdentity(length, distance):
             return distance + 19.5
     else:
         hssp_distance = distance + 480 * length**(-0.32 * (1 + math.exp(-length / 1000)))
-        if(hssp_distance > 100):
-            return 100
-        else:
-            return hssp_distance
-
-def calculateHSSPSimilarity(length, distance):
-    if(length >= 742):
-        if(distance + 9.9 > 100):
-            return 100
-        else:
-            return distance + 9.9
-    else:
-        hssp_distance = distance + 420 * length**(-0.335 * (1 + math.exp(-length / 2000)))
         if(hssp_distance > 100):
             return 100
         else:

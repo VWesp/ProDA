@@ -647,28 +647,36 @@ def mergeResults(config, subject, query):
                                            id_rows = sp_gff_df.loc[sp_gff_df["id"] == str(sp_row["#id"])]
                                            id_rows["id"] = str(hit_id)
                                            header = "##" +  sp_row["target"] + "\t" + sp_row["query"] + "\tid:" + sp_row["identity"] + "%\tsim:" + sp_row["similarity"] + "%\t" + str(hit_id)
-                                           gff_list.append(header + "\n" + id_rows.to_string(header=False, index=False))
+                                           rows = id_rows.to_string(header=False, index=False).split("\n")
+                                           formatted_rows = ["\t".join(list(filter(None, row.split(" ")))) for row in rows]
+                                           gff_list.append(header + "\n" + "\n".join(formatted_rows))
                                            cds_list.append(">" + sp_row["query"] + "::" + sp_row["target"] + "::" + str(hit_id) + "\n" + sp_seq)
                                            hit_id += 1
                                        else:
                                            id_rows = ex_gff_df.loc[ex_gff_df["id"] == ex_row["#id"]]
                                            id_rows["id"] = str(hit_id)
                                            header = "##" +  ex_row["target"] + "\t" + ex_row["query"] + "\tid:" + ex_row["identity"] + "%\tsim:" + ex_row["similarity"] + "%\t" + str(hit_id)
-                                           gff_list.append(header + "\n" + id_rows.to_string(header=False, index=False).strip())
+                                           rows = id_rows.to_string(header=False, index=False).split("\n")
+                                           formatted_rows = ["\t".join(list(filter(None, row.split(" ")))) for row in rows]
+                                           gff_list.append(header + "\n" + "\n".join(formatted_rows))
                                            cds_list.append(">" + ex_row["query"] + "::" + ex_row["target"] + "::" + str(hit_id) + "\n" + ex_seq)
                                            hit_id += 1
                                     elif(sp_seq.startswith("ATG")):
                                         id_rows = sp_gff_df.loc[sp_gff_df["id"] == sp_row["#id"]]
                                         id_rows["id"] = hit_id
                                         header = "##" +  sp_row["target"] + "\t" + sp_row["query"] + "\tid:" + sp_row["identity"] + "%\tsim:" + sp_row["similarity"] + "%\t" + str(hit_id)
-                                        gff_list.append(header + "\n" + id_rows.to_string(header=False, index=False))
+                                        rows = id_rows.to_string(header=False, index=False).split("\n")
+                                        formatted_rows = ["\t".join(list(filter(None, row.split(" ")))) for row in rows]
+                                        gff_list.append(header + "\n" + "\n".join(formatted_rows))
                                         cds_list.append(">" + sp_row["query"] + "::" + sp_row["target"] + "::" + str(hit_id) + "\n" + sp_seq)
                                         hit_id += 1
                                     else:
                                         id_rows = ex_gff_df.loc[ex_gff_df["id"] == ex_row["#id"]]
                                         id_rows["id"] = str(hit_id)
                                         header = "##" +  ex_row["target"] + "\t" + ex_row["query"] + "\tid:" + ex_row["identity"] + "%\tsim:" + ex_row["similarity"] + "%\t" + str(hit_id)
-                                        gff_list.append(header + "\n" + id_rows.to_string(header=False, index=False))
+                                        rows = id_rows.to_string(header=False, index=False).split("\n")
+                                        formatted_rows = ["\t".join(list(filter(None, row.split(" ")))) for row in rows]
+                                        gff_list.append(header + "\n" + "\n".join(formatted_rows))
                                         cds_list.append(">" + ex_row["query"] + "::" + ex_row["target"] + "::" + str(hit_id) + "\n" + ex_seq)
                                         hit_id += 1
                                     break
@@ -679,7 +687,9 @@ def mergeResults(config, subject, query):
                             id_rows["id"] = str(hit_id)
                             header = "##" +  sp_row["target"] + "\t" + sp_row["query"] + "\tid:" + sp_row["identity"] + "%\tsim:" + sp_row["similarity"] + "%\t" + str(hit_id)
                             sp_header = sp_row["query"] + "::" + sp_row["target"] + "::" + sp_row["#id"]
-                            gff_list.append(header + "\n" + id_rows.to_string(header=False, index=False))
+                            rows = id_rows.to_string(header=False, index=False).split("\n")
+                            formatted_rows = ["\t".join(list(filter(None, row.split(" ")))) for row in rows]
+                            gff_list.append(header + "\n" + "\n".join(formatted_rows))
                             cds_list.append(">" + sp_row["query"] + "::" + sp_row["target"] + "::" + str(hit_id) + "\n" + str(sp_sequences[sp_header].seq))
                             hit_id += 1
 
@@ -689,7 +699,9 @@ def mergeResults(config, subject, query):
                             id_rows["id"] = str(hit_id)
                             header = "##" +  ex_row["target"] + "\t" + ex_row["query"] + "\tid:" + ex_row["identity"] + "%\tsim:" + ex_row["similarity"] + "%\t" + str(hit_id)
                             ex_header = ex_row["query"] + "::" + ex_row["target"] + "::" + ex_row["#id"]
-                            gff_list.append(header + "\n" + id_rows.to_string(header=False, index=False))
+                            rows = id_rows.to_string(header=False, index=False).split("\n")
+                            formatted_rows = ["\t".join(list(filter(None, row.split(" ")))) for row in rows]
+                            gff_list.append(header + "\n" + "\n".join(formatted_rows))
                             cds_list.append(">" + ex_row["query"] + "::" + ex_row["target"] + "::" + str(hit_id) + "\n" + str(ex_sequences[ex_header].seq))
                             hit_id += 1
 
@@ -699,6 +711,7 @@ def mergeResults(config, subject, query):
                     nucl = []
                     with open(output + query + ".gff", "r") as gff_reader:
                         content = csv.reader(gff_reader, delimiter="\t")
+                        next(content)
                         target = None
                         protein = None
                         id = None
@@ -707,10 +720,9 @@ def mergeResults(config, subject, query):
                                 target = row[0][2:]
                                 protein = row[1]
                                 id = row[4]
-                            elif(len(row) == 1 and row[0].split(" ")[7] == "gene"):
-                                row_filter = list(filter(None, row[0].split(" ")))
-                                start = int(row_filter[4])
-                                end = int(row_filter[5])
+                            elif(row[3] == "gene"):
+                                start = int(row[4])
+                                end = int(row[5])
                                 nucl.append(">" + protein + "::" + target + "::" + id + "\n" + str(subject_fasta[target].seq)[start:end])
                     with open(output + query + ".nuc", "w") as cds_writer:
                         cds_writer.write("\n".join(nucl))
@@ -840,6 +852,7 @@ else:
         for query in config["queries"]:
             visualizeResults(config, subject, query)
     print("Compressing results")
+    shutil.rmtree("ProDA/log")
     shutil.make_archive("ProDA", "zip", "ProDA")
     shutil.rmtree("ProDA")
     print("Finished ProDA")

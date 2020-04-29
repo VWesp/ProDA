@@ -1,4 +1,0 @@
-KeyError in line 83 of /home/valentin/git/ProDA/snakefiles/RETAINED_MAPPER.snakefile:
-'mapping_percentage'
-  File "/home/valentin/git/ProDA/Snakefile", line 30, in <module>
-  File "/home/valentin/git/ProDA/snakefiles/RETAINED_MAPPER.snakefile", line 83, in <module>

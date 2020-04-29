@@ -1,5 +1,0 @@
-Building DAG of jobs...
-MissingInputException in line 9 of /home/valentin/git/ProDA/Snakefile:
-Missing input files for rule matcher:
-subjects/csp.fasta
-subjects/gonium.fasta

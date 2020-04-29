@@ -1,3 +1,0 @@
-SyntaxError in line 27 of /home/valentin/git/ProDA/snakefiles/JOIN_RESULTS.snakefile:
-EOF in multi-line statement (JOIN_RESULTS.snakefile, line 27)
-  File "/home/valentin/git/ProDA/Snakefile", line 24, in <module>

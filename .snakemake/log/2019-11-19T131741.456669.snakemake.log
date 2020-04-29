@@ -1,3 +1,0 @@
-SyntaxError in line 9 of /home/valentin/git/ProDA/snakefiles/EXONERATE.snakefile:
-Unexpected keyword param in rule definition (EXONERATE.snakefile, line 9)
-  File "/home/valentin/git/ProDA/Snakefile", line 23, in <module>

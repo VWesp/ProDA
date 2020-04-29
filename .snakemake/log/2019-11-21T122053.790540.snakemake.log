@@ -1,7 +1,0 @@
-Building DAG of jobs...
-MissingInputException in line 33 of /home/valentin/git/ProDA/Snakefile:
-Missing input files for rule test:
-cd_hit/csp/actin_merged.faa
-cd_hit/gonium/actin_merged.faa
-cd_hit/csp/beta_tubulin2_merged.faa
-cd_hit/gonium/beta_tubulin2_merged.faa

@@ -1,3 +1,0 @@
-TypeError in line 65 of /home/valentin/git/ProDA/Snakefile:
-must be str, not builtin_function_or_method
-  File "/home/valentin/git/ProDA/Snakefile", line 65, in <module>

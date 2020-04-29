@@ -1,4 +1,0 @@
-Building DAG of jobs...
-MissingInputException in line 5 of /home/valentin/git/ProDA/snakefiles/ALIGNMENT.snakefile:
-Missing input files for rule Stretcher:
-cd_hit/csp/actin_merged.faa

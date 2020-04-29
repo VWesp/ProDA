@@ -1,4 +1,0 @@
-Building DAG of jobs...
-MissingInputException in line 5 of /home/valentin/git/ProDA/snakefiles/QUERY_CONTIG_MATCHER.snakefile:
-Missing input files for rule Filter_Out_Useless_Regions:
-blast_results/csp/actin.hit

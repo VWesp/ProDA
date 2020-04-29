@@ -1,4 +1,0 @@
-CreateRuleException in line 5 of /home/valentin/git/ProDA/snakefiles/SPALN.snakefile:
-The name Alignment is already used by another rule
-  File "/home/valentin/git/ProDA/Snakefile", line 13, in <module>
-  File "/home/valentin/git/ProDA/snakefiles/SPALN.snakefile", line 5, in <module>

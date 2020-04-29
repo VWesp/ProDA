@@ -1,3 +1,0 @@
-KeyError in line 35 of /home/valentin/git/ProDA/Snakefile:
-'subjects'
-  File "/home/valentin/git/ProDA/Snakefile", line 35, in <module>

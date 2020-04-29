@@ -1,4 +1,0 @@
-RuleException in line 27 of /home/valentin/git/ProDA/snakefiles/BLAST.snakefile:
-Threads value has to be an integer or a callable.
-  File "/home/valentin/git/ProDA/Snakefile", line 8, in <module>
-  File "/home/valentin/git/ProDA/snakefiles/BLAST.snakefile", line 27, in <module>

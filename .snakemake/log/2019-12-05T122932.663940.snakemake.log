@@ -1,4 +1,0 @@
-Building DAG of jobs...
-MissingInputException in line 13 of /home/valentin/git/ProDA/snakefiles/BLAST.snakefile:
-Missing input files for rule Find_Candidates:
-data/queries/protein1.faa

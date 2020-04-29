@@ -1,3 +1,0 @@
-SyntaxError in line 10 of /home/valentin/git/ProDA/snakefiles/EXONERATE.snakefile:
-Colon expected after keyword shell. (EXONERATE.snakefile, line 10)
-  File "/home/valentin/git/ProDA/Snakefile", line 21, in <module>

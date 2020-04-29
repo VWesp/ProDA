@@ -1,7 +1,0 @@
-Building DAG of jobs...
-MissingInputException in line 1 of /home/valentin/git/ProDA/snakefiles/CD_HIT.snakefile:
-Missing input files for rule cd_hit_exonerate:
-exonerate/csp/actin.fasta
-exonerate/gonium/actin.fasta
-exonerate/gonium/beta_tubulin2.fasta
-exonerate/csp/beta_tubulin2.fasta

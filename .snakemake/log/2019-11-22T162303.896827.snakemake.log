@@ -1,4 +1,0 @@
-SyntaxError:
-Not all output, log and benchmark files of rule visualize_retained contain the same wildcards. This is crucial though, in order to avoid that two or more jobs write to the same file.
-  File "/home/valentin/git/ProDA/Snakefile", line 23, in <module>
-  File "/home/valentin/git/ProDA/snakefiles/VISUALIZE_RESULTS.snakefile", line 22, in <module>

@@ -1,4 +1,0 @@
-WildcardError in line 5 of /home/valentin/git/ProDA/snakefiles/EXONERATE.snakefile:
-No values given for wildcard 'subject'.
-  File "/home/valentin/git/ProDA/Snakefile", line 21, in <module>
-  File "/home/valentin/git/ProDA/snakefiles/EXONERATE.snakefile", line 5, in <module>

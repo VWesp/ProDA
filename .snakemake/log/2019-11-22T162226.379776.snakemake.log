@@ -1,3 +1,0 @@
-WorkflowError in line 23 of /home/valentin/git/ProDA/Snakefile:
-Failed to open /home/valentin/git/ProDA/snakefiles/VISUALIZE_RESULT.snakefile.
-  File "/home/valentin/git/ProDA/Snakefile", line 23, in <module>

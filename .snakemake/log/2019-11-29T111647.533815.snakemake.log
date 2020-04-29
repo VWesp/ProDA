@@ -1,9 +1,0 @@
-TypeError in line 1 of /home/valentin/git/ProDA/Snakefile:
-unhashable type: 'collections.OrderedDict'
-  File "/home/valentin/git/ProDA/Snakefile", line 1, in <module>
-  File "/home/valentin/anaconda3/lib/python3.6/site-packages/yaml/__init__.py", line 114, in load
-  File "/home/valentin/anaconda3/lib/python3.6/site-packages/yaml/constructor.py", line 43, in get_single_data
-  File "/home/valentin/anaconda3/lib/python3.6/site-packages/yaml/constructor.py", line 47, in construct_document
-  File "/home/valentin/anaconda3/lib/python3.6/site-packages/yaml/constructor.py", line 92, in construct_object
-  File "/home/valentin/anaconda3/lib/python3.6/site-packages/yaml/constructor.py", line 147, in construct_pairs
-  File "/home/valentin/anaconda3/lib/python3.6/site-packages/yaml/constructor.py", line 92, in construct_object

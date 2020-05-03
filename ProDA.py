@@ -6,6 +6,7 @@ import os
 import subprocess
 from Bio import SeqIO
 import csv
+import numpy as np
 import traceback
 import multiprocessing as mp
 from functools import partial
@@ -107,7 +108,7 @@ def runBLASTCommand(config, subject, query):
 
         #extract the sequences of the resulting BLAST file
         matchBLASTPositions(blast_path + query + ".hit", config["subjects"][subject],
-                            config["left_addendum"], config["right_addendum"], log_path)
+                            config["z_threshold"], config["left_addendum"], config["right_addendum"], log_path)
         print()
     else:
         print("\t\t\t\t\033[32mFound matching sequence file, skipping\033[0m")
@@ -115,10 +116,11 @@ def runBLASTCommand(config, subject, query):
 #method for extracting the sequences of each subject for each query ranging from the most left to the most right positions
 ##hit_path: path to the BLAST file
 ##subject: name of the subject in the config file
+##threshold: threshold for the Z-score in the config file
 ##lad: parameter containing the number nucleotides that should be added to the left side of the extracted sequence
 ##rad: parameter containing the number nucleotides that should be added to the right side of the extracted sequence
 #log: path to the log file
-def matchBLASTPositions(hit_path, subject, lad, rad, log):
+def matchBLASTPositions(hit_path, subject, threshold, lad, rad, log):
     print("\t\t\t\tSequence matcher: left=" + str(lad) + "\tright=" + str(rad))
     progress.value = 0
     #get the number of rows in the BLAST file
@@ -148,13 +150,17 @@ def matchBLASTPositions(hit_path, subject, lad, rad, log):
                     if(row[0] != current_query or row[1] != current_subject):
                         #extract the positive sequence
                         if(len(positions)):
+                            #retrieve the filtered positions
+                            filtered_positions = filterPositions(positions, threshold)
                             #add the extracted sequence to the result list
-                            fasta_results.append(getMatchedSequence(positions, current_sequence, current_query, current_subject, lad, rad))
+                            fasta_results.append(getMatchedSequence(filtered_positions, current_sequence, current_query, current_subject, lad, rad))
                             positions = []
                         #extract the negative sequence
                         if(len(reverse_positions)):
+                            #retrieve the filtered positions
+                            filtered_positions = filterPositions(reverse_positions, threshold)
                             #add the extracted sequence to the result list
-                            fasta_results.append(getMatchedSequence(reverse_positions, current_sequence, current_query, current_subject, lad, rad))
+                            fasta_results.append(getMatchedSequence(filtered_positions, current_sequence, current_query, current_subject, lad, rad))
                             reverse_positions = []
 
                         #get the current query and subject and the sequence of the subject
@@ -180,13 +186,17 @@ def matchBLASTPositions(hit_path, subject, lad, rad, log):
 
                 #extract the positive sequence of the last subject and query
                 if(len(positions)):
+                    #retrieve the filtered positions
+                    filtered_positions = filterPositions(positions, threshold)
                     #add the extracted sequence to the result list
-                    fasta_results.append(getMatchedSequence(positions, current_sequence, current_query, current_subject, lad, rad))
+                    fasta_results.append(getMatchedSequence(filtered_positions, current_sequence, current_query, current_subject, lad, rad))
                     positions = []
                 #extract the negative sequence of the last subject and query
                 if(len(reverse_positions)):
+                    #retrieve the filtered positions
+                    filtered_positions = filterPositions(reverse_positions, threshold)
                     #add the extracted sequence to the result list
-                    fasta_results.append(getMatchedSequence(reverse_positions, current_sequence, current_query, current_subject, lad, rad))
+                    fasta_results.append(getMatchedSequence(filtered_positions, current_sequence, current_query, current_subject, lad, rad))
                     reverse_positions = []
 
             #write the extracted sequences to the 'fna' file
@@ -203,6 +213,21 @@ def matchBLASTPositions(hit_path, subject, lad, rad, log):
     else:
         with open(hit_path.replace(".hit", ".fna"), "w") as fasta_writer:
             fasta_writer.write("")
+
+#method for filtering out BLAST hits that are too far apart
+##positions: list containing the start and end positions of the BLAST hits
+##threshold: threshold for the Z-score in the config file
+##return: list containing the filtered positions
+def filterPositions(positions, threshold):
+    np_positions = np.asarray(positions)
+    #calculate the distance of each value to the median
+    median = np_positions - np.median(np_positions)
+    #calculate the MAD value
+    mad = np.median(np.abs(median))
+    #calculate the Z-score for each value
+    z_score = (0.6745 + median) / mad
+    #return a list containing the positions whose Z-scores are below the given threshold
+    return list(np_positions[np.abs(z_score) <= threshold])
 
 #method for extracting the sequence based of the BLAST results
 ##positions: list containing the local hit positions for a query and subject
@@ -340,7 +365,7 @@ def runExonerateMultiprocessing(match, query_name, queries, percent, blosum, ref
     ex_output = subprocess.Popen("(exonerate --model protein2genome --targettype dna --querytype protein"
                 " --showtargetgff --showalignment no --showvulgar no --ryo '>%ti\n%tcs'"
                 " --refine " + refine + " --proteinsubmat blosum/" + str(config["blosum"]) + ".txt"
-                " --percent " + str(config["exonerate_percentage"]) + ""
+                " --percent " + str(config["exonerate_percentage"]) + " --bestn 1"
                 " --query " + temp_query + " --target " + temp_target + ""
                 " > " + temp_output_ryo + ")"
                 " 2> " + log + query + ".log",
@@ -556,7 +581,7 @@ def runSpalnMultiprocessing(match, query_name, queries, hsp, strand, pam, output
 
     temp_output = output + query + "_" + str(local_index) + ".sp"
     #run the Spaln command for the extracted sequence and current correspnding query with the specified commands
-    spaln_output = subprocess.Popen("($HOME/spaln2.4.0/bin/spaln -LS -M4 -Q" + str(hsp) + " -S" + str(strand) + " -yp" + str(pam) + " -yq" + str(pam) + ""
+    spaln_output = subprocess.Popen("($HOME/spaln2.4.0/bin/spaln -LS -M1 -Q" + str(hsp) + " -S" + str(strand) + " -yp" + str(pam) + " -yq" + str(pam) + ""
                    " -O6 -o" + temp_output + " " + temp_target + " " + temp_query + ")"
                    " 2> " + log + query + ".log",
                    stdout=subprocess.PIPE, shell=True)
@@ -1135,7 +1160,6 @@ def calculateOverlapPercentage(start1, end1, start2, end2):
 ##config: dictionary of the config data
 ##subject: name of the subject in the config file
 ##query: name of the query in the config file
-def runExonerateCommand(config, subject, query):
 def extractBestHits(config, subject, query):
     print("\t\t\tExtracting best hits: score=" + config["best"] + "\tpre-introns=" + str(config["pre_introns"]))
     output = "ProDA/results/" + subject + "/" + query + "/" + query

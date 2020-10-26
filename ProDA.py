@@ -108,7 +108,7 @@ def runBLASTCommand(config, subject, query):
 
         #extract the sequences of the resulting BLAST file
         matchBLASTPositions(blast_path + query + ".hit", config["subjects"][subject],
-                            config["z_threshold"], config["left_addendum"], config["right_addendum"], log_path)
+                            config["left_addendum"], config["right_addendum"], log_path)
         print()
     else:
         print("\t\t\t\t\033[32mFound matching sequence file, skipping\033[0m")
@@ -116,11 +116,10 @@ def runBLASTCommand(config, subject, query):
 #method for extracting the sequences of each subject for each query ranging from the most left to the most right positions
 ##hit_path: path to the BLAST file
 ##subject: name of the subject in the config file
-##threshold: threshold for the Z-score in the config file
 ##lad: parameter containing the number nucleotides that should be added to the left side of the extracted sequence
 ##rad: parameter containing the number nucleotides that should be added to the right side of the extracted sequence
 #log: path to the log file
-def matchBLASTPositions(hit_path, subject, threshold, lad, rad, log):
+def matchBLASTPositions(hit_path, subject, lad, rad, log):
     print("\t\t\t\tSequence matcher: left=" + str(lad) + "\tright=" + str(rad))
     progress.value = 0
     #get the number of rows in the BLAST file
@@ -150,17 +149,13 @@ def matchBLASTPositions(hit_path, subject, threshold, lad, rad, log):
                     if(row[0] != current_query or row[1] != current_subject):
                         #extract the positive sequence
                         if(len(positions)):
-                            #retrieve the filtered positions
-                            filtered_positions = filterPositions(positions, threshold)
                             #add the extracted sequence to the result list
-                            fasta_results.append(getMatchedSequence(filtered_positions, current_sequence, current_query, current_subject, lad, rad))
+                            fasta_results.append(getMatchedSequence(positions, current_sequence, current_query, current_subject, lad, rad))
                             positions = []
                         #extract the negative sequence
                         if(len(reverse_positions)):
-                            #retrieve the filtered positions
-                            filtered_positions = filterPositions(reverse_positions, threshold)
                             #add the extracted sequence to the result list
-                            fasta_results.append(getMatchedSequence(filtered_positions, current_sequence, current_query, current_subject, lad, rad))
+                            fasta_results.append(getMatchedSequence(reverse_positions, current_sequence, current_query, current_subject, lad, rad))
                             reverse_positions = []
 
                         #get the current query and subject and the sequence of the subject
@@ -171,8 +166,8 @@ def matchBLASTPositions(hit_path, subject, threshold, lad, rad, log):
                     #get the start and end positions of the local hit
                     start = int(row[2])
                     end = int(row[3])
-                    #if the start positions is greater than the end positions (complement strand), add to the negative list
-                    #else, add it to the positive list
+                    #if the start positions is greater than the end positions (complement strand), add them to the negative list
+                    #else, add them to the positive list
                     if(start > end):
                         reverse_positions.append(start)
                         reverse_positions.append(end)
@@ -186,17 +181,13 @@ def matchBLASTPositions(hit_path, subject, threshold, lad, rad, log):
 
                 #extract the positive sequence of the last subject and query
                 if(len(positions)):
-                    #retrieve the filtered positions
-                    filtered_positions = filterPositions(positions, threshold)
                     #add the extracted sequence to the result list
-                    fasta_results.append(getMatchedSequence(filtered_positions, current_sequence, current_query, current_subject, lad, rad))
+                    fasta_results.append(getMatchedSequence(positions, current_sequence, current_query, current_subject, lad, rad))
                     positions = []
                 #extract the negative sequence of the last subject and query
                 if(len(reverse_positions)):
-                    #retrieve the filtered positions
-                    filtered_positions = filterPositions(reverse_positions, threshold)
                     #add the extracted sequence to the result list
-                    fasta_results.append(getMatchedSequence(filtered_positions, current_sequence, current_query, current_subject, lad, rad))
+                    fasta_results.append(getMatchedSequence(reverse_positions, current_sequence, current_query, current_subject, lad, rad))
                     reverse_positions = []
 
             #write the extracted sequences to the 'fna' file
@@ -213,21 +204,6 @@ def matchBLASTPositions(hit_path, subject, threshold, lad, rad, log):
     else:
         with open(hit_path.replace(".hit", ".fna"), "w") as fasta_writer:
             fasta_writer.write("")
-
-#method for filtering out BLAST hits that are too far apart
-##positions: list containing the start and end positions of the BLAST hits
-##threshold: threshold for the Z-score in the config file
-##return: list containing the filtered positions
-def filterPositions(positions, threshold):
-    np_positions = np.asarray(positions)
-    #calculate the distance of each value to the median
-    median = np_positions - np.median(np_positions)
-    #calculate the MAD value
-    mad = np.median(np.abs(median))
-    #calculate the Z-score for each value
-    z_score = (0.6745 + median) / mad
-    #return a list containing the positions whose Z-scores are below the given threshold
-    return list(np_positions[np.abs(z_score) <= threshold])
 
 #method for extracting the sequence based of the BLAST results
 ##positions: list containing the local hit positions for a query and subject
@@ -581,7 +557,7 @@ def runSpalnMultiprocessing(match, query_name, queries, hsp, strand, pam, output
 
     temp_output = output + query + "_" + str(local_index) + ".sp"
     #run the Spaln command for the extracted sequence and current correspnding query with the specified commands
-    spaln_output = subprocess.Popen("($HOME/spaln2.4.0/bin/spaln -LS -M1 -Q" + str(hsp) + " -S" + str(strand) + " -yp" + str(pam) + " -yq" + str(pam) + ""
+    spaln_output = subprocess.Popen("($HOME/spaln2.4.0/bin/spaln -M1 -LS -Q" + str(hsp) + " -S" + str(strand) + " -yp" + str(pam) + " -yq" + str(pam) + ""
                    " -O6 -o" + temp_output + " " + temp_target + " " + temp_query + ")"
                    " 2> " + log + query + ".log",
                    stdout=subprocess.PIPE, shell=True)
@@ -947,7 +923,8 @@ def mergeResults(config, subject, query):
                 #get the evaluation file of the Exonerate results
                 ex_eval_df = pd.read_csv(ex_stretcher, sep="\t", header=0).astype(str)
                 progress.value = 0
-                print("\t\t\t\t" + str(progress.value) + "/" + str(len(sp_eval_df)) + " hits processed", end="\r")
+                length = len(sp_eval_df) * 2 + len(ex_eval_df)
+                print("\t\t\t\t" + str(progress.value) + "/" + str(length) + " hits processed", end="\r")
                 #loop over the lines of the Spaln evaluation file
                 for sp_index,sp_row in sp_eval_df.iterrows():
                     sp_header = sp_row["query"] + "::" + sp_row["target"] + "::" + sp_row["#id"]
@@ -1029,10 +1006,8 @@ def mergeResults(config, subject, query):
 
                     #increase the progress by 1 and print it
                     progress.value += 1
-                    print("\t\t\t\t" + str(progress.value) + "/" + str(len(sp_eval_df)) + " hits processed", end="\r")
+                    print("\t\t\t\t" + str(progress.value) + "/" + str(length) + " hits processed", end="\r")
 
-                print()
-                print("\t\t\t\tRetrieving non-duplicated hits")
                 #loop over the lines of the Spaln evaluation file but ignore hits that were already processed (sp_id_list)
                 for sp_index,sp_row in sp_eval_df.iterrows():
                     if(not sp_row["#id"] in sp_id_list):
@@ -1048,6 +1023,10 @@ def mergeResults(config, subject, query):
                         gff_list.append(header + "\n" + "\n".join(formatted_rows))
                         cds_list.append(">" + sp_row["query"] + "::" + sp_row["target"] + "::" + str(hit_id) + "\n" + str(sp_sequences[sp_header].seq))
                         hit_id += 1
+
+                    #increase the progress by 1 and print it
+                    progress.value += 1
+                    print("\t\t\t\t" + str(progress.value) + "/" + str(length) + " hits processed", end="\r")
 
                 #loop over the lines of the Exonerate evaluation file but ignore hits that were already processed (ex_id_list)
                 for ex_index,ex_row in ex_eval_df.iterrows():
@@ -1065,11 +1044,18 @@ def mergeResults(config, subject, query):
                         cds_list.append(">" + ex_row["query"] + "::" + ex_row["target"] + "::" + str(hit_id) + "\n" + str(ex_sequences[ex_header].seq))
                         hit_id += 1
 
+                    #increase the progress by 1 and print it
+                    progress.value += 1
+                    print("\t\t\t\t" + str(progress.value) + "/" + str(length) + " hits processed", end="\r")
+
                 #write the gff list to a file
                 with open(output + query + ".gff", "w") as gff_writer:
                     gff_writer.write("\n".join(gff_list))
 
-                print("\t\t\t\tRetrieving sequences")
+                progress.value = 0
+                length = int(subprocess.Popen("wc -l " + output + query + ".gff" + " | awk '{ print $1 }'",
+                             stdout=subprocess.PIPE, shell=True).communicate()[0].decode("utf-8"))
+                print("\n\t\t\t\t" + str(progress.value) + "/" + str(length) + " GFF lines processed", end="\r")
                 nucl = []
                 #access the gff file
                 with open(output + query + ".gff", "r") as gff_reader:
@@ -1088,6 +1074,10 @@ def mergeResults(config, subject, query):
                             start = int(row[4])
                             end = int(row[5])
                             nucl.append(">" + protein + "::" + target + "::" + id + "\n" + str(subject_fasta[target].seq)[start:end])
+
+                        #increase the progress by 1 and print it
+                        progress.value += 1
+                        print("\t\t\t\t" + str(progress.value) + "/" + str(length) + " GFF lines processed", end="\r")
 
                 #write the nucleotide Fasta to a file
                 with open(output + query + ".nuc", "w") as nuc_writer:
@@ -1161,7 +1151,7 @@ def calculateOverlapPercentage(start1, end1, start2, end2):
 ##subject: name of the subject in the config file
 ##query: name of the query in the config file
 def extractBestHits(config, subject, query):
-    print("\t\t\tExtracting best hits: score=" + config["best"] + "\tpre-introns=" + str(config["pre_introns"]))
+    print("\n\t\t\tExtracting best hits: score=" + config["best"] + "\tpre-introns=" + str(config["pre_introns"]))
     output = "ProDA/results/" + subject + "/" + query + "/" + query
     #access the merged gff file
     with open(output + ".gff", "r") as gff_reader:
@@ -1198,7 +1188,6 @@ def extractBestHits(config, subject, query):
                         best_hit[protein]["ix"] = index
                         best_hit[protein]["in"] = introns
                         best_hit[protein]["g"] = [header + "\n" + "\n".join(current_cds)]
-                        current_cds = []
                     else:
                         #variable checking whether hits with introns are preferred over ones without introns and whether the new query contains introns but not the current best one
                         introns_found = config["pre_introns"] > 0 and introns > 0 and best_hit[protein]["in"] == 0
@@ -1219,7 +1208,6 @@ def extractBestHits(config, subject, query):
                             best_hit[protein]["ix"] = index
                             best_hit[protein]["in"] = introns
                             best_hit[protein]["g"] = [header + "\n" + "\n".join(current_cds)]
-                            current_cds = []
 
                 #get the 'gff' header line and the associated information
                 header = "\t".join(row)
@@ -1228,6 +1216,7 @@ def extractBestHits(config, subject, query):
                 identity = float(row[2].split("id:")[1][:-1])
                 similarity = float(row[3].split("sim:")[1][:-1])
                 introns = -1
+                current_cds = []
             else:
                 #get the 'gene' and 'cds' lines
                 #if it is 'cds' line, increase the number of introns by 1
@@ -1252,7 +1241,6 @@ def extractBestHits(config, subject, query):
                 best_hit[protein]["ix"] = index
                 best_hit[protein]["in"] = introns
                 best_hit[protein]["g"] = [header + "\n" + "\n".join(current_cds)]
-                current_cds = []
             else:
                 #variable checking whether hits with introns are preferred over ones without introns and whether the new query contains introns but not the current best one
                 introns_found = config["pre_introns"] > 0 and introns > 0 and best_hit[protein]["in"] == 0
@@ -1273,7 +1261,8 @@ def extractBestHits(config, subject, query):
                     best_hit[protein]["ix"] = index
                     best_hit[protein]["in"] = introns
                     best_hit[protein]["g"] = [header + "\n" + "\n".join(current_cds)]
-                    current_cds = []
+
+            current_cds = []
 
         #write the the best hits of the gff file to a new gff file
         with open(output + "_best_hits.gff", "w") as gff_writer:

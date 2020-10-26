@@ -1,25 +1,27 @@
 subjects:
-  subject_1: data/subjects/subject_1.fna
-  subject_2: data/subjects/subject_2.fna
+  [genome_file1]: [path_to_genome_file1]
+  [genome_file2]: [path_to_genome_file2]
+  [transcriptome_file1]: [path_to_transcriptome_file1]
 queries:
-  query_1: data/queries/query_1.faa
-  query_2: data/queries/query_2.faa
-  query_3: data/queries/query_3.faa
+  [protein_file1]: [path_to_protein_file1]
+  [protein_file2]: [path_to_protein_file2]
+  [protein_file3]: [path_to_protein_file3]
+  [protein_file4]: [path_to_protein_file4]
 
-evalue: 1e-6
-left_addendum: 1000
-right_addendum: 1000
-exonerate_percentage: 19
-blosum: 62
-refine: region
-hsp: 3
-strand: 3
-pam: 160
-stop_at_stop: 1
-hssp_distance: 0
-filter_met: 1
-overlap_percentage: 70
-properties: <path_to_properties_file>
-best: a
-pre_introns: 0
-threads: 30
+evalue: [] #BLAST: -evalue
+left_addendum: [] #number of additional nucleotides added left to the extracted sequences
+right_addendum: [] #number of additional nucleotides added right to the extracted sequences
+exonerate_percentage: [0-100] #Exonerate: --percent
+blosum: [30,45,62,80] #Exonerate: --proteinsubmat; read from blosum folder
+refine: [none,full,region] #Exonerate: --region
+hsp: [0,1,2,3] #Spaln: -Q
+strand: [0,1,2,3] #Spaln: -S
+pam: [] #Spaln: -yp & -yq
+stop_at_stop: [0=no,1=yes] #translate the Exonerate and Spaln sequences only till the first stop codon
+hssp_distance: [] #specify the HSSP distance to accept sequences as homologous
+filter_met: [0=no,1=yes] #filter all extracted sequences that don't start with a methione
+overlap_percentage: [0-100] #specifiy the overlap percentage to accept sequences as duplicates
+properties: [path_to_jalview_properties_file] #JalView: -props
+best: [i=identity,s=similarity,a=alignment score] #specfiy in what category extracted sequences are seen as the 'best one'
+pre_introns: [0=no,1=yes] #specify if extracted sequences with introns should be preferred over sequences with no sequences
+threads: 30 #number of threads used in the script
